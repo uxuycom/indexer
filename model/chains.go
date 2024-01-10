@@ -9,5 +9,5 @@ const (
 
 const (
 	ChainBTC  string = "btc"
-	ChainAVAX string = "avax"
+	ChainAVAX string = "avalanche"
 )

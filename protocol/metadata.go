@@ -25,9 +25,7 @@ func ParseMetaData(chainName string, tx *xycommon.RpcTransaction) (*devents.Meta
 
 	// MethodID: 0xd9b3d6d0
 	if chainName == model.ChainAVAX && len(tx.Events) > 0 {
-		if tx.Input[:4] == asc20.ExchangeMethodID {
-			return asc20.ParseMetaDataByEventLogs(chainName, tx)
-		}
+		return asc20.ParseMetaDataByEventLogs(chainName, tx)
 	}
 	return ParseEVMMetaData(chainName, tx.Input)
 }

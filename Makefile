@@ -21,7 +21,7 @@ API_OUTFILE_NAME=$(API_MODULE_NAME)-$(API_MODULE_VERSION)
 GO_BIN_DIR?=$(shell dirname `which go`)
 
 .PHONY: all
-all: fmt generate build
+all: fmt build
 
 .PHONY: build
 build: export GOBIN=$(CURDIR)/bin

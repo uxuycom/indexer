@@ -1,0 +1,92 @@
+{
+  "info": {
+    "_postman_id": "d9ef2f7f-9579-49c1-8fdc-57f4ea8516c1",
+    "name": "UXUY Indexer OPEN API",
+    "description": "UXUY Indexer JSON-RPC OPEN API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "32132358"
+  },
+  "item": [
+    {
+      "name": "indexer",
+      "item": [
+        {
+          "name": "inscription.All",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"inscription.All\",\n  \"id\": 1,\n  \"jsonrpc\": \"2.0\",\n  \"params\": [10, 0, \"avalanche\", \"asc-20\", \"pepe\", \"0x7CE86276E3C1dA182bD7d85261196Ab6D60f5779\", 0]\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            },
+            "description": "get all inscriptions"
+          },
+          "response": [
+            {
+              "name": "Successful response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    ""
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://ava.indexs.io/rpc"
+    }
+  ]
+}

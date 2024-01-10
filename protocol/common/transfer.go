@@ -24,7 +24,7 @@ func (base *Protocol) Transfer(block *xycommon.RpcBlock, tx *xycommon.RpcTransac
 		Tx:    tx,
 		Transfer: &devents.Transfer{
 			Sender: tx.From,
-			Receives: []devents.Receive{
+			Receives: []*devents.Receive{
 				{
 					Address: tx.To,
 					Amount:  tf.Amount,

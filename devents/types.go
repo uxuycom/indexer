@@ -41,16 +41,18 @@ type Deploy struct {
 type Mint struct {
 	Minter string
 	Amount decimal.Decimal
+	Init   bool
 }
 
 type Receive struct {
 	Address string
 	Amount  decimal.Decimal
+	Init    bool
 }
 
 type Transfer struct {
 	Sender   string
-	Receives []Receive
+	Receives []*Receive
 }
 
 type TxResult struct {

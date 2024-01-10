@@ -55,7 +55,7 @@ func (p *Protocol) Exchange(block *xycommon.RpcBlock, tx *xycommon.RpcTransactio
 			Tx:    tx,
 			Transfer: &devents.Transfer{
 				Sender: exchange.From,
-				Receives: []devents.Receive{
+				Receives: []*devents.Receive{
 					{
 						Address: exchange.To,
 						Amount:  exchange.Amount,

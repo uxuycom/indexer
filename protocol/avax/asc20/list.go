@@ -18,14 +18,13 @@ func (p *Protocol) List(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, m
 	if err != nil {
 		return nil, xyerrors.ErrDataVerifiedFailed.WrapCause(err)
 	}
-
 	result := &devents.TxResult{
 		MD:    md,
 		Block: block,
 		Tx:    tx,
 		Transfer: &devents.Transfer{
 			Sender: tx.From,
-			Receives: []devents.Receive{
+			Receives: []*devents.Receive{
 				{
 					Address: tx.To,
 					Amount:  list.Amount,

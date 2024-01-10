@@ -190,7 +190,7 @@ func (tc *TxResultHandler) BuildBalanceTxEvents(e *TxResult) []BalanceTxEvent {
 	if e.Mint != nil {
 		_, balance := tc.cache.Balance.Get(e.MD.Protocol, e.MD.Tick, e.Mint.Minter)
 		action := DBActionUpdate
-		if balance.Overall.Equal(e.Mint.Amount) {
+		if e.Mint.Init {
 			action = DBActionCreate
 		}
 		items = append(items, BalanceTxEvent{
@@ -222,7 +222,7 @@ func (tc *TxResultHandler) BuildBalanceTxEvents(e *TxResult) []BalanceTxEvent {
 		for _, item := range e.Transfer.Receives {
 			_, receiveBalance := tc.cache.Balance.Get(e.MD.Protocol, e.MD.Tick, item.Address)
 			action := DBActionUpdate
-			if receiveBalance.Overall.Equal(item.Amount) {
+			if item.Init {
 				action = DBActionCreate
 			}
 			items = append(items, BalanceTxEvent{

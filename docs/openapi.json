@@ -4,12 +4,12 @@
   "x-api-id": "uxuy-indexer-json-rpc",
   "info": {
     "title": "UXUY Indexer JSON-RPC OpenAPI",
-    "version": "1.0.0",
+    "version": "alpha-0.0.1",
     "description": "UXUY Indexer JSON-RPC API in OpenAPI"
   },
   "servers": [
     {
-      "url": "https://ava.indexs.io/v1/rpc"
+      "url": "https://api.indexs.io/v1/rpc/"
     }
   ],
   "paths": {

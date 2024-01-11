@@ -14,7 +14,7 @@ import (
 func TestTransactionDataByHash(t *testing.T) {
 
 	//txhash := "0x8166ff37f1fb6b1d2cdb6b8759ca4c790b1ea2ea14bee22ffc0434b81c3d2050"
-	url := "https://maximum-indulgent-glade.avalanche-mainnet.quiknode.pro/c24c4c57f7fc887524d7c5fd24e21cfb40d23cd9/ext/bc/C/rpc/"
+	url := "https://1rpc.io/avax/c"
 	method := "POST"
 
 	payload := strings.NewReader(`{"method":"eth_getTransactionByHash","params":["0x8166ff37f1fb6b1d2cdb6b8759ca4c790b1ea2ea14bee22ffc0434b81c3d2050"],"id":1,"jsonrpc":"2.0"}`)
@@ -31,10 +31,16 @@ func TestTransactionDataByHash(t *testing.T) {
 
 	res, err := client.Do(req)
 	if err != nil {
-		xylog.Logger.Error(err)
+		if xylog.Logger != nil {
+			xylog.Logger.Error(err)
+		}
 		return
 	}
-	defer res.Body.Close()
+	if res != nil {
+		defer func() {
+			_ = res.Body.Close()
+		}()
+	}
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -71,7 +77,7 @@ func TestTransactionDataByHash(t *testing.T) {
 
 func Test(t *testing.T) {
 
-	url := "https://maximum-indulgent-glade.avalanche-mainnet.quiknode.pro/c24c4c57f7fc887524d7c5fd24e21cfb40d23cd9/ext/bc/C/rpc/"
+	url := "https://1rpc.io/avax/c"
 	method := "POST"
 
 	payload := strings.NewReader(`{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}`)
@@ -90,7 +96,9 @@ func Test(t *testing.T) {
 		fmt.Println(err)
 		return
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {

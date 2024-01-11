@@ -36,6 +36,9 @@ func NewDbClient(cfg *utils.DatabaseConfig) (*DBClient, error) {
 }
 
 func (conn *DBClient) SaveLastBlock(tx *gorm.DB, status *model.BlockStatus) error {
+	if tx == nil {
+		return errors.New("gorm db is not valid")
+	}
 	return tx.Where("chain = ?", status.Chain).Save(status).Error
 }
 

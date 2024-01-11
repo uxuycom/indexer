@@ -124,7 +124,7 @@ func (p *Protocol) extractValidOrders(tx *xycommon.RpcTransaction) []*Exchange {
 type TransferASC20Token struct {
 	From   common.Address `json:"from"`
 	To     common.Address `json:"to"`
-	Ticker string         `json:"ticker"`
+	Ticker common.Hash    `json:"ticker"`
 	Amount *big.Int       `json:"amount"`
 }
 
@@ -139,7 +139,7 @@ func (p *Protocol) parseOrderByTransfer(transferEvent xycommon.RpcLog) (*Exchang
 		return nil, xyerrors.NewInsError(-10, fmt.Sprintf("tx execute event parse error[%v], event[%v]", err, transferEvent))
 	}
 
-	ok, tick := p.cache.Inscription.GetNameByIdx(transferASC20TokenResult.Ticker)
+	ok, tick := p.cache.Inscription.GetNameByIdx(transferASC20TokenResult.Ticker.String())
 	if !ok {
 		return nil, xyerrors.NewInsError(-11, fmt.Sprintf("tx execute event parse failed, tick not found, idx[%s]", transferASC20TokenResult.Ticker))
 	}
@@ -163,6 +163,7 @@ func (p *Protocol) extractValidOrdersByTransfer(tx *xycommon.RpcTransaction) []*
 			continue
 		}
 
+		xylog.Logger.Infof("hit avax-transfer-types, tx:%s", tx.Hash)
 		item, err := p.parseOrderByTransfer(e)
 		if err != nil {
 			xylog.Logger.Infof("tx[%s] - transfer decode err:%v", tx.Hash, err)

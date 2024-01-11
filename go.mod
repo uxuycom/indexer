@@ -1,4 +1,4 @@
-module open-indexer
+module github.com/uxuycom/indexer
 
 go 1.20
 

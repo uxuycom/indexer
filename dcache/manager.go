@@ -43,6 +43,7 @@ func (h *Manager) initInscriptionCache() {
 	idx := 0
 	start := uint32(0)
 	limit := 10000
+	maxSid := uint32(0)
 	xylog.Logger.Infof("load inscriptions data start...")
 	for {
 		items, err := h.db.GetInscriptionsByIdLimit(uint64(start), limit)
@@ -64,13 +65,19 @@ func (h *Manager) initInscriptionCache() {
 				TotalSupply:  v.TotalSupply,
 				Decimals:     v.Decimals,
 			})
+
+			if v.SID > maxSid {
+				maxSid = v.SID
+			}
 		}
-		//update sid
-		h.Inscription.SetSid(items[len(items)-1].SID)
 
 		//update id index
 		start = items[len(items)-1].ID
 	}
+
+	//update sid
+	h.Inscription.SetSid(maxSid)
+
 	xylog.Logger.Infof("load inscriptions data finished, cost ts:%v", time.Since(startTs))
 }
 
@@ -81,6 +88,7 @@ func (h *Manager) initInscriptionStatsCache() {
 	idx := 0
 	start := uint32(0)
 	limit := 10000
+	maxSid := uint32(0)
 	xylog.Logger.Infof("load inscription-stats data start...")
 	for {
 		items, err := h.db.GetInscriptionStatsByIdLimit(uint64(start), limit)
@@ -101,13 +109,19 @@ func (h *Manager) initInscriptionStatsCache() {
 				Holders: int64(v.Holders),
 				TxCnt:   v.TxCnt,
 			})
+
+			if v.SID > maxSid {
+				maxSid = v.SID
+			}
 		}
-		//update sid
-		h.InscriptionStats.SetSid(items[len(items)-1].SID)
 
 		//update id index
 		start = items[len(items)-1].ID
 	}
+
+	//update sid
+	h.InscriptionStats.SetSid(maxSid)
+
 	xylog.Logger.Infof("load inscription-stats data finished, cost ts:%v", time.Since(startTs))
 }
 
@@ -118,6 +132,7 @@ func (h *Manager) initBalanceCache() {
 	idx := 0
 	start := uint64(0)
 	limit := 10000
+	maxSid := uint64(0)
 	xylog.Logger.Infof("load balances data start...")
 	for {
 		balances, err := h.db.GetBalancesByIdLimit(start, limit)
@@ -137,14 +152,19 @@ func (h *Manager) initBalanceCache() {
 				Available: v.Available,
 				Overall:   v.Balance,
 			})
-		}
 
-		//update sid
-		h.Balance.SetSid(balances[len(balances)-1].SID)
+			if v.SID > maxSid {
+				maxSid = v.SID
+			}
+		}
 
 		//update id index
 		start = balances[len(balances)-1].ID
 	}
+
+	//update sid
+	h.Balance.SetSid(maxSid)
+
 	xylog.Logger.Infof("load balances data finished, cost ts:%v", time.Since(startTs))
 }
 

@@ -5,7 +5,7 @@ Use tap_indexer;
 CREATE TABLE `inscriptions`
 (
     `id`             int unsigned                                                  NOT NULL AUTO_INCREMENT,
-    `sid`      int unsigned                                               NOT NULL,          -- sid
+    `sid` int unsigned NOT NULL,                                                             -- sid
     `chain`          varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL, -- chain code, eth / avax / btc / doge
     `protocol`       varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin    NOT NULL, -- protocol code, POLS, ETHS, BRC20
     `tick`           varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin    NOT NULL, -- ticker code
@@ -67,7 +67,6 @@ CREATE TABLE `txs`
     `amt`               DECIMAL(36, 18) NOT NULL COMMENT 'amount',
     `gas`               bigint          NOT NULL COMMENT 'gas, spend fee',
     `gas_price` bigint NOT NULL COMMENT 'gas price',
-    `input`     text COMMENT 'tx input data',
     `status`            tinyint(1)      NOT NULL COMMENT 'tx status',
     `created_at`        timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`        timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

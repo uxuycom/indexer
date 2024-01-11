@@ -69,7 +69,6 @@ type Transaction struct {
 	Amount          decimal.Decimal `json:"amt" gorm:"column:amt;type:decimal(36,18)"`         // balance
 	Gas             int64           `json:"gas" gorm:"column:gas"`                             // gas
 	GasPrice        int64           `json:"gas_price" gorm:"column:gas_price"`                 // gas price
-	Input           string          `json:"input" gorm:"column:input"`                         // tx content, json string
 	Status          int8            `json:"status" gorm:"column:status"`                       // tx status
 	CreatedAt       time.Time       `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt       time.Time       `json:"updated_at" gorm:"column:updated_at"`

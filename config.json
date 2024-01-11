@@ -1,6 +1,6 @@
 {
   "server": {
-    "from_block": 38209552,
+    "from_block": 40146071,
     "scan_limit": 1,
     "delayed_scan_number": 10
   },
@@ -11,14 +11,11 @@
   },
   "chain": {
     "chain_name": "avalanche",
-    "rpc": "https://ava-mainnet.public.blastapi.io/ext/bc/C/rpc",
+    "rpc": "https://1rpc.io/avax/c",
     "username": "",
     "password": ""
   },
   "log_level": "info",
-  "protocol": [
-    "asc-20"
-  ],
   "notls": true,
   "rpclisten": [
     ":6583"

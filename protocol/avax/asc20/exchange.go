@@ -11,9 +11,8 @@ import (
 	"open-indexer/utils"
 	"open-indexer/xyerrors"
 	"open-indexer/xylog"
+	"strings"
 )
-
-const ExchangeMethodID = "0xd9b3d6d0"
 
 const (
 	// EventTopicHashExchange avascriptions_protocol_TransferASC20TokenForListing (index_topic_1 address from, index_topic_2 address to, bytes32 id)
@@ -34,6 +33,7 @@ type Exchange struct {
 }
 
 func (p *Protocol) Exchange(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, omd *devents.MetaData) (items []*devents.TxResult, err *xyerrors.InsError) {
+	// extract valid orders
 	exchanges := p.extractValidOrders(tx)
 	if len(exchanges) <= 0 {
 		return nil, nil
@@ -43,7 +43,7 @@ func (p *Protocol) Exchange(block *xycommon.RpcBlock, tx *xycommon.RpcTransactio
 	for _, exchange := range exchanges {
 		md := omd.Copy()
 		md.Operate = devents.OperateExchange
-		md.Tick = exchange.Tick
+		md.Tick = strings.ToLower(strings.TrimSpace(exchange.Tick))
 		if err1 := p.verifyExchange(md, exchange); err1 != nil {
 			xylog.Logger.Infof("exchange verified failed, err:%v, data:%v", err1, exchange)
 			continue
@@ -124,7 +124,7 @@ func (p *Protocol) extractValidOrders(tx *xycommon.RpcTransaction) []*Exchange {
 type TransferASC20Token struct {
 	From   common.Address `json:"from"`
 	To     common.Address `json:"to"`
-	Ticker string         `json:"ticker"`
+	Ticker common.Hash    `json:"ticker"`
 	Amount *big.Int       `json:"amount"`
 }
 
@@ -158,22 +158,19 @@ func (p *Protocol) parseOrderByTransfer(transferEvent xycommon.RpcLog) (*Exchang
 
 func (p *Protocol) extractValidOrdersByTransfer(tx *xycommon.RpcTransaction) []*Exchange {
 	items := make([]*Exchange, 0, len(tx.Events))
-	fmt.Println("===========--------------")
 	for _, e := range tx.Events {
 		if len(e.Topics) != 4 || e.Topics[0].String() != EventTopicHashExchange2 {
-			fmt.Printf("===========--------------len(e.Topics):%v e.Topics[0].String() != EventTopicHashExchange2:%v e.Topics[0].String():%s EventTopicHashExchange2:---%s\n", len(e.Topics), e.Topics[0].String() != EventTopicHashExchange2, e.Topics[0].String(), EventTopicHashExchange2)
 			continue
 		}
 
+		xylog.Logger.Infof("hit avax-transfer-types, tx:%s", tx.Hash)
 		item, err := p.parseOrderByTransfer(e)
 		if err != nil {
-			fmt.Printf("tx[%s] - transfer decode err:%v", tx.Hash, err)
 			xylog.Logger.Infof("tx[%s] - transfer decode err:%v", tx.Hash, err)
 			continue
 		}
 		items = append(items, item)
 	}
-	fmt.Println("item len:", len(items), "tx.Events len:", len(tx.Events))
 	return items
 }
 

@@ -31,10 +31,14 @@ func TestTransactionDataByHash(t *testing.T) {
 
 	res, err := client.Do(req)
 	if err != nil {
-		xylog.Logger.Error(err)
+		if xylog.Logger != nil {
+			xylog.Logger.Error(err)
+		}
 		return
 	}
-	defer res.Body.Close()
+	if res != nil {
+		defer res.Body.Close()
+	}
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {

@@ -182,7 +182,7 @@ func TestExtractValidOrdersByTransfer(t *testing.T) {
 							common.HexToHash("0x000000000000000000000000117b15af63e1d533cc5bac7333f3cc8f8cc2696d"),
 							common.HexToHash("0x51ae1b9bb3103c91be3c12db9f97165657aee56ce412966fd68b8715b0481595"),
 						},
-						Data: hexutil.MustDecode("0x51ae1b9bb3103c91be3c12db9f97165657aee56ce412966fd68b8715b048159564==="),
+						Data: []byte("0x51ae1b9bb3103c91be3c12db9f97165657aee56ce412966fd68b8715b048159564==="),
 					},
 				},
 			},

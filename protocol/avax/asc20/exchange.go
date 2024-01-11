@@ -139,7 +139,7 @@ func (p *Protocol) parseOrderByTransfer(transferEvent xycommon.RpcLog) (*Exchang
 		return nil, xyerrors.NewInsError(-10, fmt.Sprintf("tx execute event parse error[%v], event[%v]", err, transferEvent))
 	}
 
-	ok, tick := p.cache.Inscription.GetNameByIdx(transferASC20TokenResult.Ticker)
+	ok, tick := p.cache.Inscription.GetNameByIdx(transferASC20TokenResult.Ticker.String())
 	if !ok {
 		return nil, xyerrors.NewInsError(-11, fmt.Sprintf("tx execute event parse failed, tick not found, idx[%s]", transferASC20TokenResult.Ticker))
 	}
@@ -158,18 +158,22 @@ func (p *Protocol) parseOrderByTransfer(transferEvent xycommon.RpcLog) (*Exchang
 
 func (p *Protocol) extractValidOrdersByTransfer(tx *xycommon.RpcTransaction) []*Exchange {
 	items := make([]*Exchange, 0, len(tx.Events))
+	fmt.Println("===========--------------")
 	for _, e := range tx.Events {
-		if len(e.Topics) != 3 || e.Topics[0].String() != EventTopicHashExchange2 {
+		if len(e.Topics) != 4 || e.Topics[0].String() != EventTopicHashExchange2 {
+			fmt.Printf("===========--------------len(e.Topics):%v e.Topics[0].String() != EventTopicHashExchange2:%v e.Topics[0].String():%s EventTopicHashExchange2:---%s\n", len(e.Topics), e.Topics[0].String() != EventTopicHashExchange2, e.Topics[0].String(), EventTopicHashExchange2)
 			continue
 		}
 
 		item, err := p.parseOrderByTransfer(e)
 		if err != nil {
+			fmt.Printf("tx[%s] - transfer decode err:%v", tx.Hash, err)
 			xylog.Logger.Infof("tx[%s] - transfer decode err:%v", tx.Hash, err)
 			continue
 		}
 		items = append(items, item)
 	}
+	fmt.Println("item len:", len(items), "tx.Events len:", len(tx.Events))
 	return items
 }
 

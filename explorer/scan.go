@@ -20,9 +20,7 @@ import (
 )
 
 const (
-	startInterval        = 1 * time.Microsecond
-	scanLimit     uint64 = 2
-	blockSize     int    = 20
+	scanLimit uint64 = 2
 )
 
 type Explorer struct {
@@ -210,7 +208,7 @@ func (e *Explorer) syncLatestBlockNumber() error {
 	return nil
 }
 
-func (e *Explorer) scanLogs(startBlock, endBlock uint64, result chan map[int64][]xycommon.RpcLog) {
+func (e *Explorer) scanLogs(startBlock, endBlock uint64, result chan map[string][]xycommon.RpcLog) {
 	if e.config.Filters == nil || len(e.config.Filters.EventTopics) <= 0 {
 		result <- nil
 		return
@@ -241,9 +239,9 @@ DoFilter:
 		goto DoFilter
 	}
 
-	groupLogs := make(map[int64][]xycommon.RpcLog, 200)
+	groupLogs := make(map[string][]xycommon.RpcLog, 200)
 	for _, log := range logs {
-		txIdx := log.TxIndex.ToInt().Int64()
+		txIdx := log.TxHash.String()
 		if _, ok := groupLogs[txIdx]; !ok {
 			groupLogs[txIdx] = make([]xycommon.RpcLog, 0, 2)
 		}
@@ -256,7 +254,7 @@ func (e *Explorer) batchScan(startBlock, endBlock uint64) (uint64, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
 
-	blockLogsChan := make(chan map[int64][]xycommon.RpcLog)
+	blockLogsChan := make(chan map[string][]xycommon.RpcLog)
 	go e.scanLogs(startBlock, endBlock, blockLogsChan)
 
 	blockMap := &sync.Map{}
@@ -291,7 +289,7 @@ func (e *Explorer) batchScan(startBlock, endBlock uint64) (uint64, error) {
 		block := blockVal.(*xycommon.RpcBlock)
 		// add logs data
 		for _, tx := range block.Transactions {
-			if logs, ok1 := blockLogs[tx.TxIndex.Int64()]; ok1 {
+			if logs, ok1 := blockLogs[tx.Hash]; ok1 {
 				tx.Events = logs
 			}
 		}

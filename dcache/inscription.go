@@ -57,7 +57,6 @@ func (d *Inscription) Create(protocol, tick string, nt *Tick) {
 	// asc20 Add cache names
 	if protocol == "asc-20" {
 		key := utils.Keccak256(strings.ToLower(tick))
-		fmt.Println("key:", key)
 		d.tickNames.Store(key, tick)
 	}
 }
@@ -103,6 +102,7 @@ func (d *Inscription) Get(protocol, tick string) (bool, *Tick) {
  * get tick name by idx
  ***************************************/
 func (d *Inscription) GetNameByIdx(key string) (bool, string) {
+	key = strings.TrimPrefix(key, "0x")
 	name, ok := d.tickNames.Load(key)
 	if !ok {
 		return false, ""

@@ -14,7 +14,6 @@ type Config struct {
 	LogLevel       string               `json:"log_level"`
 	LogPath        string               `json:"log_path"`
 	Filters        *utils.IndexFilter   `json:"filters"`
-	Ticks          []string             `json:"tick_whitelist"`
 	Database       utils.DatabaseConfig `json:"database"`
 	ProfileEnabled bool                 `json:"profile_enabled"`
 }
@@ -37,7 +36,9 @@ func LoadConfig(cfg *Config, filep string) {
 	if err != nil {
 		log.Fatal("File error: ", err.Error())
 	}
-	defer configFile.Close()
+	defer func() {
+		_ = configFile.Close()
+	}()
 	jsonParser := json.NewDecoder(configFile)
 	if err := jsonParser.Decode(&cfg); err != nil {
 		log.Fatal("Config error: ", err.Error())

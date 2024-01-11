@@ -5,7 +5,7 @@ Use tap_indexer;
 CREATE TABLE `inscriptions`
 (
     `id`             int unsigned                                                  NOT NULL AUTO_INCREMENT,
-    `sid`      int unsigned                                               NOT NULL,          -- sid
+    `sid` int unsigned NOT NULL,                                                             -- sid
     `chain`          varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL, -- chain code, eth / avax / btc / doge
     `protocol`       varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin    NOT NULL, -- protocol code, POLS, ETHS, BRC20
     `tick`           varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin    NOT NULL, -- ticker code
@@ -67,7 +67,6 @@ CREATE TABLE `txs`
     `amt`               DECIMAL(36, 18) NOT NULL COMMENT 'amount',
     `gas`               bigint          NOT NULL COMMENT 'gas, spend fee',
     `gas_price` bigint NOT NULL COMMENT 'gas price',
-    `input`     text COMMENT 'tx input data',
     `status`            tinyint(1)      NOT NULL COMMENT 'tx status',
     `created_at`        timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`        timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -102,7 +101,7 @@ CREATE TABLE `address_txs`
 (
     `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
     `chain`    varchar(32) COLLATE utf8mb4_general_ci                      NOT NULL COMMENT 'chain name',
-    `event` tinyint(1) NOT NULL,
+    `event`    tinyint(1)                                                  NOT NULL,
     `protocol` varchar(32) COLLATE utf8mb4_0900_bin                        NOT NULL COMMENT 'protocol name',
     `operate`  varchar(32) COLLATE utf8mb4_0900_bin                        NOT NULL COMMENT 'operate',
     `tx_hash`  varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin NOT NULL COMMENT 'tx hash',
@@ -124,12 +123,12 @@ CREATE TABLE `balance_txn`
     `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
     `chain`      varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
     `protocol`  varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin NOT NULL,
-    `event`   tinyint(1)      NOT NULL,
+    `event`     tinyint(1)                                                 NOT NULL,
     `address`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `tick`      varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin NOT NULL,
-    `amount`  DECIMAL(36, 18) NOT NULL,
+    `amount`    DECIMAL(36, 18)                                            NOT NULL,
     `available` DECIMAL(36, 18)                                            NOT NULL COMMENT 'available',
-    `balance` DECIMAL(36, 18) NOT NULL,
+    `balance`   DECIMAL(36, 18)                                            NOT NULL,
     `tx_hash`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `created_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -26,7 +26,7 @@ func NewDEvents(ctx context.Context, db *storage.DBClient) *DEvent {
 	return &DEvent{
 		ctx:    ctx,
 		db:     db,
-		events: make(chan *Event, 1000),
+		events: make(chan *Event, 10240),
 	}
 }
 
@@ -66,7 +66,7 @@ func (h *DEvent) Flush() {
 
 func (h *DEvent) Sink(db *storage.DBClient) bool {
 	//get events from channel
-	events := h.Read(10)
+	events := h.Read(100)
 
 	// merge events data
 	if len(events) < 1 {

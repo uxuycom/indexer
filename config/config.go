@@ -14,7 +14,6 @@ type Config struct {
 	LogLevel       string               `json:"log_level"`
 	LogPath        string               `json:"log_path"`
 	Filters        *utils.IndexFilter   `json:"filters"`
-	Ticks          []string             `json:"tick_whitelist"`
 	Database       utils.DatabaseConfig `json:"database"`
 	ProfileEnabled bool                 `json:"profile_enabled"`
 }

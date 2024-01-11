@@ -16,9 +16,6 @@
     "password": ""
   },
   "log_level": "info",
-  "protocol": [
-    "asc-20"
-  ],
   "notls": true,
   "rpclisten": [
     ":6583"

@@ -357,8 +357,19 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 			}
 
 			for action, item := range event.InscriptionStats {
-				if _, ok := dm.InscriptionStats[action][item.SID]; ok {
+				if lastItem, ok := dm.InscriptionStats[action][item.SID]; ok {
 					xylog.Logger.Debugf("ins stats sid[%d] exist & force update, tick[%s]", item.SID, item.Tick)
+
+					// reserve history mint stats data if exist
+					if lastItem.MintFirstBlock > 0 {
+						item.MintFirstBlock = lastItem.MintFirstBlock
+					}
+					if lastItem.MintLastBlock > 0 {
+						item.MintLastBlock = lastItem.MintLastBlock
+					}
+					if lastItem.MintCompletedTime != nil {
+						item.MintCompletedTime = lastItem.MintCompletedTime
+					}
 				}
 				dm.InscriptionStats[action][item.SID] = item
 			}

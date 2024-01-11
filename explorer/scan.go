@@ -105,7 +105,7 @@ func (e *Explorer) Scan() {
 	xylog.Logger.Infof("start scanning...")
 
 	// Prioritize using data retrieved from the database
-	blockNum, err := e.db.LastBlock(e.config.Chain.ChainName)
+	blockNum, err := e.db.QueryLastBlock(e.config.Chain.ChainName)
 	if err != nil {
 		xylog.Logger.Fatalf("load hisotry block index err:%v", err)
 	}

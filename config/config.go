@@ -36,7 +36,9 @@ func LoadConfig(cfg *Config, filep string) {
 	if err != nil {
 		log.Fatal("File error: ", err.Error())
 	}
-	defer configFile.Close()
+	defer func() {
+		_ = configFile.Close()
+	}()
 	jsonParser := json.NewDecoder(configFile)
 	if err := jsonParser.Decode(&cfg); err != nil {
 		log.Fatal("Config error: ", err.Error())

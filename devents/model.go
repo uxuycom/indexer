@@ -1,7 +1,6 @@
 package devents
 
 import (
-	"encoding/json"
 	"github.com/shopspring/decimal"
 	"open-indexer/model"
 	"open-indexer/xylog"
@@ -398,8 +397,6 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 	for _, tx := range dm.Txs {
 		dmf.Txs = append(dmf.Txs, tx)
 	}
-	txsBytes, _ := json.Marshal(dmf.Txs)
-	xylog.Logger.Debugf("build dmf.txs:%s", txsBytes)
 
 	// flatten inscription records
 	for _, item := range dm.Inscriptions[DBActionCreate] {

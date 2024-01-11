@@ -1,7 +1,6 @@
 package asc20
 
 import (
-	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/shopspring/decimal"
@@ -9,9 +8,7 @@ import (
 	"gopkg.in/go-playground/assert.v1"
 	"open-indexer/client/xycommon"
 	"open-indexer/dcache"
-	"open-indexer/utils"
 	"open-indexer/xylog"
-	"strings"
 	"testing"
 )
 
@@ -182,7 +179,7 @@ func TestExtractValidOrdersByTransfer(t *testing.T) {
 							common.HexToHash("0x000000000000000000000000117b15af63e1d533cc5bac7333f3cc8f8cc2696d"),
 							common.HexToHash("0x51ae1b9bb3103c91be3c12db9f97165657aee56ce412966fd68b8715b0481595"),
 						},
-						Data: hexutil.MustDecode("0x51ae1b9bb3103c91be3c12db9f97165657aee56ce412966fd68b8715b048159564==="),
+						Data: hexutil.MustDecode("0x24608215"),
 					},
 				},
 			},
@@ -196,9 +193,6 @@ func TestExtractValidOrdersByTransfer(t *testing.T) {
 			},
 		},
 	}
-
-	key := utils.Keccak256(strings.ToLower("avax"))
-	fmt.Print("key:", key, len(key))
 
 	cache := dcache.NewManager(nil, "avax")
 	cache.Inscription = dcache.NewInscription()

@@ -30,6 +30,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"math/big"
+	"reflect"
 	"strings"
 )
 
@@ -57,6 +58,30 @@ func NewDbClient(cfg *utils.DatabaseConfig) (*DBClient, error) {
 	return nil, nil
 }
 
+func (conn *DBClient) CreateInBatches(dbTx *gorm.DB, value interface{}, batchSize int) error {
+	reflectValue := reflect.Indirect(reflect.ValueOf(value))
+
+	// the reflection type judgment of the optimized value
+	if reflectValue.Kind() != reflect.Slice && reflectValue.Kind() != reflect.Array {
+		return errors.New("value should be slice or array")
+	}
+
+	// the reflection length judgment of the optimized value
+	reflectLen := reflectValue.Len()
+	for i := 0; i < reflectLen; i += batchSize {
+		ends := i + batchSize
+		if ends > reflectLen {
+			ends = reflectLen
+		}
+
+		subTx := dbTx.Create(reflectValue.Slice(i, ends).Interface())
+		if subTx.Error != nil {
+			return subTx.Error
+		}
+	}
+	return nil
+}
+
 func (conn *DBClient) SaveLastBlock(tx *gorm.DB, status *model.BlockStatus) error {
 	if tx == nil {
 		return errors.New("gorm db is not valid")
@@ -64,14 +89,18 @@ func (conn *DBClient) SaveLastBlock(tx *gorm.DB, status *model.BlockStatus) erro
 	return tx.Where("chain = ?", status.Chain).Save(status).Error
 }
 
-func (conn *DBClient) LastBlock(chain string) (*big.Int, error) {
+func (conn *DBClient) QueryLastBlock(chain string) (*big.Int, error) {
 	var blockNumberStr string
-	err := conn.SqlDB.Raw("SELECT block_number FROM block  where `chain` = ? ORDER BY block_number DESC LIMIT 1", chain).Scan(&blockNumberStr).Error
+	err := conn.SqlDB.Table(model.BlockStatus{}.TableName()).Where("chain = ?", chain).Pluck("block_number", &blockNumberStr).Error
 	if err != nil {
 		return nil, err
 	}
 
-	blockNumber, _ := utils.ConvetStr(blockNumberStr)
+	if blockNumberStr == "" {
+		return big.NewInt(0), nil
+	}
+
+	blockNumber, _ := big.NewInt(0).SetString(blockNumberStr, 10)
 	return blockNumber, nil
 }
 
@@ -167,32 +196,32 @@ func (conn *DBClient) BatchAddInscriptionStats(dbTx *gorm.DB, ins []*model.Inscr
 	return dbTx.Create(ins).Error
 }
 
-func (conn *DBClient) BatchAddTransaction(dbTx *gorm.DB, txs []*model.Transaction) error {
-	if len(txs) < 1 {
+func (conn *DBClient) BatchAddTransaction(dbTx *gorm.DB, items []*model.Transaction) error {
+	if len(items) < 1 {
 		return nil
 	}
-	return dbTx.Create(txs).Error
+	return conn.CreateInBatches(dbTx, items, 1000)
 }
 
-func (conn *DBClient) BatchAddBalanceTx(dbTx *gorm.DB, txs []*model.BalanceTxn) error {
-	if len(txs) < 1 {
+func (conn *DBClient) BatchAddBalanceTx(dbTx *gorm.DB, items []*model.BalanceTxn) error {
+	if len(items) < 1 {
 		return nil
 	}
-	return dbTx.Create(txs).Error
+	return conn.CreateInBatches(dbTx, items, 1000)
 }
 
-func (conn *DBClient) BatchAddAddressTx(dbTx *gorm.DB, txs []*model.AddressTxs) error {
-	if len(txs) < 1 {
+func (conn *DBClient) BatchAddAddressTx(dbTx *gorm.DB, items []*model.AddressTxs) error {
+	if len(items) < 1 {
 		return nil
 	}
-	return dbTx.Create(txs).Error
+	return conn.CreateInBatches(dbTx, items, 1000)
 }
 
 func (conn *DBClient) BatchAddBalances(dbTx *gorm.DB, items []*model.Balances) error {
 	if len(items) < 1 {
 		return nil
 	}
-	return dbTx.Create(items).Error
+	return conn.CreateInBatches(dbTx, items, 1000)
 }
 
 func (conn *DBClient) BatchUpdateBalances(dbTx *gorm.DB, chain string, items []*model.Balances) error {
@@ -222,54 +251,6 @@ func (conn *DBClient) BatchUpdateBalances(dbTx *gorm.DB, chain string, items []*
 
 func (conn *DBClient) UpdateInscriptionsStatsBySID(dbTx *gorm.DB, chain string, id uint32, updates map[string]interface{}) error {
 	return dbTx.Table(model.InscriptionsStats{}.TableName()).Where("chain = ?", chain).Where("sid = ?", id).Updates(updates).Error
-}
-
-func (conn *DBClient) UpdateInscriptStatsForMint(dbTx *gorm.DB, stats *model.InscriptionsStats) error {
-	ins := &model.InscriptionsStats{}
-	tableName := ins.TableName()
-	updateSql := ""
-	var updateData []interface{}
-	if stats.Minted.Sign() > 0 {
-		updateSql += " minted= ? "
-		updateData = append(updateData, stats.Minted)
-	}
-
-	if stats.MintCompletedTime != nil && stats.MintCompletedTime.Unix() > 0 {
-		updateSql += ", mint_completed_time=? "
-		updateData = append(updateData, stats.MintCompletedTime)
-	}
-
-	if stats.MintFirstBlock > 0 {
-		updateSql += ", mint_first_block=? "
-		updateData = append(updateData, stats.MintFirstBlock)
-	}
-
-	if stats.MintLastBlock > 0 {
-		updateSql += ", mint_last_block=? "
-		updateData = append(updateData, stats.MintLastBlock)
-	}
-
-	if stats.Holders > 0 {
-		updateSql += ", holders=? "
-		updateData = append(updateData, stats.Holders)
-	}
-
-	if stats.TxCnt > 0 {
-		updateSql += ", tx_cnt=? "
-		updateData = append(updateData, stats.TxCnt)
-	}
-
-	updateSql = strings.Trim(updateSql, ",")
-	if len(updateSql) > 0 && len(updateData) > 0 {
-		updateSql = "UPDATE " + tableName + " SET " + updateSql + "WHERE chain=? ANd protocol=? AND tick=?"
-		updateData = append(updateData, stats.Chain, stats.Protocol, stats.Tick)
-		err := dbTx.Exec(updateSql, updateData...).Error
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // FindInscriptionByTick find token by tick
@@ -531,41 +512,6 @@ func (conn *DBClient) GetUTXOsByIdLimit(start uint64, limit int) ([]model.UTXO, 
 		return nil, err
 	}
 	return utxos, nil
-}
-
-func (conn *DBClient) FindUtxoByAddress(tx *gorm.DB, address, tick string) (*model.UTXO, error) {
-	utxo := &model.UTXO{}
-	err := conn.SqlDB.First(utxo, "address = ? and tick = ? ", address, tick).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return utxo, nil
-}
-
-func (conn *DBClient) FirstValidUtxoByRootHash(tx *gorm.DB, chain, txid, address string) (*model.UTXO, error) {
-	utxo := &model.UTXO{}
-	err := conn.SqlDB.First(utxo, "address = ? AND root_hash = ? AND chain = ? AND status = ?", address, txid, chain, model.UTXOStatusUnspent).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return utxo, nil
-}
-
-func (conn *DBClient) FirstUTXOByRootHash(tx *gorm.DB, chain, txid string) (*model.UTXO, error) {
-	utxo := &model.UTXO{}
-	err := conn.SqlDB.First(utxo, " root_hash = ? AND chain = ?", txid, chain).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return utxo, nil
 }
 
 func (conn *DBClient) GetUtxosByAddress(address, chain, protocol, tick string) ([]*model.UTXO, error) {

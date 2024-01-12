@@ -168,7 +168,6 @@ CREATE TABLE `block`
     `block_hash`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `block_number` bigint                                                        NOT NULL,
     `block_time`   timestamp                                                     NOT NULL,
-    `busy`         tinyint(1)                                                             default 0 NOT NULL,
     `updated_at`   timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`chain`) USING BTREE,
     UNIQUE KEY `uqx_chain` (`chain`)

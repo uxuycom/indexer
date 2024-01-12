@@ -29,6 +29,8 @@ import (
 	"github.com/uxuycom/indexer/client/xycommon"
 	"github.com/uxuycom/indexer/devents"
 	"github.com/uxuycom/indexer/xyerrors"
+	"math"
+	"math/big"
 )
 
 type Deploy struct {
@@ -98,6 +100,12 @@ func (base *Protocol) verifyDeploy(tx *xycommon.RpcTransaction, md *devents.Meta
 	// maximum decimals is 18
 	if deploy.Decimal.IntPart() > 18 {
 		return nil, xyerrors.NewInsError(-18, fmt.Sprintf("decimal[%d] > 18", deploy.Decimal.IntPart()))
+	}
+
+	// MaxSupply must <= uint64
+	maxUint64Decimal := decimal.NewFromBigInt(new(big.Int).SetUint64(math.MaxUint64), 0)
+	if deploy.MaxSupply.GreaterThan(maxUint64Decimal) {
+		return nil, xyerrors.NewInsError(-19, fmt.Sprintf("max[%s] > max_uint64", deploy.MaxSupply.String()))
 	}
 	return deploy, nil
 }

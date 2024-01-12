@@ -26,12 +26,12 @@ import (
 	"errors"
 	"github.com/ethereum/go-ethereum/log"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/uxuycom/indexer/utils"
+	"github.com/uxuycom/indexer/config"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func NewSqliteClient(cfg *utils.DatabaseConfig, gormCfg *gorm.Config) (*DBClient, error) {
+func NewSqliteClient(cfg *config.DatabaseConfig, gormCfg *gorm.Config) (*DBClient, error) {
 	if cfg == nil {
 		return nil, errors.New("invalid configuration file")
 	}

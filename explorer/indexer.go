@@ -44,7 +44,7 @@ func (e *Explorer) validReceiptTxs(items []*xycommon.RpcTransaction) ([]*xycommo
 		txHashList[item.Hash] = struct{}{}
 	}
 
-	workers := int(e.config.Server.ScanLimit)
+	workers := int(e.config.Scan.BatchWorkers)
 	pool := pond.New(workers, 0, pond.MinWorkers(workers))
 
 	receiptsMap := &sync.Map{}
@@ -309,6 +309,11 @@ func (e *Explorer) protocolEnabled(protocol string) bool {
 }
 
 func (e *Explorer) tickEnabled(tick string) bool {
+	// tick may not parsed from metadata
+	if tick == "" {
+		return true
+	}
+
 	if e.config.Filters == nil || e.config.Filters.Whitelist == nil {
 		return true
 	}

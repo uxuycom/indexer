@@ -1,8 +1,8 @@
 {
-  "server": {
-    "from_block": 40146071,
-    "scan_limit": 1,
-    "delayed_scan_number": 10
+  "scan": {
+    "start_block": 40146071,
+    "batch_workers": 1,
+    "delayed_block_num": 10
   },
   "database": {
     "type": "mysql",
@@ -28,5 +28,8 @@
       "0x8cdf9e10a7b20e7a9c4e778fc3eb28f2766e438a9856a62eac39fbd2be98cbc2"
     ]
   },
-  "profile_enabled": true
+  "profile": {
+    "enabled": false,
+    "listen": ":6060"
+  }
 }

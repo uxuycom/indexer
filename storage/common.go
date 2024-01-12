@@ -25,8 +25,8 @@ package storage
 import (
 	"errors"
 	"fmt"
+	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/model"
-	"github.com/uxuycom/indexer/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"math/big"
@@ -44,7 +44,7 @@ type DBClient struct {
 }
 
 // NewDbClient creates a new database client instance.
-func NewDbClient(cfg *utils.DatabaseConfig) (*DBClient, error) {
+func NewDbClient(cfg *config.DatabaseConfig) (*DBClient, error) {
 	gormCfg := &gorm.Config{}
 	if cfg.EnableLog {
 		gormCfg.Logger = logger.Default.LogMode(logger.Info)

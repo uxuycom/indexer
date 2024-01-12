@@ -59,9 +59,15 @@ func main() {
 	config.LoadConfig(&cfg, flagConfig)
 
 	// enable profile
-	if cfg.ProfileEnabled {
+	if cfg.Profile != nil && cfg.Profile.Enabled {
 		go func() {
-			_ = http.ListenAndServe("0.0.0.0:6060", nil)
+			listen := cfg.Profile.Listen
+			if listen == "" {
+				listen = ":6060"
+			}
+			if err := http.ListenAndServe(cfg.Profile.Listen, nil); err != nil {
+				xylog.Logger.Infof("start profile err:%v", err)
+			}
 		}()
 	}
 

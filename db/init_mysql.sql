@@ -1,11 +1,13 @@
-CREATE DATABASE `tap_indexer` DEFAULT COLLATE = `utf8mb4_general_ci`;
+CREATE
+    DATABASE `tap_indexer` DEFAULT COLLATE = `utf8mb4_general_ci`;
 
-Use tap_indexer;
+Use
+    tap_indexer;
 -- inscription table ---------
 CREATE TABLE `inscriptions`
 (
     `id`             int unsigned                                                  NOT NULL AUTO_INCREMENT,
-    `sid` int unsigned NOT NULL,                                                             -- sid
+    `sid`            int unsigned                                                  NOT NULL, -- sid
     `chain`          varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL, -- chain code, eth / avax / btc / doge
     `protocol`       varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin    NOT NULL, -- protocol code, POLS, ETHS, BRC20
     `tick`           varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin    NOT NULL, -- ticker code
@@ -66,12 +68,12 @@ CREATE TABLE `txs`
     `tick`              varchar(32)     NOT NULL COMMENT 'inscription code',
     `amt`               DECIMAL(36, 18) NOT NULL COMMENT 'amount',
     `gas`               bigint          NOT NULL COMMENT 'gas, spend fee',
-    `gas_price` bigint NOT NULL COMMENT 'gas price',
+    `gas_price`         bigint          NOT NULL COMMENT 'gas price',
     `status`            tinyint(1)      NOT NULL COMMENT 'tx status',
     `created_at`        timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`        timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uqx_tx_hash` (`tx_hash`)
+    KEY `idx_tx_hash` (`tx_hash`(12))
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci;
@@ -80,12 +82,12 @@ CREATE TABLE `txs`
 CREATE TABLE `balances`
 (
     `id`         int unsigned                            NOT NULL AUTO_INCREMENT,
-    `sid`       int unsigned                         NOT NULL COMMENT 'sid',
+    `sid`        int unsigned                            NOT NULL COMMENT 'sid',
     `chain`      varchar(32) COLLATE utf8mb4_general_ci  NOT NULL COMMENT 'chain name',
-    `protocol`  varchar(32) COLLATE utf8mb4_0900_bin NOT NULL COMMENT 'protocol name',
+    `protocol`   varchar(32) COLLATE utf8mb4_0900_bin    NOT NULL COMMENT 'protocol name',
     `address`    varchar(128) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'address',
-    `tick`      varchar(32) COLLATE utf8mb4_0900_bin NOT NULL COMMENT 'inscription code',
-    `available` DECIMAL(36, 18)                      NOT NULL COMMENT 'available',
+    `tick`       varchar(32) COLLATE utf8mb4_0900_bin    NOT NULL COMMENT 'inscription code',
+    `available`  DECIMAL(36, 18)                         NOT NULL COMMENT 'available',
     `balance`    DECIMAL(36, 18)                         NOT NULL COMMENT 'balance',
     `created_at` timestamp                               NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp                               NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -100,19 +102,19 @@ CREATE TABLE `balances`
 CREATE TABLE `address_txs`
 (
     `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
-    `chain`    varchar(32) COLLATE utf8mb4_general_ci                      NOT NULL COMMENT 'chain name',
-    `event` tinyint(1) NOT NULL,
-    `protocol` varchar(32) COLLATE utf8mb4_0900_bin                        NOT NULL COMMENT 'protocol name',
-    `operate`  varchar(32) COLLATE utf8mb4_0900_bin                        NOT NULL COMMENT 'operate',
-    `tx_hash`  varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin NOT NULL COMMENT 'tx hash',
+    `chain`      varchar(32) COLLATE utf8mb4_general_ci                        NOT NULL COMMENT 'chain name',
+    `event`      tinyint(1)                                                    NOT NULL,
+    `protocol`   varchar(32) COLLATE utf8mb4_0900_bin                          NOT NULL COMMENT 'protocol name',
+    `operate`    varchar(32) COLLATE utf8mb4_0900_bin                          NOT NULL COMMENT 'operate',
+    `tx_hash`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin   NOT NULL COMMENT 'tx hash',
     `address`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'from address',
     `amount`     DECIMAL(36, 18)                                               NOT NULL COMMENT 'amount',
     `tick`       varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL COMMENT 'inscription name',
     `created_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    KEY `chain_tx_hash` (`chain`, `tx_hash`),
-    KEY `idx_address` (`address`)
+    KEY `idx_tx_hash` (`tx_hash`(12)),
+    KEY `idx_address` (`address`(12))
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci;
@@ -122,18 +124,18 @@ CREATE TABLE `balance_txn`
 (
     `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
     `chain`      varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
-    `protocol`  varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin NOT NULL,
-    `event`   tinyint(1)      NOT NULL,
+    `protocol`   varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin    NOT NULL,
+    `event`      tinyint(1)                                                    NOT NULL,
     `address`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    `tick`      varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin NOT NULL,
-    `amount`  DECIMAL(36, 18) NOT NULL,
-    `available` DECIMAL(36, 18)                                            NOT NULL COMMENT 'available',
-    `balance` DECIMAL(36, 18) NOT NULL,
+    `tick`       varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin    NOT NULL,
+    `amount`     DECIMAL(36, 18)                                               NOT NULL,
+    `available`  DECIMAL(36, 18)                                               NOT NULL COMMENT 'available',
+    `balance`    DECIMAL(36, 18)                                               NOT NULL,
     `tx_hash`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `created_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    KEY `idx_address` (`address`)
+    KEY `idx_address` (`address`(12))
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci;
@@ -143,11 +145,11 @@ CREATE TABLE `balance_txn`
 CREATE TABLE `utxos`
 (
     `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
-    `sn`       varchar(255)                                               NOT NULL COMMENT 'tx sn',
+    `sn`         varchar(255)                                                  NOT NULL COMMENT 'tx sn',
     `chain`      varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
-    `protocol` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin NOT NULL,
+    `protocol`   varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin    NOT NULL,
     `address`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    `tick`     varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin NOT NULL,
+    `tick`       varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin    NOT NULL,
     `amount`     DECIMAL(36, 18)                                               NOT NULL,
     `root_hash`  varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `tx_hash`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -162,11 +164,12 @@ CREATE TABLE `utxos`
 
 CREATE TABLE `block`
 (
-    `chain`      varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
-    `block_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `chain`        varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `block_hash`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `block_number` bigint                                                        NOT NULL,
-    `block_time` timestamp                                                     NOT NULL,
-    `updated_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `block_time`   timestamp                                                     NOT NULL,
+    `busy`         tinyint(1)                                                             default 0 NOT NULL,
+    `updated_at`   timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`chain`) USING BTREE,
     UNIQUE KEY `block_block_hash_uindex` (`chain`, `block_number`)
 ) ENGINE = InnoDB

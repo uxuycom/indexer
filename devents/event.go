@@ -86,6 +86,40 @@ func (h *DEvent) Flush() {
 	}
 }
 
+// getDBLockTillSuccess get db lock until success,
+func (h *DEvent) getDBLockTillSuccess(db *storage.DBClient) {
+	for {
+		ok, err := db.GetLock()
+		if err != nil {
+			xylog.Logger.Errorf("failed to get block status & retry after 1s. err=%s", err)
+			<-time.After(time.Second)
+			continue
+		}
+
+		if ok {
+			xylog.Logger.Info("get db lock success")
+			return
+		}
+
+		xylog.Logger.Info("failed to get db lock & retry after waiting 1s")
+		<-time.After(time.Second)
+	}
+}
+
+// releaseDBLock release db lock
+func (h *DEvent) releaseDBLock(db *storage.DBClient) {
+	for {
+		_, err := db.ReleaseLock()
+		if err != nil {
+			xylog.Logger.Errorf("failed to get block status & retry after 1s. err=%s", err)
+			<-time.After(time.Second)
+			continue
+		}
+		xylog.Logger.Info("release db lock success")
+		return
+	}
+}
+
 func (h *DEvent) Sink(db *storage.DBClient) bool {
 	//get events from channel
 	events := h.Read(100)
@@ -97,6 +131,10 @@ func (h *DEvent) Sink(db *storage.DBClient) bool {
 
 	dm := BuildDBUpdateModel(events)
 	chain := dm.BlockStatus.Chain
+
+	// fetch db lock
+	h.getDBLockTillSuccess(db)
+	defer h.releaseDBLock(db)
 
 	startTs := time.Now()
 	err := db.SqlDB.Transaction(func(tx *gorm.DB) error {

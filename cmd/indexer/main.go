@@ -65,7 +65,7 @@ func main() {
 			if listen == "" {
 				listen = ":6060"
 			}
-			if err := http.ListenAndServe(cfg.Profile.Listen, nil); err != nil {
+			if err := http.ListenAndServe(listen, nil); err != nil {
 				xylog.Logger.Infof("start profile err:%v", err)
 			}
 		}()

@@ -114,6 +114,7 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 		ok, receiveBalance := tc.cache.Balance.Get(r.MD.Protocol, r.MD.Tick, item.Address)
 		if !ok {
 			holders++
+
 			receiveAmount := item.Amount
 			tc.cache.Balance.Create(r.MD.Protocol, r.MD.Tick, item.Address, &dcache.BalanceItem{
 				Overall: receiveAmount,
@@ -122,6 +123,10 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 			//mark minter init
 			item.Init = true
 		} else {
+			if receiveBalance.Overall.LessThanOrEqual(decimal.Zero) {
+				holders++
+			}
+
 			receiveAmount := receiveBalance.Overall.Add(item.Amount)
 			tc.cache.Balance.Update(r.MD.Protocol, r.MD.Tick, item.Address, &dcache.BalanceItem{
 				Overall: receiveAmount,

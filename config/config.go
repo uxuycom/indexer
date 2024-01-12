@@ -24,24 +24,57 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/uxuycom/indexer/utils"
+	"github.com/uxuycom/indexer/model"
 	"log"
 	"os"
 	"path/filepath"
 )
 
-type Config struct {
-	Server         utils.ServerConfig   `json:"server"`
-	Chain          utils.ChainConfig    `json:"chain"`
-	LogLevel       string               `json:"log_level"`
-	LogPath        string               `json:"log_path"`
-	Filters        *utils.IndexFilter   `json:"filters"`
-	Database       utils.DatabaseConfig `json:"database"`
-	ProfileEnabled bool                 `json:"profile_enabled"`
+type ScanConfig struct {
+	StartBlock      uint64 `json:"start_block"`
+	BatchWorkers    uint64 `json:"batch_workers"`
+	DelayedBlockNum uint64 `json:"delayed_block_num"`
 }
 
-func LoadConfig(cfg *Config, filep string) {
+type ChainConfig struct {
+	ChainName  string           `json:"chain_name"`
+	Rpc        string           `json:"rpc"`
+	UserName   string           `json:"username"`
+	PassWord   string           `json:"password"`
+	ChainGroup model.ChainGroup `json:"chain_group"`
+}
 
+type IndexFilter struct {
+	Whitelist *struct {
+		Ticks     []string `json:"ticks"`
+		Protocols []string `json:"protocols"`
+	} `json:"whitelist"`
+	EventTopics []string `json:"event_topics"`
+}
+
+// DatabaseConfig database config
+type DatabaseConfig struct {
+	Type      string `json:"type"`
+	Dsn       string `json:"dsn"`
+	EnableLog bool   `json:"enable_log"`
+}
+
+type ProfileConfig struct {
+	Enabled bool   `json:"enabled"`
+	Listen  string `json:"listen"`
+}
+
+type Config struct {
+	Scan     ScanConfig     `json:"scan"`
+	Chain    ChainConfig    `json:"chain"`
+	LogLevel string         `json:"log_level"`
+	LogPath  string         `json:"log_path"`
+	Filters  *IndexFilter   `json:"filters"`
+	Database DatabaseConfig `json:"database"`
+	Profile  *ProfileConfig `json:"profile"`
+}
+
+func LoadConfig(cfg *Config, filePath string) {
 	// Default config.
 	configFileName := "config.json"
 	if len(os.Args) > 1 {
@@ -51,8 +84,8 @@ func LoadConfig(cfg *Config, filep string) {
 	configFileName, _ = filepath.Abs(configFileName)
 	log.Printf("Loading config: %v", configFileName)
 
-	if filep != "" {
-		configFileName = filep
+	if filePath != "" {
+		configFileName = filePath
 	}
 	configFile, err := os.Open(configFileName)
 	if err != nil {

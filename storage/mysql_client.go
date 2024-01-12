@@ -24,12 +24,12 @@ package storage
 
 import (
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/uxuycom/indexer/utils"
+	"github.com/uxuycom/indexer/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-func NewMysqlClient(cfg *utils.DatabaseConfig, gormCfg *gorm.Config) (*DBClient, error) {
+func NewMysqlClient(cfg *config.DatabaseConfig, gormCfg *gorm.Config) (*DBClient, error) {
 	db, err := gorm.Open(mysql.Open(cfg.Dsn), gormCfg)
 	if err != nil {
 		log.Error("connect to mysql failed", "err", err)

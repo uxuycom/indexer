@@ -1,8 +1,8 @@
 {
-  "server": {
-    "from_block": 40146071,
-    "scan_limit": 1,
-    "delayed_scan_number": 10
+  "scan": {
+    "start_block": 39205395,
+    "batch_workers": 1,
+    "delayed_block_num": 10
   },
   "database": {
     "type": "mysql",
@@ -26,7 +26,15 @@
       "0xe2750d6418e3719830794d3db788aa72febcd657bcd18ed8f1facdbf61a69a9a",
       "0x3efe873bf4d1c1061b9980e7aed9b564e024844522ec8c80aec160809948ef77",
       "0x8cdf9e10a7b20e7a9c4e778fc3eb28f2766e438a9856a62eac39fbd2be98cbc2"
-    ]
+    ],
+    "whitelist": {
+      "ticks": [
+        "cczzc"
+      ]
+    }
   },
-  "profile_enabled": true
+  "profile": {
+    "enabled": false,
+    "listen": ":6060"
+  }
 }

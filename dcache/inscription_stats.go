@@ -123,8 +123,7 @@ func (d *InscriptionStats) Holders(protocol, tick string, incr int64) *InsStats 
 	insStats.Holders = insStats.Holders + incr
 
 	if insStats.Holders < 0 {
-		insStats.Holders = 0
-		xylog.Logger.Errorf("protocol:%s, tick:%s holders < 0", protocol, tick)
+		xylog.Logger.Fatalf("protocol:%s, tick:%s holders < 0", protocol, tick)
 	}
 	return insStats
 }

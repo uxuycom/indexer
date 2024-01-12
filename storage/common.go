@@ -39,6 +39,8 @@ const (
 	DatabaseTypeMysql   = "mysql"
 )
 
+const DBSessionLockKey = "db_session_global_lock_tx"
+
 type DBClient struct {
 	SqlDB *gorm.DB
 }
@@ -102,6 +104,28 @@ func (conn *DBClient) QueryLastBlock(chain string) (*big.Int, error) {
 
 	blockNumber, _ := big.NewInt(0).SetString(blockNumberStr, 10)
 	return blockNumber, nil
+}
+
+func (conn *DBClient) GetLock() (ok bool, err error) {
+	locked := int64(0)
+	err = conn.SqlDB.Table(model.BlockStatus{}.TableName()).Raw("SELECT GET_LOCK(?, 0)", DBSessionLockKey).Scan(&locked).Error
+	if err != nil {
+		return false, err
+	}
+	return locked > 0, nil
+}
+
+type CountResult struct {
+	Count int64 `gorm:"column:cnt"`
+}
+
+func (conn *DBClient) ReleaseLock() (cnt int64, err error) {
+	ret := &CountResult{}
+	err = conn.SqlDB.Table(model.BlockStatus{}.TableName()).Raw("SELECT RELEASE_LOCK(?) AS cnt", DBSessionLockKey).Take(ret).Error
+	if err != nil {
+		return 0, err
+	}
+	return ret.Count, nil
 }
 
 func (conn *DBClient) BatchAddInscription(dbTx *gorm.DB, ins []*model.Inscriptions) error {

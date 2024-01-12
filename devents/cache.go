@@ -25,6 +25,7 @@ package devents
 import (
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/dcache"
+	"github.com/uxuycom/indexer/xylog"
 )
 
 type TxResultHandler struct {
@@ -104,6 +105,7 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 	_, senderBalance := tc.cache.Balance.Get(r.MD.Protocol, r.MD.Tick, r.Transfer.Sender)
 	senderAmount := senderBalance.Overall.Sub(sendTotalAmount)
 	if senderAmount.LessThanOrEqual(decimal.Zero) {
+		xylog.Logger.Infof("update tx holders, tx:%s, sender-1, sender addr:%s", r.Tx.Hash, r.Transfer.Sender)
 		holders--
 	}
 	tc.cache.Balance.Update(r.MD.Protocol, r.MD.Tick, r.Transfer.Sender, &dcache.BalanceItem{
@@ -114,6 +116,8 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 		ok, receiveBalance := tc.cache.Balance.Get(r.MD.Protocol, r.MD.Tick, item.Address)
 		if !ok {
 			holders++
+			xylog.Logger.Infof("update tx holders, tx:%s, recevice+1, receive addr:%s", r.Tx.Hash, item.Address)
+
 			receiveAmount := item.Amount
 			tc.cache.Balance.Create(r.MD.Protocol, r.MD.Tick, item.Address, &dcache.BalanceItem{
 				Overall: receiveAmount,
@@ -129,4 +133,5 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 		}
 	}
 	tc.cache.InscriptionStats.Holders(r.MD.Protocol, r.MD.Tick, holders)
+	xylog.Logger.Infof("update tx holders, tx:%s, cnt:%d", r.Tx.Hash, holders)
 }

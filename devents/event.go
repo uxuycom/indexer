@@ -48,7 +48,7 @@ func NewDEvents(ctx context.Context, db *storage.DBClient) *DEvent {
 	return &DEvent{
 		ctx:    ctx,
 		db:     db,
-		events: make(chan *Event, 10240),
+		events: make(chan *Event, 1024),
 	}
 }
 

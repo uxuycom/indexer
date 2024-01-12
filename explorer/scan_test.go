@@ -78,6 +78,12 @@ func TestTransactionDataByHash(t *testing.T) {
 		return
 	}
 
+	fmt.Println("Data:", data)
+	if data["error"] != nil {
+		t.Errorf("Rpc Node Response Error: %v", data["error"])
+		return
+	}
+
 	subData := data["result"].(map[string]interface{})
 	fmt.Println("Data>>> :", subData["input"])
 

@@ -73,7 +73,7 @@ CREATE TABLE `txs`
     `created_at`        timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`        timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    KEY `idx_tx_hash` (`tx_hash`(12))
+    KEY `idx_tx_hash_chain` (`tx_hash`(12), `chain`(4))
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci;

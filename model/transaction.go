@@ -43,7 +43,7 @@ type AddressTxs struct {
 	Event    TxEvent         `json:"event" gorm:"column:event"`
 	TxHash   string          `json:"tx_hash" gorm:"column:tx_hash"`
 	Address  string          `json:"address" gorm:"column:address"`
-	Amount   decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(36,18)"`
+	Amount   decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(38,18)"`
 	Tick     string          `json:"tick" gorm:"column:tick"`
 	Protocol string          `json:"protocol" gorm:"column:protocol"`
 	Operate  string          `json:"operate" gorm:"column:operate"`
@@ -64,9 +64,9 @@ type BalanceTxn struct {
 	Event     TxEvent         `json:"event" gorm:"column:event"`
 	Address   string          `json:"address" gorm:"column:address"`
 	Tick      string          `json:"tick" gorm:"column:tick"`
-	Amount    decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(36,18)"`
-	Available decimal.Decimal `json:"available" gorm:"column:available;type:decimal(36,18)"`
-	Balance   decimal.Decimal `json:"balance" gorm:"column:balance;type:decimal(36,18)"`
+	Amount    decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(38,18)"`
+	Available decimal.Decimal `json:"available" gorm:"column:available;type:decimal(38,18)"`
+	Balance   decimal.Decimal `json:"balance" gorm:"column:balance;type:decimal(38,18)"`
 	TxHash    string          `json:"tx_hash" gorm:"column:tx_hash"`
 	CreatedAt time.Time       `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt time.Time       `json:"updated_at" gorm:"column:updated_at"`
@@ -88,7 +88,7 @@ type Transaction struct {
 	To              string          `json:"to" gorm:"column:to"`                               // to address
 	Op              string          `json:"op" gorm:"column:op"`                               // op code
 	Tick            string          `json:"tick" gorm:"column:tick"`                           // inscription code
-	Amount          decimal.Decimal `json:"amt" gorm:"column:amt;type:decimal(36,18)"`         // balance
+	Amount          decimal.Decimal `json:"amt" gorm:"column:amt;type:decimal(38,18)"`         // balance
 	Gas             int64           `json:"gas" gorm:"column:gas"`                             // gas
 	GasPrice        int64           `json:"gas_price" gorm:"column:gas_price"`                 // gas price
 	Status          int8            `json:"status" gorm:"column:status"`                       // tx status
@@ -105,7 +105,7 @@ type AddressTransaction struct {
 	Event     int8            `json:"event" gorm:"column:event"`
 	TxHash    string          `json:"tx_hash" gorm:"column:tx_hash"`
 	Address   string          `json:"address" gorm:"column:address"`
-	Amount    decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(36,18)"`
+	Amount    decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(38,18)"`
 	Tick      string          `json:"tick" gorm:"column:tick"`
 	Protocol  string          `json:"protocol" gorm:"column:protocol"`
 	Operate   string          `json:"operate" gorm:"column:operate"`

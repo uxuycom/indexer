@@ -23,7 +23,7 @@
 package asc20
 
 import (
-	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
@@ -40,18 +40,28 @@ const (
 	// EventTopicHashExchange avascriptions_protocol_TransferASC20TokenForListing (index_topic_1 address from, index_topic_2 address to, bytes32 id)
 	EventTopicHashExchange = "0xe2750d6418e3719830794d3db788aa72febcd657bcd18ed8f1facdbf61a69a9a"
 
-	// EventTopicHashOrderExecuted ASC20OrderExecuted (address seller, address taker, bytes32 listId, string ticker, uint256 amount, uint256 price, uint16 feeRate, uint64 timestamp)
-	EventTopicHashOrderExecuted = "0x3efe873bf4d1c1061b9980e7aed9b564e024844522ec8c80aec160809948ef77"
-
 	// EventTopicHashExchange2 avascriptions_protocol_TransferASC20Token(index_topic_1 address, index_topic_2 address, index_topic_3 tick_idx string, amount uint256)
+	// https://snowtrace.io/tx/0x71e2b9c31608f89b4e191af8817a61b3df4d74d4f829a75000c8a9e4ca67c4f2/eventlog?chainId=43114
 	EventTopicHashExchange2 = "0x8cdf9e10a7b20e7a9c4e778fc3eb28f2766e438a9856a62eac39fbd2be98cbc2"
 )
 
 type Exchange struct {
-	Tick   string
-	From   string
-	To     string
-	Amount decimal.Decimal
+	Operate string
+	Tick    string
+	From    string
+	To      string
+	Amount  decimal.Decimal
+}
+
+// ASC20Order is an auto generated low-level Go binding around an user-defined struct.
+type ASC20Order struct {
+	Seller  common.Address
+	Creator common.Address
+	ListId  [32]byte
+	Ticker  string
+	Amount  *big.Int
+	Price   *big.Int
+	Operate string
 }
 
 func (p *Protocol) Exchange(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, omd *devents.MetaData) (items []*devents.TxResult, err *xyerrors.InsError) {
@@ -64,7 +74,7 @@ func (p *Protocol) Exchange(block *xycommon.RpcBlock, tx *xycommon.RpcTransactio
 	items = make([]*devents.TxResult, 0, len(exchanges))
 	for _, exchange := range exchanges {
 		md := omd.Copy()
-		md.Operate = devents.OperateExchange
+		md.Operate = exchange.Operate
 		md.Tick = strings.ToLower(strings.TrimSpace(exchange.Tick))
 		if err1 := p.verifyExchange(md, exchange); err1 != nil {
 			xylog.Logger.Infof("exchange verified failed, err:%v, data:%v", err1, exchange)
@@ -90,47 +100,27 @@ func (p *Protocol) Exchange(block *xycommon.RpcBlock, tx *xycommon.RpcTransactio
 	return
 }
 
-type OrderExecuted struct {
-	Seller    common.Address `json:"seller"`
-	Taker     common.Address `json:"taker"`
-	ListId    [32]byte       `json:"listId"`
-	Ticker    string         `json:"ticker"`
-	Amount    *big.Int       `json:"amount"`
-	Price     *big.Int       `json:"price"`
-	FeeRate   uint16         `json:"feeRate"`
-	Timestamp uint64         `json:"timestamp"`
-}
-
-func (p *Protocol) parseOrderByExchange(transferEvent, orderExecuteEvent xycommon.RpcLog) (*Exchange, *xyerrors.InsError) {
-	orderExecuteResult := &OrderExecuted{}
-	_, err := utils.ParseEventToStruct(ParsedABI, utils.EventLog{
-		Address: orderExecuteEvent.Address,
-		Topics:  orderExecuteEvent.Topics,
-		Data:    orderExecuteEvent.Data,
-	}, orderExecuteResult)
-	if err != nil {
-		return nil, xyerrors.NewInsError(-10, fmt.Sprintf("tx execute event parse error[%v], event[%v]", err, orderExecuteEvent))
+func (p *Protocol) parseOrderByExchange(e xycommon.RpcLog, orders map[string]*ASC20Order) (*Exchange, *xyerrors.InsError) {
+	order, ok := orders[e.Data.String()]
+	if !ok {
+		return nil, nil
 	}
 
-	if orderExecuteResult.Amount.String() == "" {
-		return nil, xyerrors.NewInsError(-17, fmt.Sprintf("tx execute event parse failed, amount value empty, ticker[%v]", orderExecuteResult.Ticker))
-	}
-
-	if hex.EncodeToString(orderExecuteResult.ListId[:]) != transferEvent.Data.String()[2:] {
-		return nil, xyerrors.NewInsError(-17, fmt.Sprintf("tx execute event parse failed, listId not match, ticker[%v]", orderExecuteResult.Ticker))
+	if order.Amount.String() == "" {
+		return nil, xyerrors.NewInsError(-17, fmt.Sprintf("order amount value empty, ticker[%v]", order.Ticker))
 	}
 
 	return &Exchange{
-		Tick:   orderExecuteResult.Ticker,
-		From:   transferEvent.Address.String(),
-		To:     common.BytesToAddress(transferEvent.Topics[2].Bytes()).String(),
-		Amount: decimal.NewFromBigInt(orderExecuteResult.Amount, 0),
+		Operate: order.Operate,
+		Tick:    order.Ticker,
+		From:    e.Address.String(),
+		To:      common.BytesToAddress(e.Topics[2].Bytes()).String(),
+		Amount:  decimal.NewFromBigInt(order.Amount, 0),
 	}, nil
 }
 
 func (p *Protocol) extractValidOrders(tx *xycommon.RpcTransaction) []*Exchange {
 	mixed := make([]*Exchange, 0, len(tx.Events))
-
 	items := p.extractValidOrdersByExchange(tx)
 	if len(items) > 0 {
 		mixed = append(mixed, items...)
@@ -171,10 +161,11 @@ func (p *Protocol) parseOrderByTransfer(transferEvent xycommon.RpcLog) (*Exchang
 	}
 
 	return &Exchange{
-		Tick:   tick,
-		From:   transferASC20TokenResult.From.String(),
-		To:     transferASC20TokenResult.To.String(),
-		Amount: decimal.NewFromBigInt(transferASC20TokenResult.Amount, 0),
+		Operate: devents.OperateExchange,
+		Tick:    tick,
+		From:    transferASC20TokenResult.From.String(),
+		To:      transferASC20TokenResult.To.String(),
+		Amount:  decimal.NewFromBigInt(transferASC20TokenResult.Amount, 0),
 	}, nil
 }
 
@@ -196,26 +187,85 @@ func (p *Protocol) extractValidOrdersByTransfer(tx *xycommon.RpcTransaction) []*
 	return items
 }
 
-func (p *Protocol) extractValidOrdersByExchange(tx *xycommon.RpcTransaction) []*Exchange {
-	items := make([]*Exchange, 0, len(tx.Events))
-	for i, e := range tx.Events {
-		if i >= len(tx.Events)-1 {
-			break
+func (p *Protocol) extractInputOrders(hash, input string) map[string]*ASC20Order {
+	callData := common.FromHex(input)
+	if len(callData) < 4 {
+		return nil
+	}
+
+	sigData, argData := callData[:4], callData[4:]
+	method, err := ParsedABI.MethodById(sigData)
+	if err != nil {
+		xylog.Logger.Errorf("tx[%s] - exchange input abi method query err:%v", hash, err)
+		return nil
+	}
+
+	unpacked, err := method.Inputs.UnpackValues(argData)
+	if err != nil {
+		xylog.Logger.Errorf("tx[%s] - exchange input abi method UnpackValues err:%v", hash, err)
+		return nil
+	}
+
+	orderOperate := devents.OperateExchange
+	if method.Name == "cancelOrder" || method.Name == "cancelOrders" {
+		orderOperate = devents.OperateDelist
+	}
+
+	orders := make(map[string]*ASC20Order, 10)
+	for k, v := range unpacked {
+		encodeBytes, _ := json.Marshal(v)
+		if method.Inputs[k].Name == "order" {
+			item := &ASC20Order{}
+			if err = json.Unmarshal(encodeBytes, item); err != nil {
+				xylog.Logger.Errorf("tx[%s] - exchange input abi method Unmarshal order err:%v", hash, err)
+				return nil
+			}
+
+			item.Operate = orderOperate
+			orders[common.BytesToHash(item.ListId[:]).String()] = item
+			return orders
 		}
 
+		if method.Inputs[k].Name == "orders" {
+			items := make([]*ASC20Order, 0, 10)
+			if err = json.Unmarshal(encodeBytes, &items); err != nil {
+				xylog.Logger.Errorf("tx[%s] - exchange input abi method Unmarshal orders err:%v", hash, err)
+				return nil
+			}
+
+			if len(items) == 0 {
+				xylog.Logger.Errorf("tx[%s] - exchange input abi method orders is nil", hash)
+				return nil
+			}
+
+			for _, item := range items {
+				item.Operate = orderOperate
+				orders[common.BytesToHash(item.ListId[:]).String()] = item
+			}
+			return orders
+		}
+	}
+	return nil
+}
+
+func (p *Protocol) extractValidOrdersByExchange(tx *xycommon.RpcTransaction) []*Exchange {
+	orders := p.extractInputOrders(tx.Hash, tx.Input)
+	if len(orders) == 0 {
+		return nil
+	}
+
+	items := make([]*Exchange, 0, len(tx.Events))
+	for _, e := range tx.Events {
 		if len(e.Topics) != 3 || e.Topics[0].String() != EventTopicHashExchange {
 			continue
 		}
 
-		orderExecuteEvent := tx.Events[i+1]
-		if len(orderExecuteEvent.Topics) > 0 && orderExecuteEvent.Topics[0].String() == EventTopicHashOrderExecuted {
-			item, err := p.parseOrderByExchange(e, orderExecuteEvent)
-			if err != nil {
-				xylog.Logger.Infof("tx[%v] - exchange decode err:%v", tx, err)
-				continue
-			}
-			items = append(items, item)
+		item, err := p.parseOrderByExchange(e, orders)
+		if err != nil {
+			xylog.Logger.Infof("tx[%v] - exchange decode err:%v", tx, err)
+			continue
 		}
+		items = append(items, item)
 	}
 	return items
 }

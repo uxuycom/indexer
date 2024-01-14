@@ -46,9 +46,9 @@ type Inscriptions struct {
 	Protocol     string          `json:"protocol" gorm:"column:protocol"`
 	Tick         string          `json:"tick" gorm:"column:tick"`
 	Name         string          `json:"name" gorm:"column:name"`
-	LimitPerMint decimal.Decimal `gorm:"column:limit_per_mint;type:decimal(36,18)" json:"limit_per_mint"`
+	LimitPerMint decimal.Decimal `gorm:"column:limit_per_mint;type:decimal(38,18)" json:"limit_per_mint"`
 	DeployedBy   string          `json:"deploy_by" gorm:"column:deploy_by"`
-	TotalSupply  decimal.Decimal `gorm:"column:total_supply;type:decimal(36,18)" json:"total_supply"`
+	TotalSupply  decimal.Decimal `gorm:"column:total_supply;type:decimal(38,18)" json:"total_supply"`
 	DeployHash   string          `json:"deploy_hash" gorm:"column:deploy_hash"`
 	DeployTime   time.Time       `json:"deploy_time" gorm:"column:deploy_time"`
 	TransferType int8            `json:"transfer_type" gorm:"column:transfer_type"`
@@ -68,7 +68,7 @@ type InscriptionsStats struct {
 	Chain             string          `json:"chain" gorm:"column:chain"`
 	Protocol          string          `json:"protocol" gorm:"column:protocol"`
 	Tick              string          `json:"tick" gorm:"column:tick"`
-	Minted            decimal.Decimal `gorm:"column:minted;type:decimal(36,18)" json:"minted"`
+	Minted            decimal.Decimal `gorm:"column:minted;type:decimal(38,18)" json:"minted"`
 	MintCompletedTime *time.Time      `gorm:"column:mint_completed_time" json:"mint_completed_time"`
 	MintFirstBlock    uint64          `gorm:"column:mint_first_block" json:"mint_first_block"`
 	MintLastBlock     uint64          `gorm:"column:mint_last_block" json:"mint_last_block"`
@@ -89,9 +89,9 @@ type InscriptionOverView struct {
 	Protocol     string          `json:"protocol" gorm:"column:protocol"`
 	Tick         string          `json:"tick" gorm:"column:tick"`
 	Name         string          `json:"name" gorm:"column:name"`
-	LimitPerMint decimal.Decimal `gorm:"column:limit_per_mint;type:decimal(36,18)" json:"limit_per_mint"`
+	LimitPerMint decimal.Decimal `gorm:"column:limit_per_mint;type:decimal(38,18)" json:"limit_per_mint"`
 	DeployBy     string          `json:"deploy_by" gorm:"column:deploy_by"`
-	TotalSupply  decimal.Decimal `gorm:"column:total_supply;type:decimal(36,18)" json:"total_supply"`
+	TotalSupply  decimal.Decimal `gorm:"column:total_supply;type:decimal(38,18)" json:"total_supply"`
 	DeployHash   string          `json:"deploy_hash" gorm:"column:deploy_hash"`
 	DeployTime   time.Time       `json:"deploy_time" gorm:"column:deploy_time"`
 	TransferType int8            `json:"transfer_type" gorm:"column:transfer_type"`
@@ -99,7 +99,7 @@ type InscriptionOverView struct {
 	UpdatedAt    time.Time       `json:"updated_at" gorm:"column:updated_at"`
 	Decimals     int8            `json:"decimals" gorm:"column:decimals"`
 	Holders      uint64          `json:"holders" gorm:"column:holders"`
-	Minted       decimal.Decimal `gorm:"column:minted;type:decimal(36,18)" json:"minted"`
+	Minted       decimal.Decimal `gorm:"column:minted;type:decimal(38,18)" json:"minted"`
 	TxCnt        uint64          `gorm:"column:tx_cnt" json:"tx_cnt"`
 }
 

@@ -32,6 +32,7 @@ const (
 	OperateMint     string = "mint"
 	OperateTransfer string = "transfer"
 	OperateList     string = "list"
+	OperateDelist   string = "delist"
 	OperateExchange string = "exchange"
 )
 

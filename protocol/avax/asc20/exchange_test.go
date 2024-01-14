@@ -101,7 +101,6 @@ func TestExtractInputOrders_cancelOrdersVerify(t *testing.T) {
 			}
 		}
 	}
-	return
 }
 
 func TestExtractInputOrders_batchMatchOrdersVerify(t *testing.T) {
@@ -147,7 +146,6 @@ func TestExtractInputOrders_batchMatchOrdersVerify(t *testing.T) {
 			}
 		}
 	}
-	return
 }
 
 func TestExtractInputOrders_buildPackData(t *testing.T) {
@@ -193,7 +191,6 @@ func TestExtractInputOrders_buildPackData(t *testing.T) {
 
 	//t.Logf("data: 0x%s", common.Bytes2Hex(callData))
 	assert.NotEmpty(t, callData)
-	return
 }
 
 func TestExtractValidOrdersByExchange(t *testing.T) {

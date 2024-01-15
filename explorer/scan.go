@@ -78,7 +78,7 @@ func NewExplorer(rpcClient xycommon.IRPCClient, dbc *storage.DBClient, cfg *conf
 		fromBlock:       cfg.Scan.StartBlock,
 		mu:              sync.Mutex{},
 		dCache:          dCache,
-		blocks:          make(chan *xycommon.RpcBlock, 1024),
+		blocks:          make(chan *xycommon.RpcBlock, 100),
 		txResultHandler: txResultHandler,
 
 		scanChn: make(chan uint64, 4),
@@ -141,7 +141,7 @@ func (e *Explorer) Scan() {
 			continue
 		}
 
-		if e.currentBlock-blockNumber > 500 {
+		if e.currentBlock-blockNumber > 100 {
 			endBlock := blockNumber + scanLimit
 			if e.config.Scan.BatchWorkers > 0 {
 				endBlock = blockNumber + e.config.Scan.BatchWorkers

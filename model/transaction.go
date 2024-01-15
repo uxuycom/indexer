@@ -35,7 +35,8 @@ const (
 	TransactionEventMint     TxEvent = 2
 	TransactionEventTransfer TxEvent = 3
 	TransactionEventList     TxEvent = 4
-	TransactionEventExchange TxEvent = 5
+	TransactionEventDelist   TxEvent = 5
+	TransactionEventExchange TxEvent = 6
 )
 
 type AddressTxs struct {

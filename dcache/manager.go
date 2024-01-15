@@ -51,14 +51,14 @@ func NewManager(db *storage.DBClient, chain string) *Manager {
 		return e
 	}
 
-	e.initInscriptionCache()
-	e.initInscriptionStatsCache()
-	e.initBalanceCache()
+	e.initInscriptionCache(chain)
+	e.initInscriptionStatsCache(chain)
+	e.initBalanceCache(chain)
 	e.initUtxoCache()
 	return e
 }
 
-func (h *Manager) initInscriptionCache() {
+func (h *Manager) initInscriptionCache(chain string) {
 	h.Inscription = NewInscription()
 
 	startTs := time.Now()
@@ -68,7 +68,7 @@ func (h *Manager) initInscriptionCache() {
 	maxSid := uint32(0)
 	xylog.Logger.Infof("load inscriptions data start...")
 	for {
-		items, err := h.db.GetInscriptionsByIdLimit(uint64(start), limit)
+		items, err := h.db.GetInscriptionsByIdLimit(chain, uint64(start), limit)
 		if err != nil {
 			xylog.Logger.Fatalf("failed to initialize inscription cache data. err:%v", err)
 		}
@@ -103,7 +103,7 @@ func (h *Manager) initInscriptionCache() {
 	xylog.Logger.Infof("load inscriptions data finished, cost ts:%v", time.Since(startTs))
 }
 
-func (h *Manager) initInscriptionStatsCache() {
+func (h *Manager) initInscriptionStatsCache(chain string) {
 	h.InscriptionStats = NewInscriptionStats()
 
 	startTs := time.Now()
@@ -113,7 +113,7 @@ func (h *Manager) initInscriptionStatsCache() {
 	maxSid := uint32(0)
 	xylog.Logger.Infof("load inscription-stats data start...")
 	for {
-		items, err := h.db.GetInscriptionStatsByIdLimit(uint64(start), limit)
+		items, err := h.db.GetInscriptionStatsByIdLimit(chain, uint64(start), limit)
 		if err != nil {
 			xylog.Logger.Fatalf("failed to initialize inscription-stats cache data. err:%v", err)
 		}
@@ -147,7 +147,7 @@ func (h *Manager) initInscriptionStatsCache() {
 	xylog.Logger.Infof("load inscription-stats data finished, cost ts:%v", time.Since(startTs))
 }
 
-func (h *Manager) initBalanceCache() {
+func (h *Manager) initBalanceCache(chain string) {
 	h.Balance = NewBalance()
 
 	startTs := time.Now()
@@ -157,7 +157,7 @@ func (h *Manager) initBalanceCache() {
 	maxSid := uint64(0)
 	xylog.Logger.Infof("load balances data start...")
 	for {
-		balances, err := h.db.GetBalancesByIdLimit(start, limit)
+		balances, err := h.db.GetBalancesByIdLimit(chain, start, limit)
 		if err != nil {
 			xylog.Logger.Fatalf("failed to initialize balance cache data. err:%v", err)
 		}

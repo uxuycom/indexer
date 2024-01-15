@@ -375,18 +375,18 @@ func (conn *DBClient) GetInscriptions(limit, offset int, chain, protocol, tick, 
 	return data, total, nil
 }
 
-func (conn *DBClient) GetInscriptionsByIdLimit(start uint64, limit int) ([]model.Inscriptions, error) {
+func (conn *DBClient) GetInscriptionsByIdLimit(chain string, start uint64, limit int) ([]model.Inscriptions, error) {
 	inscriptions := make([]model.Inscriptions, 0)
-	err := conn.SqlDB.Where("id > ?", start).Order("id asc").Limit(limit).Find(&inscriptions).Error
+	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ?", start).Order("id asc").Limit(limit).Find(&inscriptions).Error
 	if err != nil {
 		return nil, err
 	}
 	return inscriptions, nil
 }
 
-func (conn *DBClient) GetInscriptionStatsByIdLimit(start uint64, limit int) ([]model.InscriptionsStats, error) {
+func (conn *DBClient) GetInscriptionStatsByIdLimit(chain string, start uint64, limit int) ([]model.InscriptionsStats, error) {
 	stats := make([]model.InscriptionsStats, 0)
-	err := conn.SqlDB.Where("id > ?", start).Order("id asc").Limit(limit).Find(&stats).Error
+	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ?", start).Order("id asc").Limit(limit).Find(&stats).Error
 	if err != nil {
 		return nil, err
 	}
@@ -520,9 +520,9 @@ func (conn *DBClient) GetUTXOCount(address, chain, protocol, tick string) (int64
 	return count, nil
 }
 
-func (conn *DBClient) GetBalancesByIdLimit(start uint64, limit int) ([]model.Balances, error) {
+func (conn *DBClient) GetBalancesByIdLimit(chain string, start uint64, limit int) ([]model.Balances, error) {
 	balances := make([]model.Balances, 0)
-	err := conn.SqlDB.Where("id > ?", start).Order("id asc").Limit(limit).Find(&balances).Error
+	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ?", start).Order("id asc").Limit(limit).Find(&balances).Error
 	if err != nil {
 		return nil, err
 	}

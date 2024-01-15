@@ -383,14 +383,15 @@ func handleGetTxByHash(s *RpcServer, cmd interface{}, closeChan <-chan struct{})
 		return resp, nil
 	}
 
+	// todo, get inscription events from address_txs
 	transInfo := &TransactionInfo{
-		Protocol: tx.Protocol,
-		Tick:     tx.Tick,
+		Protocol: "",
+		Tick:     "",
 		From:     tx.From,
 		To:       tx.To,
 	}
 
-	inscription, err := s.dbc.FindInscriptionByTick(tx.Chain, tx.Protocol, tx.Tick)
+	inscription, err := s.dbc.FindInscriptionByTick(tx.Chain, "", "")
 	if err != nil {
 		return ErrRPCInternal, err
 	}

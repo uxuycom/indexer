@@ -57,26 +57,23 @@ CREATE TABLE `txs`
 (
     `id`                bigint unsigned NOT NULL AUTO_INCREMENT,
     `chain`             varchar(32)     NOT NULL COMMENT 'chain name',
-    `protocol`          varchar(32)     NOT NULL COMMENT 'protocol name',
     `block_height`      bigint unsigned NOT NULL COMMENT 'block height',
     `position_in_block` bigint unsigned NOT NULL COMMENT 'Position in Block',
     `block_time`        timestamp       NOT NULL COMMENT 'block time',
     `tx_hash`           varchar(128)    NOT NULL COMMENT 'tx hash',
     `from`              varchar(128)    NOT NULL COMMENT 'from address',
     `to`                varchar(128)    NOT NULL COMMENT 'to address',
-    `op`                varchar(32)     NOT NULL COMMENT 'op code',
-    `tick`              varchar(32)     NOT NULL COMMENT 'inscription code',
-    `amt`               DECIMAL(38, 18) NOT NULL COMMENT 'amount',
     `gas`               bigint          NOT NULL COMMENT 'gas, spend fee',
     `gas_price`         bigint          NOT NULL COMMENT 'gas price',
     `status`            tinyint(1)      NOT NULL COMMENT 'tx status',
     `created_at`        timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`        timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
+    PRIMARY KEY (`id`, `tx_hash`),
     KEY `idx_tx_hash_chain` (`tx_hash`(12), `chain`(4))
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci;
+  COLLATE = utf8mb4_general_ci
+  PARTITION BY KEY(tx_hash) PARTITIONS 32;
 
 -- address ticks balances ---------
 CREATE TABLE `balances`
@@ -101,23 +98,25 @@ CREATE TABLE `balances`
 -- address related txs ---------
 CREATE TABLE `address_txs`
 (
-    `id`         bigint unsigned                                               NOT NULL AUTO_INCREMENT,
-    `chain`      varchar(32) COLLATE utf8mb4_general_ci                        NOT NULL COMMENT 'chain name',
-    `event`      tinyint(1)                                                    NOT NULL,
-    `protocol`   varchar(32) COLLATE utf8mb4_0900_bin                          NOT NULL COMMENT 'protocol name',
-    `operate`    varchar(32) COLLATE utf8mb4_0900_bin                          NOT NULL COMMENT 'operate',
-    `tx_hash`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin   NOT NULL COMMENT 'tx hash',
-    `address`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'from address',
-    `amount`     DECIMAL(38, 18)                                               NOT NULL COMMENT 'amount',
-    `tick`       varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL COMMENT 'inscription name',
-    `created_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_tx_hash` (`tx_hash`(12)),
+    `id`              bigint unsigned                                               NOT NULL AUTO_INCREMENT,
+    `chain`           varchar(32) COLLATE utf8mb4_general_ci                        NOT NULL COMMENT 'chain name',
+    `event`           tinyint(1)                                                    NOT NULL,
+    `protocol`        varchar(32) COLLATE utf8mb4_0900_bin                          NOT NULL COMMENT 'protocol name',
+    `operate`         varchar(32) COLLATE utf8mb4_0900_bin                          NOT NULL COMMENT 'operate',
+    `tx_hash`         varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin   NOT NULL COMMENT 'tx hash',
+    `address`         varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'from address',
+    `related_address` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'related address',
+    `amount`          DECIMAL(38, 18)                                               NOT NULL COMMENT 'amount',
+    `tick`            varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL COMMENT 'inscription name',
+    `created_at`      timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`      timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`, `address`),
+    KEY `idx_tx_hash_chain` (`tx_hash`(12), `chain`(4)),
     KEY `idx_address` (`address`(12))
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci;
+  COLLATE = utf8mb4_general_ci
+  PARTITION BY KEY(address) PARTITIONS 32;
 
 -- address balances change logs ---------
 CREATE TABLE `balance_txn`
@@ -134,11 +133,12 @@ CREATE TABLE `balance_txn`
     `tx_hash`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `created_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_address` (`address`(12))
+    PRIMARY KEY (`id`, `address`),
+    KEY `idx_address` (`address`(12), `tick`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci;
+  COLLATE = utf8mb4_general_ci
+  PARTITION BY KEY(address) PARTITIONS 32;
 
 
 -- address utxos ------------------------------

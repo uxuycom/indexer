@@ -121,8 +121,9 @@ func (tc *TxResultHandler) BuildInscriptionStat(e *TxResult) map[DBAction]*model
 }
 
 type AddressTxEvent struct {
-	Address string
-	Amount  decimal.Decimal
+	Address        string
+	RelatedAddress string
+	Amount         decimal.Decimal
 }
 
 func (tc *TxResultHandler) BuildAddressTxEvents(e *TxResult) []*AddressTxEvent {
@@ -147,15 +148,22 @@ func (tc *TxResultHandler) BuildAddressTxEvents(e *TxResult) []*AddressTxEvent {
 			sendTotalAmount = sendTotalAmount.Add(item.Amount)
 		}
 
+		sendToAddr := ""
+		if len(e.Transfer.Receives) == 1 {
+			sendToAddr = e.Transfer.Receives[0].Address
+		}
+
 		items = append(items, &AddressTxEvent{
-			Address: e.Transfer.Sender,
-			Amount:  sendTotalAmount,
+			Address:        e.Transfer.Sender,
+			RelatedAddress: sendToAddr,
+			Amount:         sendTotalAmount.Neg(),
 		})
 
 		for _, item := range e.Transfer.Receives {
 			items = append(items, &AddressTxEvent{
-				Address: item.Address,
-				Amount:  item.Amount,
+				Address:        item.Address,
+				RelatedAddress: e.Transfer.Sender,
+				Amount:         item.Amount,
 			})
 		}
 	}
@@ -167,15 +175,16 @@ func (tc *TxResultHandler) BuildAddressTxs(e *TxResult) (txs []*model.AddressTxs
 	txs = make([]*model.AddressTxs, 0, len(addressTxEvents))
 	for _, item := range addressTxEvents {
 		txs = append(txs, &model.AddressTxs{
-			Event:     tc.getEventByOperate(e.MD.Operate),
-			Address:   item.Address,
-			Amount:    item.Amount,
-			TxHash:    e.Tx.Hash,
-			Tick:      e.MD.Tick,
-			Protocol:  e.MD.Protocol,
-			Operate:   e.MD.Operate,
-			Chain:     e.MD.Chain,
-			CreatedAt: time.Unix(int64(e.Block.Time), 0),
+			Event:          tc.getEventByOperate(e.MD.Operate),
+			Address:        item.Address,
+			RelatedAddress: item.RelatedAddress,
+			Amount:         item.Amount,
+			TxHash:         e.Tx.Hash,
+			Tick:           e.MD.Tick,
+			Protocol:       e.MD.Protocol,
+			Operate:        e.MD.Operate,
+			Chain:          e.MD.Chain,
+			CreatedAt:      time.Unix(int64(e.Block.Time), 0),
 		})
 	}
 	return txs
@@ -298,15 +307,12 @@ func (tc *TxResultHandler) BuildBalance(e *TxResult) (txns []*model.BalanceTxn, 
 func (tc *TxResultHandler) BuildTx(e *TxResult) *model.Transaction {
 	return &model.Transaction{
 		Chain:           e.MD.Chain,
-		Protocol:        e.MD.Protocol,
 		BlockHeight:     e.Tx.BlockNumber.Uint64(),
 		PositionInBlock: e.Tx.TxIndex.Uint64(),
 		BlockTime:       time.Unix(int64(e.Block.Time), 0),
 		TxHash:          e.Tx.Hash,
 		From:            e.Tx.From,
 		To:              e.Tx.To,
-		Op:              e.MD.Operate,
-		Tick:            e.MD.Tick,
 		Gas:             e.Tx.Gas.Int64(),
 		GasPrice:        e.Tx.GasPrice.Int64(),
 	}

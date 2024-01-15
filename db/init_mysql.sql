@@ -60,7 +60,7 @@ CREATE TABLE `txs`
     `block_height`      bigint unsigned NOT NULL COMMENT 'block height',
     `position_in_block` bigint unsigned NOT NULL COMMENT 'Position in Block',
     `block_time`        timestamp       NOT NULL COMMENT 'block time',
-    `tx_hash`           varchar(128)    NOT NULL COMMENT 'tx hash',
+    `tx_hash`           varbinary(128)  NOT NULL COMMENT 'tx hash',
     `from`              varchar(128)    NOT NULL COMMENT 'from address',
     `to`                varchar(128)    NOT NULL COMMENT 'to address',
     `gas`               bigint          NOT NULL COMMENT 'gas, spend fee',
@@ -73,7 +73,7 @@ CREATE TABLE `txs`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci
-  PARTITION BY KEY(tx_hash) PARTITIONS 32;
+    PARTITION BY KEY (tx_hash) PARTITIONS 32;
 
 -- address ticks balances ---------
 CREATE TABLE `balances`
@@ -103,7 +103,7 @@ CREATE TABLE `address_txs`
     `event`           tinyint(1)                                                    NOT NULL,
     `protocol`        varchar(32) COLLATE utf8mb4_0900_bin                          NOT NULL COMMENT 'protocol name',
     `operate`         varchar(32) COLLATE utf8mb4_0900_bin                          NOT NULL COMMENT 'operate',
-    `tx_hash`         varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin   NOT NULL COMMENT 'tx hash',
+    `tx_hash`         varbinary(128)                                                NOT NULL COMMENT 'tx hash',
     `address`         varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'from address',
     `related_address` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'related address',
     `amount`          DECIMAL(38, 18)                                               NOT NULL COMMENT 'amount',
@@ -116,7 +116,7 @@ CREATE TABLE `address_txs`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci
-  PARTITION BY KEY(address) PARTITIONS 32;
+    PARTITION BY KEY (address) PARTITIONS 32;
 
 -- address balances change logs ---------
 CREATE TABLE `balance_txn`
@@ -130,7 +130,7 @@ CREATE TABLE `balance_txn`
     `amount`     DECIMAL(38, 18)                                               NOT NULL,
     `available`  DECIMAL(38, 18)                                               NOT NULL COMMENT 'available',
     `balance`    DECIMAL(38, 18)                                               NOT NULL,
-    `tx_hash`    varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `tx_hash`    varbinary(128)                                                NOT NULL COMMENT 'tx hash',
     `created_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`, `address`),
@@ -138,7 +138,7 @@ CREATE TABLE `balance_txn`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci
-  PARTITION BY KEY(address) PARTITIONS 32;
+    PARTITION BY KEY (address) PARTITIONS 32;
 
 
 -- address utxos ------------------------------

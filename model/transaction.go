@@ -42,7 +42,7 @@ const (
 type AddressTxs struct {
 	ID             uint64          `gorm:"primaryKey" json:"id"`
 	Event          TxEvent         `json:"event" gorm:"column:event"`
-	TxHash         string          `json:"tx_hash" gorm:"column:tx_hash"`
+	TxHash         []byte          `json:"tx_hash" gorm:"column:tx_hash"`
 	Address        string          `json:"address" gorm:"column:address"`
 	RelatedAddress string          `json:"related_address" gorm:"column:related_address"`
 	Amount         decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(38,18)"`
@@ -68,7 +68,7 @@ type BalanceTxn struct {
 	Amount    decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(38,18)"`
 	Available decimal.Decimal `json:"available" gorm:"column:available;type:decimal(38,18)"`
 	Balance   decimal.Decimal `json:"balance" gorm:"column:balance;type:decimal(38,18)"`
-	TxHash    string          `json:"tx_hash" gorm:"column:tx_hash"`
+	TxHash    []byte          `json:"tx_hash" gorm:"column:tx_hash"`
 	CreatedAt time.Time       `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt time.Time       `json:"updated_at" gorm:"column:updated_at"`
 }
@@ -83,7 +83,7 @@ type Transaction struct {
 	BlockHeight     uint64    `json:"block_height" gorm:"column:block_height"`           // block height
 	PositionInBlock uint64    `json:"position_in_block" gorm:"column:position_in_block"` // Position in Block
 	BlockTime       time.Time `json:"block_time" gorm:"column:block_time"`               // block time
-	TxHash          string    `json:"tx_hash" gorm:"column:tx_hash"`                     // tx hash
+	TxHash          []byte    `json:"tx_hash" gorm:"column:tx_hash"`                     // tx hash
 	From            string    `json:"from" gorm:"column:from"`                           // from address
 	To              string    `json:"to" gorm:"column:to"`                               // to address
 	Gas             int64     `json:"gas" gorm:"column:gas"`                             // gas
@@ -100,7 +100,7 @@ func (Transaction) TableName() string {
 type AddressTransaction struct {
 	ID        uint64          `gorm:"primaryKey" json:"id"`
 	Event     int8            `json:"event" gorm:"column:event"`
-	TxHash    string          `json:"tx_hash" gorm:"column:tx_hash"`
+	TxHash    []byte          `json:"tx_hash" gorm:"column:tx_hash"`
 	Address   string          `json:"address" gorm:"column:address"`
 	Amount    decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(38,18)"`
 	Tick      string          `json:"tick" gorm:"column:tick"`

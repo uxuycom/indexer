@@ -25,6 +25,7 @@ package jsonrpc
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
 	"github.com/uxuycom/indexer/protocol"
@@ -160,8 +161,8 @@ func handleFindAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-ch
 	list := make([]*AddressTransaction, 0, len(transactions))
 	for _, t := range transactions {
 		trans := &AddressTransaction{
-			Event:     int8(t.Event),
-			TxHash:    t.TxHash,
+			Event:     t.Event,
+			TxHash:    common.BytesToHash(t.TxHash).String(),
 			Address:   t.Address,
 			Amount:    t.Amount.String(),
 			Tick:      t.Tick,

@@ -23,6 +23,7 @@
 package devents
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
 	"github.com/uxuycom/indexer/xylog"
@@ -179,7 +180,7 @@ func (tc *TxResultHandler) BuildAddressTxs(e *TxResult) (txs []*model.AddressTxs
 			Address:        item.Address,
 			RelatedAddress: item.RelatedAddress,
 			Amount:         item.Amount,
-			TxHash:         e.Tx.Hash,
+			TxHash:         common.FromHex(e.Tx.Hash),
 			Tick:           e.MD.Tick,
 			Protocol:       e.MD.Protocol,
 			Operate:        e.MD.Operate,
@@ -284,7 +285,7 @@ func (tc *TxResultHandler) BuildBalance(e *TxResult) (txns []*model.BalanceTxn, 
 			Amount:    event.Amount,
 			Balance:   event.OverallBalance,
 			Available: event.AvailableBalance,
-			TxHash:    e.Tx.Hash,
+			TxHash:    common.FromHex(e.Tx.Hash),
 			CreatedAt: time.Unix(int64(e.Block.Time), 0),
 		})
 
@@ -310,7 +311,7 @@ func (tc *TxResultHandler) BuildTx(e *TxResult) *model.Transaction {
 		BlockHeight:     e.Tx.BlockNumber.Uint64(),
 		PositionInBlock: e.Tx.TxIndex.Uint64(),
 		BlockTime:       time.Unix(int64(e.Block.Time), 0),
-		TxHash:          e.Tx.Hash,
+		TxHash:          common.FromHex(e.Tx.Hash),
 		From:            e.Tx.From,
 		To:              e.Tx.To,
 		Gas:             e.Tx.Gas.Int64(),
@@ -358,16 +359,11 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 	for _, blockEvent := range blocksEvents {
 		for _, event := range blockEvent.Items {
 			for action, item := range event.Inscriptions {
-				if _, ok := dm.Inscriptions[action][item.SID]; ok {
-					xylog.Logger.Debugf("ins sid[%d] exist & force update, tick[%s]", item.SID, item.Tick)
-				}
 				dm.Inscriptions[action][item.SID] = item
 			}
 
 			for action, item := range event.InscriptionStats {
 				if lastItem, ok := dm.InscriptionStats[action][item.SID]; ok {
-					xylog.Logger.Debugf("ins stats sid[%d] exist & force update, tick[%s]", item.SID, item.Tick)
-
 					// reserve history mint stats data if exist
 					if lastItem.MintFirstBlock > 0 {
 						item.MintFirstBlock = lastItem.MintFirstBlock
@@ -382,7 +378,7 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 				dm.InscriptionStats[action][item.SID] = item
 			}
 
-			txIdx := event.Tx.TxHash
+			txIdx := common.Bytes2Hex(event.Tx.TxHash)
 			if _, ok := dm.Txs[txIdx]; ok {
 				xylog.Logger.Debugf("tx[%s] exist & force update", txIdx)
 			}
@@ -398,9 +394,6 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 
 			for action, items := range event.Balances {
 				for _, item := range items {
-					if _, ok := dm.Balances[action][item.SID]; ok {
-						xylog.Logger.Debugf("balance sid[%d] exist & force update, address[%s]-tick[%s]", item.SID, item.Address, item.Tick)
-					}
 					dm.Balances[action][item.SID] = item
 				}
 			}

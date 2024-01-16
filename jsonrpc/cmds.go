@@ -112,7 +112,6 @@ type FindUserBalancesCmd struct {
 	Chain    string
 	Protocol string
 	Tick     string
-	Key      string
 }
 
 type IndsGetBalanceByAddressCmd struct {
@@ -122,7 +121,6 @@ type IndsGetBalanceByAddressCmd struct {
 	Chain    string
 	Protocol string
 	Tick     string
-	Key      string
 	Sort     int
 }
 

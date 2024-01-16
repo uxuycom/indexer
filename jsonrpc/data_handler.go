@@ -7,17 +7,17 @@ import (
 	"strings"
 )
 
-func findAddressBalances(s *RpcServer, limit, offset int, address, chain, protocol, tick, key string, sort int) (interface{}, error) {
+func findAddressBalances(s *RpcServer, limit, offset int, address, chain, protocol, tick string, sort int) (interface{}, error) {
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
-	cacheKey := fmt.Sprintf("addr_balances_%d_%d_%s_%s_%s_%s_%s_%d", limit, offset, address, chain, protocol, tick, key, sort)
+	cacheKey := fmt.Sprintf("addr_balances_%d_%d_%s_%s_%s_%s_%d", limit, offset, address, chain, protocol, tick, sort)
 	if ins, ok := s.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*FindUserBalancesResponse); ok {
 			return allIns, nil
 		}
 	}
 
-	balances, total, err := s.dbc.GetAddressInscriptions(limit, offset, address, chain, protocol, tick, key, sort)
+	balances, total, err := s.dbc.GetAddressInscriptions(limit, offset, address, chain, protocol, tick, sort)
 	if err != nil {
 		return ErrRPCInternal, err
 	}

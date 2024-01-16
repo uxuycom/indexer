@@ -504,7 +504,7 @@ func (conn *DBClient) GetTxsByHashes(chain string, hashes []string) ([]*model.Tr
 	return txs, nil
 }
 
-func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, protocol, tick, key string, sort int) (
+func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, protocol, tick string, sort int) (
 	[]*model.BalanceInscription, int64, error) {
 
 	var data []*model.BalanceInscription
@@ -522,10 +522,7 @@ func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, 
 		query = query.Where("`b`.protocol = ?", protocol)
 	}
 	if tick != "" {
-		query = query.Where("`b`.tick = ?", tick)
-	}
-	if key != "" {
-		query = query.Where("`b`.tick like ?", "%"+key+"%")
+		query = query.Where("`b`.tick like ?", "%"+tick+"%")
 	}
 
 	query = query.Count(&total)

@@ -50,7 +50,6 @@ type Explorer struct {
 	ctx             context.Context
 	cancel          context.CancelFunc
 	quit            chan os.Signal
-	mu              sync.Mutex
 	blocks          chan *xycommon.RpcBlock
 	txResultHandler *devents.TxResultHandler
 	dCache          *dcache.Manager
@@ -71,7 +70,6 @@ func NewExplorer(rpcClient xycommon.IRPCClient, dbc *storage.DBClient, cfg *conf
 		node:            rpcClient,
 		db:              dbc,
 		config:          cfg,
-		mu:              sync.Mutex{},
 		dCache:          dCache,
 		blocks:          make(chan *xycommon.RpcBlock, 100),
 		txResultHandler: txResultHandler,

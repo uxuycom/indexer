@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
+	"github.com/uxuycom/indexer/xylog"
 	"strings"
 )
 
@@ -43,11 +44,10 @@ func findInsciptions(s *RpcServer, limit, offset int, chain, protocol, tick, dep
 	tick = strings.ToLower(tick)
 	cacheKey := fmt.Sprintf("all_ins_%d_%d_%s_%s_%s_%s_%d_%d", limit, offset, chain, protocol, tick, deployBy, sort, sortMode)
 	if ins, ok := s.cacheStore.Get(cacheKey); ok {
-		if allIns, ok := ins.(FindAllInscriptionsResponse); ok {
+		if allIns, ok := ins.(*FindAllInscriptionsResponse); ok {
 			return allIns, nil
 		}
 	}
-
 	inscriptions, total, err := s.dbc.GetInscriptions(limit, offset, chain, protocol, tick, deployBy, sort, sortMode)
 	if err != nil {
 		return ErrRPCInternal, err
@@ -97,6 +97,8 @@ func findInsciptions(s *RpcServer, limit, offset int, chain, protocol, tick, dep
 		Offset:       offset,
 	}
 
+	xylog.Logger.Info(resp)
+
 	s.cacheStore.Set(cacheKey, resp)
 
 	return resp, nil
@@ -107,7 +109,7 @@ func findTickHolders(s *RpcServer, limit int, offset int, chain, protocol, tick 
 	tick = strings.ToLower(tick)
 	cacheKey := fmt.Sprintf("all_ins_%d_%d_%s_%s_%s_%d", limit, offset, chain, protocol, tick, sortMode)
 	if ins, ok := s.cacheStore.Get(cacheKey); ok {
-		if allIns, ok := ins.(FindTickHoldersResponse); ok {
+		if allIns, ok := ins.(*FindTickHoldersResponse); ok {
 			return allIns, nil
 		}
 	}

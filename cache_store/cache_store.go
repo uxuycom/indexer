@@ -34,6 +34,7 @@ func (m *CacheStore) Set(key string, value interface{}) {
 	duration := time.Second * time.Duration(m.duration)
 	expiration := time.Now().Add(duration).UnixNano()
 	item := CacheItem{Value: value, Expiration: expiration}
+	xylog.Logger.Info("value", value)
 	m.data.Store(key, item)
 	m.cacheMemory = useMemory
 }
@@ -71,7 +72,6 @@ func (m *CacheStore) clearExpiration() {
 		item := value.(CacheItem)
 		if time.Now().UnixNano() > item.Expiration {
 			m.data.Delete(key)
-			xylog.Logger.Infof("have expired. key:%s", key)
 		} else {
 			totalSize += int64(len(fmt.Sprintf("%v", key))) + int64(len(fmt.Sprintf("%v", item.Value)))
 		}

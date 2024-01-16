@@ -130,26 +130,32 @@ func (e *Explorer) tryFilterTxs(txs []*xycommon.RpcTransaction) []*xycommon.RpcT
 
 func (e *Explorer) filterMintCompleted(md *devents.MetaData) bool {
 	if md.Operate != devents.OperateMint {
+		xylog.Logger.Infof("false, op[%s] <> mint", md.Operate)
 		return false
 	}
 
 	if md.Protocol == "" || md.Tick == "" {
+		xylog.Logger.Infof("false, protocol[%s] tikc[%s] nil", md.Protocol, md.Tick)
 		return false
 	}
 
 	ok, inscription := e.dCache.Inscription.Get(md.Protocol, md.Tick)
 	if !ok {
+		xylog.Logger.Infof("false, get cache inscription nil, tick[%s-%s]", md.Protocol, md.Tick)
 		return false
 	}
 
 	ok, stats := e.dCache.InscriptionStats.Get(md.Protocol, md.Tick)
 	if !ok {
+		xylog.Logger.Infof("false, get cache inscriptionStats nil, tick[%s-%s]", md.Protocol, md.Tick)
 		return false
 	}
 
 	if stats.Minted.GreaterThanOrEqual(inscription.TotalSupply) {
+		xylog.Logger.Infof("true, hit mint completed, tick[%s-%s]", md.Protocol, md.Tick)
 		return true
 	}
+	xylog.Logger.Infof("false, minted[%s] < supply[%s], tick[%s-%s]", stats.Minted.String(), inscription.TotalSupply.String(), md.Protocol, md.Tick)
 	return false
 }
 

@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"github.com/uxuycom/indexer/cache_store"
+	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/storage"
 	"io"
 	"log"
@@ -107,6 +109,8 @@ type RpcServer struct {
 	requestProcessShutdown chan struct{}
 	quit                   chan int
 	dbc                    *storage.DBClient
+	cacheConfig            *config.CacheConfig
+	cacheStore             *cache_store.CacheStore
 }
 
 // httpStatusLine returns a response Status-Line (RFC 2616 Section 6.1)
@@ -638,22 +642,20 @@ func (s *RpcServer) Start() {
 		// handshake within the allowed timeframe.
 		ReadTimeout: time.Second * rpcAuthTimeoutSeconds,
 	}
+
+	rpcServeMux.HandleFunc("/v1/", func(w http.ResponseWriter, r *http.Request) {
+		rpcHandlers = rpcHandlersBeforeInit
+		s.setRule(w, r)
+	})
+
+	rpcServeMux.HandleFunc("/v2/", func(w http.ResponseWriter, r *http.Request) {
+		rpcHandlers = rpcHandlersBeforeInitV2
+		s.setRule(w, r)
+	})
+
 	rpcServeMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Connection", "close")
-		w.Header().Set("Content-Type", "application/json")
-		r.Close = true
-
-		// Limit the number of connections to max allowed.
-		if s.limitConnections(w, r.RemoteAddr) {
-			return
-		}
-
-		// Keep track of the number of connected clients.
-		s.incrementClients()
-		defer s.decrementClients()
-
-		// Read and respond to the request.
-		s.jsonRPCRead(w, r, true)
+		rpcHandlers = rpcHandlersBeforeInit
+		s.setRule(w, r)
 	})
 
 	for _, listener := range s.cfg.Listeners {
@@ -665,6 +667,24 @@ func (s *RpcServer) Start() {
 			s.wg.Done()
 		}(listener)
 	}
+}
+
+func (s *RpcServer) setRule(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Connection", "close")
+	w.Header().Set("Content-Type", "application/json")
+	r.Close = true
+
+	// Limit the number of connections to max allowed.
+	if s.limitConnections(w, r.RemoteAddr) {
+		return
+	}
+
+	// Keep track of the number of connected clients.
+	s.incrementClients()
+	defer s.decrementClients()
+
+	// Read and respond to the request.
+	s.jsonRPCRead(w, r, true)
 }
 
 // RpcServerConfig is a descriptor containing the RPC server configuration.
@@ -681,7 +701,7 @@ type RpcServerConfig struct {
 }
 
 // NewRPCServer returns a new instance of the RpcServer struct.
-func NewRPCServer(dbc *storage.DBClient) (*RpcServer, error) {
+func NewRPCServer(dbc *storage.DBClient, cacheConfig *config.CacheConfig) (*RpcServer, error) {
 	//load cfg
 	loadCfg()
 
@@ -712,7 +732,15 @@ func NewRPCServer(dbc *storage.DBClient) (*RpcServer, error) {
 		requestProcessShutdown: make(chan struct{}),
 		quit:                   make(chan int),
 		dbc:                    dbc,
+		cacheConfig:            cacheConfig,
 	}
+
+	if cacheConfig != nil && cacheConfig.Started {
+		cacheStore := cache_store.NewCacheStore(cacheConfig.MaxCapacity, cacheConfig.Duration)
+		rpc.cacheStore = cacheStore
+		go cacheStore.Clear()
+	}
+
 	if cfg.RPCUser != "" && cfg.RPCPass != "" {
 		login := cfg.RPCUser + ":" + cfg.RPCPass
 		auth := "Basic " + base64.StdEncoding.EncodeToString([]byte(login))
@@ -728,7 +756,7 @@ func NewRPCServer(dbc *storage.DBClient) (*RpcServer, error) {
 
 func loadCfg() {
 	// Default config.
-	configFileName := "config.json"
+	configFileName := "config_jsonrpc.json"
 	if len(os.Args) > 1 {
 		configFileName = os.Args[1]
 	}
@@ -740,6 +768,7 @@ func loadCfg() {
 	if err != nil {
 		log.Fatalf("open config file[%s] error[%v]", configFileName, err.Error())
 	}
+
 	defer configFile.Close()
 	jsonParser := json.NewDecoder(configFile)
 	if err := jsonParser.Decode(cfg); err != nil {
@@ -837,6 +866,6 @@ func parseListeners(addrs []string) ([]net.Addr, error) {
 	return netAddrs, nil
 }
 
-func init() {
-	rpcHandlers = rpcHandlersBeforeInit
-}
+//func init() {
+//	//rpcHandlers = rpcHandlersBeforeInit
+//}

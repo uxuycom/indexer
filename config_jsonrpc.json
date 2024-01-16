@@ -1,0 +1,23 @@
+{
+  "rpclisten": [
+    ":6583"
+  ],
+  "rpcmaxclients":10000,
+  "rpcuser": "",
+  "rpcpass": "",
+  "cache_store": {
+    "started": true,
+    "max_capacity": 100,
+    "duration": 120
+  },
+  "database": {
+    "type": "mysql",
+    "dsn": "root:@tcp(127.0.0.1:3306)/tap_indexer?charset=utf8mb4&parseTime=True&loc=Local&collation=utf8mb4_general_ci",
+    "enable_log": true
+  },
+  "log_level": "info",
+  "profile": {
+    "enabled": false,
+    "listen": ":6060"
+  }
+}

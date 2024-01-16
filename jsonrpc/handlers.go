@@ -25,9 +25,9 @@ package jsonrpc
 import (
 	"errors"
 	"fmt"
-	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
 	"github.com/uxuycom/indexer/protocol"
+	"github.com/uxuycom/indexer/storage"
 	"github.com/uxuycom/indexer/xylog"
 	"strings"
 )
@@ -42,6 +42,7 @@ var rpcHandlersBeforeInit = map[string]commandHandler{
 	"block.LastNumber":          handleGetLastBlockNumber,
 	"tool.InscriptionTxOperate": handleGetTxOperate,
 	"transaction.Info":          handleGetTxByHash,
+	"tick.GetBriefs":            handleGetTickBriefs,
 }
 
 func handleFindAllInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -50,59 +51,7 @@ func handleFindAllInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan s
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("find all Inscriptions cmd params:%v", req)
-
-	req.Protocol = strings.ToLower(req.Protocol)
-	req.Tick = strings.ToLower(req.Tick)
-
-	inscriptions, total, err := s.dbc.GetInscriptions(req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort)
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-
-	result := make([]*model.InscriptionBrief, 0, len(inscriptions))
-
-	for _, ins := range inscriptions {
-		brief := &model.InscriptionBrief{
-			Chain:        ins.Chain,
-			Protocol:     ins.Protocol,
-			Tick:         ins.Name,
-			DeployBy:     ins.DeployBy,
-			DeployHash:   ins.DeployHash,
-			TotalSupply:  ins.TotalSupply.String(),
-			Holders:      ins.Holders,
-			Minted:       ins.Minted.String(),
-			LimitPerMint: ins.LimitPerMint.String(),
-			TransferType: ins.TransferType,
-			Status:       model.MintStatusProcessing,
-			TxCnt:        ins.TxCnt,
-			CreatedAt:    uint32(ins.CreatedAt.Unix()),
-		}
-
-		minted := ins.Minted
-		totalSupply := ins.TotalSupply
-
-		if totalSupply != decimal.Zero && minted != decimal.Zero {
-			percentage, _ := minted.Div(totalSupply).Float64()
-			if percentage >= 1 {
-				percentage = 1
-			}
-			brief.MintedPercent = fmt.Sprintf("%.4f", percentage)
-		}
-
-		if ins.Minted.Cmp(ins.TotalSupply) >= 0 {
-			brief.Status = model.MintStatusAllMinted
-		}
-
-		result = append(result, brief)
-	}
-
-	resp := &FindAllInscriptionsResponse{
-		Inscriptions: result,
-		Total:        total,
-		Limit:        req.Limit,
-		Offset:       req.Offset,
-	}
-	return resp, nil
+	return findInsciptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, storage.OrderByModeDesc)
 }
 
 func handleFindInscriptionTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -114,6 +63,13 @@ func handleFindInscriptionTick(s *RpcServer, cmd interface{}, closeChan <-chan s
 
 	req.Protocol = strings.ToLower(req.Protocol)
 	req.Tick = strings.ToLower(req.Tick)
+
+	cacheKey := fmt.Sprintf("tick_%s_%s_%s", req.Chain, req.Protocol, req.Tick)
+	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+		if ticks, ok := ins.(InscriptionInfo); ok {
+			return ticks, nil
+		}
+	}
 
 	data, err := s.dbc.FindInscriptionByTick(req.Chain, req.Protocol, req.Tick)
 	if err != nil {
@@ -129,7 +85,7 @@ func handleFindInscriptionTick(s *RpcServer, cmd interface{}, closeChan <-chan s
 		Tick:         data.Tick,
 		Name:         data.Name,
 		LimitPerMint: data.LimitPerMint.String(),
-		DeployBy:     data.DeployedBy,
+		DeployBy:     data.DeployBy,
 		TotalSupply:  data.TotalSupply.String(),
 		DeployHash:   data.DeployHash,
 		DeployTime:   uint32(data.DeployTime.Unix()),
@@ -138,7 +94,7 @@ func handleFindInscriptionTick(s *RpcServer, cmd interface{}, closeChan <-chan s
 		UpdatedAt:    uint32(data.UpdatedAt.Unix()),
 		Decimals:     data.Decimals,
 	}
-
+	s.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
@@ -152,7 +108,7 @@ func handleFindAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-ch
 	req.Protocol = strings.ToLower(req.Protocol)
 	req.Tick = strings.ToLower(req.Tick)
 
-	transactions, total, err := s.dbc.GetTransactionsByAddress(req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Event)
+	transactions, total, err := s.dbc.GetTransactionsByAddress(req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key, req.Event)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -160,9 +116,11 @@ func handleFindAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-ch
 	list := make([]*AddressTransaction, 0, len(transactions))
 	for _, t := range transactions {
 		trans := &AddressTransaction{
-			Event:     int8(t.Event),
+			Event:     t.Event,
 			TxHash:    t.TxHash,
 			Address:   t.Address,
+			From:      t.From,
+			To:        t.To,
 			Amount:    t.Amount.String(),
 			Tick:      t.Tick,
 			Protocol:  t.Protocol,
@@ -191,35 +149,7 @@ func handleFindAddressBalances(s *RpcServer, cmd interface{}, closeChan <-chan s
 	}
 	xylog.Logger.Infof("find user balances cmd params:%v", req)
 
-	req.Protocol = strings.ToLower(req.Protocol)
-	req.Tick = strings.ToLower(req.Tick)
-
-	balances, total, err := s.dbc.GetAddressInscriptions(req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick)
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-
-	list := make([]*BalanceInfo, 0, len(balances))
-	for _, b := range balances {
-		balance := &BalanceInfo{
-			Chain:        b.Chain,
-			Protocol:     b.Protocol,
-			Tick:         b.Tick,
-			Address:      b.Address,
-			Balance:      b.Balance.String(),
-			DeployHash:   b.DeployHash,
-			TransferType: b.TransferType,
-		}
-		list = append(list, balance)
-	}
-
-	resp := &FindUserBalancesResponse{
-		Inscriptions: list,
-		Total:        total,
-		Limit:        req.Limit,
-		Offset:       req.Offset,
-	}
-	return resp, nil
+	return findAddressBalances(s, req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key, storage.OrderByModeDesc)
 }
 
 func handleFindAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -243,6 +173,7 @@ func handleFindAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan st
 	resp := &BalanceBrief{
 		Tick:         inscription.Tick,
 		TransferType: inscription.TransferType,
+		DeployHash:   inscription.DeployHash,
 	}
 
 	// balance
@@ -275,40 +206,14 @@ func handleFindAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan st
 
 	return resp, nil
 }
+
 func handleFindTickHolders(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	req, ok := cmd.(*FindTickHoldersCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("find tick holders cmd params:%v", req)
-
-	req.Protocol = strings.ToLower(req.Protocol)
-	req.Tick = strings.ToLower(req.Tick)
-
-	holders, total, err := s.dbc.GetHoldersByTick(req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick)
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-
-	list := make([]*BalanceInfo, 0, len(holders))
-	for _, b := range holders {
-		balance := &BalanceInfo{
-			Chain:    b.Chain,
-			Protocol: b.Protocol,
-			Tick:     b.Tick,
-			Address:  b.Address,
-			Balance:  b.Balance.String(),
-		}
-		list = append(list, balance)
-	}
-
-	resp := &FindTickHoldersResponse{
-		Holders: list,
-		Total:   total,
-		Limit:   req.Limit,
-		Offset:  req.Offset,
-	}
-	return resp, nil
+	return findTickHolders(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, storage.OrderByModeDesc)
 }
 
 func handleGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -318,15 +223,22 @@ func handleGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan st
 	}
 	xylog.Logger.Infof("get last block number cmd params:%v", req)
 
-	blockNumber, err := s.dbc.QueryLastBlock(req.Chain)
-	if err != nil {
-		return ErrRPCInternal, err
+	result := make([]*BlockInfo, 0)
+	for _, chain := range req.Chains {
+		block, err := s.dbc.FindLastBlock(chain)
+		if err != nil {
+			return ErrRPCInternal, err
+		}
+		blockInfo := &BlockInfo{
+			Chain:       chain,
+			BlockNumber: block.BlockNumber,
+			TimeStamp:   uint32(block.BlockTime.Unix()),
+			BlockTime:   block.BlockTime.String(),
+		}
+		result = append(result, blockInfo)
 	}
 
-	resp := &LastBlockNumberResponse{
-		BlockNumber: blockNumber,
-	}
-	return resp, nil
+	return result, nil
 }
 
 func handleGetTxOperate(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -397,7 +309,7 @@ func handleGetTxByHash(s *RpcServer, cmd interface{}, closeChan <-chan struct{})
 	if inscription == nil {
 		return nil, errors.New("Record not found")
 	}
-	transInfo.DeployBy = inscription.DeployedBy
+	transInfo.DeployHash = inscription.DeployHash
 
 	// get amount from address tx tab
 	addressTx, err := s.dbc.FindAddressTxByHash(req.Chain, req.TxHash)
@@ -411,6 +323,55 @@ func handleGetTxByHash(s *RpcServer, cmd interface{}, closeChan <-chan struct{})
 
 	resp.IsInscription = true
 	resp.Transaction = transInfo
+
+	return resp, nil
+}
+
+func handleGetTickBriefs(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*GetTickBriefsCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("get tick briefs cmd params:%v", req)
+
+	deployHashGroups := make(map[string][]string)
+	for _, address := range req.Addresses {
+		deployHashGroups[address.Chain] = append(deployHashGroups[address.Chain], address.DeployHash)
+	}
+
+	result := make([]*model.InscriptionOverView, 0, len(req.Addresses))
+	for chain, groups := range deployHashGroups {
+		dbTicks, err := s.dbc.GetInscriptionsByChain(chain, groups)
+		if err != nil {
+			continue
+		}
+		for _, dbTick := range dbTicks {
+			overview := &model.InscriptionOverView{
+				Chain:        dbTick.Chain,
+				Protocol:     dbTick.Protocol,
+				Tick:         dbTick.Tick,
+				Name:         dbTick.Name,
+				LimitPerMint: dbTick.LimitPerMint,
+				TotalSupply:  dbTick.TotalSupply,
+				DeployBy:     dbTick.DeployBy,
+				DeployHash:   dbTick.DeployHash,
+				DeployTime:   dbTick.DeployTime,
+				TransferType: dbTick.TransferType,
+				Decimals:     dbTick.Decimals,
+				CreatedAt:    dbTick.CreatedAt,
+			}
+			stat, _ := s.dbc.FindInscriptionsStatsByTick(dbTick.Chain, dbTick.Protocol, dbTick.Tick)
+			if stat != nil {
+				overview.Holders = stat.Holders
+				overview.Minted = stat.Minted
+				overview.TxCnt = stat.TxCnt
+			}
+			result = append(result, overview)
+		}
+	}
+
+	resp := &GetTickBriefsResp{}
+	resp.Inscriptions = result
 
 	return resp, nil
 }

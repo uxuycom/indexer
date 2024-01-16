@@ -74,6 +74,22 @@ type Config struct {
 	Profile  *ProfileConfig `json:"profile"`
 }
 
+type JsonRcpConfig struct {
+	RpcListen     []string       `json:"rpclisten"`
+	RpcMaxClients int64          `json:"rpcmaxclients"`
+	LogLevel      string         `json:"log_level"`
+	LogPath       string         `json:"log_path"`
+	Database      DatabaseConfig `json:"database"`
+	Profile       *ProfileConfig `json:"profile"`
+	CacheStore    *CacheConfig   `json:"cache_store"`
+}
+
+type CacheConfig struct {
+	Started     bool   `json:"started"`
+	MaxCapacity int64  `json:"max_capacity"`
+	Duration    uint32 `json:"duration"`
+}
+
 func LoadConfig(cfg *Config, filePath string) {
 	// Default config.
 	configFileName := "config.json"
@@ -98,6 +114,36 @@ func LoadConfig(cfg *Config, filePath string) {
 	if err := jsonParser.Decode(&cfg); err != nil {
 		log.Fatal("Config error: ", err.Error())
 	}
+}
+
+func LoadJsonRpcConfig(cfg *JsonRcpConfig, filePath string) {
+	// Default config.
+	configFileName := "config_jsonrpc.json"
+	if len(os.Args) > 1 {
+		configFileName = os.Args[1]
+	}
+
+	configFileName, _ = filepath.Abs(configFileName)
+	log.Printf("Loading config: %v", configFileName)
+
+	if filePath != "" {
+		configFileName = filePath
+	}
+	configFile, err := os.Open(configFileName)
+	if err != nil {
+		log.Fatal("File error: ", err.Error())
+	}
+	defer func() {
+		_ = configFile.Close()
+	}()
+	jsonParser := json.NewDecoder(configFile)
+	if err := jsonParser.Decode(&cfg); err != nil {
+		log.Fatal("Config error: ", err.Error())
+	}
+}
+
+func (cfg *JsonRcpConfig) GetConfig() *JsonRcpConfig {
+	return cfg
 }
 
 func (cfg *Config) GetConfig() *Config {

@@ -1,25 +1,3 @@
-// Copyright (c) 2023-2024 The UXUY Developer Team
-// License:
-// MIT License
-
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//SOFTWARE
-
 // Copyright (c) 2014-2017 The btcsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
@@ -29,7 +7,7 @@
 
 package jsonrpc
 
-import "math/big"
+import "github.com/uxuycom/indexer/model"
 
 // EmptyCmd defines the empty JSON-RPC command.
 type EmptyCmd struct{}
@@ -43,6 +21,18 @@ type FindAllInscriptionsCmd struct {
 	Tick     string `json:"tick"`
 	DeployBy string `json:"deploy_by"`
 	Sort     int    `json:"sort"`
+	//SortMode int    `json:"sort_mode"`
+}
+
+type IndsGetTicksCmd struct {
+	Limit    int    `json:"limit"`
+	Offset   int    `json:"offset"`
+	Chain    string `json:"chain"`
+	Protocol string `json:"protocol"`
+	Tick     string `json:"tick"`
+	DeployBy string `json:"deploy_by"`
+	Sort     int    `json:"sort"`
+	SortMode int    `json:"sort_mode"`
 }
 
 type FindAllInscriptionsResponse struct {
@@ -87,6 +77,7 @@ type FindUserTransactionsCmd struct {
 	Chain    string
 	Protocol string
 	Tick     string
+	Key      string
 	Event    int8
 }
 
@@ -95,6 +86,8 @@ type AddressTransaction struct {
 	Protocol  string `json:"protocol"`
 	Tick      string `json:"tick"`
 	Address   string `json:"address"`
+	From      string `json:"from"`
+	To        string `json:"to"`
 	TxHash    string `json:"tx_hash"`
 	Amount    string `json:"amount"`
 	Event     int8   `json:"event"`
@@ -119,6 +112,18 @@ type FindUserBalancesCmd struct {
 	Chain    string
 	Protocol string
 	Tick     string
+	Key      string
+}
+
+type IndsGetBalanceByAddressCmd struct {
+	Limit    int
+	Offset   int
+	Address  string
+	Chain    string
+	Protocol string
+	Tick     string
+	Key      string
+	Sort     int
 }
 
 type FindUserBalanceCmd struct {
@@ -143,6 +148,7 @@ type BalanceBrief struct {
 	Balance      string       `json:"balance"`
 	TransferType int8         `json:"transfer_type"`
 	Utxos        []*UTXOBrief `json:"utxos,omitempty"`
+	DeployHash   string       `json:"deploy_hash"`
 }
 
 type UTXOBrief struct {
@@ -170,6 +176,28 @@ type FindTickHoldersCmd struct {
 	Tick     string
 }
 
+type IndsGetHoldersByTickCmd struct {
+	Limit    int
+	Offset   int
+	Chain    string
+	Protocol string
+	Tick     string
+	SortMode int
+}
+
+type GetTickBriefsCmd struct {
+	Addresses []*TickAddress `json:"addresses"`
+}
+
+type TickAddress struct {
+	Chain      string `json:"chain"`
+	DeployHash string `json:"deploy_hash"`
+}
+
+type GetTickBriefsResp struct {
+	Inscriptions []*model.InscriptionOverView `json:"inscriptions"`
+}
+
 type FindTickHoldersResponse struct {
 	Holders interface{} `json:"holders"`
 	Total   int64       `json:"total"`
@@ -177,12 +205,15 @@ type FindTickHoldersResponse struct {
 	Offset  int         `json:"offset"`
 }
 
-type LastBlockNumberCmd struct {
-	Chain string
+type BlockInfo struct {
+	Chain       string `json:"chain"`
+	BlockNumber string `json:"block_number"`
+	BlockTime   string `json:"block_time"`
+	TimeStamp   uint32 `json:"timestamp"`
 }
 
-type LastBlockNumberResponse struct {
-	BlockNumber *big.Int `json:"block_number"`
+type LastBlockNumberCmd struct {
+	Chains []string
 }
 
 type TxOperateCmd struct {
@@ -203,12 +234,12 @@ type GetTxByHashCmd struct {
 }
 
 type TransactionInfo struct {
-	Protocol string `json:"protocol"`
-	Tick     string `json:"tick"`
-	DeployBy string `json:"deploy_by"`
-	From     string `json:"from"`
-	To       string `json:"to"`
-	Amount   string `json:"amount"`
+	Protocol   string `json:"protocol"`
+	Tick       string `json:"tick"`
+	DeployHash string `json:"deploy_hash"`
+	From       string `json:"from"`
+	To         string `json:"to"`
+	Amount     string `json:"amount"`
 }
 
 type GetTxByHashResponse struct {
@@ -229,4 +260,14 @@ func init() {
 	MustRegisterCmd("block.LastNumber", (*LastBlockNumberCmd)(nil), flags)
 	MustRegisterCmd("tool.InscriptionTxOperate", (*TxOperateCmd)(nil), flags)
 	MustRegisterCmd("transaction.Info", (*GetTxByHashCmd)(nil), flags)
+	MustRegisterCmd("tick.GetBriefs", (*GetTickBriefsCmd)(nil), flags)
+
+	//v2
+	MustRegisterCmd("inds_getTicks", (*IndsGetTicksCmd)(nil), flags)
+	MustRegisterCmd("inds_getTransactionByAddress", (*FindUserTransactionsCmd)(nil), flags)
+	MustRegisterCmd("inds_getBalanceByAddress", (*IndsGetBalanceByAddressCmd)(nil), flags)
+	MustRegisterCmd("inds_getHoldersByTick", (*IndsGetHoldersByTickCmd)(nil), flags)
+	MustRegisterCmd("inds_getLastBlockNumberIndexed", (*LastBlockNumberCmd)(nil), flags)
+	MustRegisterCmd("inds_getTickByCallData", (*TxOperateCmd)(nil), flags)
+	MustRegisterCmd("inds_getTransactionByHash", (*GetTxByHashCmd)(nil), flags)
 }

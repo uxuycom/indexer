@@ -31,6 +31,11 @@ import (
 type TxEvent int8
 
 const (
+	TransactionScannedStatusInit = 0
+	TransactionScannedStatusDone = 1
+)
+
+const (
 	TransactionEventDeploy   TxEvent = 1
 	TransactionEventMint     TxEvent = 2
 	TransactionEventTransfer TxEvent = 3
@@ -38,6 +43,28 @@ const (
 	TransactionEventDelist   TxEvent = 5
 	TransactionEventExchange TxEvent = 6
 )
+
+type TransactionRaw struct {
+	ChainInfo
+	Id              string
+	Hash            string
+	From            string
+	To              string
+	BlockHeight     uint64
+	PositionInBlock uint32
+	BlockTime       uint64
+	Data            string
+	OP              string
+	Tick            string
+	Amt             uint64
+	Idx             uint32
+	Timestamp       uint64
+	Input           string
+	Gas             uint64
+	Status          uint32
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
 
 type AddressTxs struct {
 	ID       uint64          `gorm:"primaryKey" json:"id"`
@@ -106,7 +133,9 @@ type AddressTransaction struct {
 	Event     int8            `json:"event" gorm:"column:event"`
 	TxHash    string          `json:"tx_hash" gorm:"column:tx_hash"`
 	Address   string          `json:"address" gorm:"column:address"`
-	Amount    decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(38,18)"`
+	From      string          `json:"from" gorm:"column:from"`
+	To        string          `json:"to" gorm:"column:to"`
+	Amount    decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(36,18)"`
 	Tick      string          `json:"tick" gorm:"column:tick"`
 	Protocol  string          `json:"protocol" gorm:"column:protocol"`
 	Operate   string          `json:"operate" gorm:"column:operate"`

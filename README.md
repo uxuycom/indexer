@@ -32,12 +32,12 @@ make dev-indexer-build-darwin-arm64
 
 
 ## How to Run Indexer JSONRPC API
-### Modify config.json
+### Modify config_jsonrpc.json
 
 ### Build apiserver
 ```
 make dev-apiserver-build-darwin-arm64:
-./bin/apiserver-alpha-0.0.1 -config config.json
+./bin/apiserver-alpha-0.0.1 -config config_jsonrpc.json
 ```
 
 

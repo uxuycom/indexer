@@ -25,6 +25,7 @@ package explorer
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/uxuycom/indexer/client/xycommon"
@@ -37,30 +38,24 @@ import (
 	"math/big"
 	"os"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
-)
-
-const (
-	scanLimit uint64 = 2
 )
 
 type Explorer struct {
 	config          *config.Config
 	node            xycommon.IRPCClient
 	db              *storage.DBClient
-	fromBlock       uint64
 	ctx             context.Context
 	cancel          context.CancelFunc
 	quit            chan os.Signal
-	mu              sync.Mutex
-	scanChn         chan uint64
 	blocks          chan *xycommon.RpcBlock
 	txResultHandler *devents.TxResultHandler
 	dCache          *dcache.Manager
 	dEvent          *devents.DEvent
-	currentBlock    uint64
-	updatedBlock    uint64
+	latestBlockNum  atomic.Uint64
+	currentBlockNum atomic.Uint64
 }
 
 func NewExplorer(rpcClient xycommon.IRPCClient, dbc *storage.DBClient, cfg *config.Config, dCache *dcache.Manager, dEvent *devents.DEvent, quit chan os.Signal) *Explorer {
@@ -75,14 +70,11 @@ func NewExplorer(rpcClient xycommon.IRPCClient, dbc *storage.DBClient, cfg *conf
 		node:            rpcClient,
 		db:              dbc,
 		config:          cfg,
-		fromBlock:       cfg.Scan.StartBlock,
-		mu:              sync.Mutex{},
 		dCache:          dCache,
 		blocks:          make(chan *xycommon.RpcBlock, 100),
 		txResultHandler: txResultHandler,
 
-		scanChn: make(chan uint64, 4),
-		dEvent:  dEvent,
+		dEvent: dEvent,
 	}
 	return exp
 }
@@ -103,21 +95,17 @@ func (e *Explorer) Scan() {
 	if err != nil {
 		xylog.Logger.Fatalf("load hisotry block index err:%v", err)
 	}
+
+	startBlock := e.config.Scan.StartBlock
 	if blockNum.Uint64() > 0 {
-		e.fromBlock = blockNum.Uint64() + 1
+		startBlock = blockNum.Uint64() + 1
 	}
 
 	// update latest block number
-	if err := e.syncLatestBlockNumber(); err != nil {
-		xylog.Logger.Errorf("failed to obtain the current block height. chain:%s err=%s", e.config.Chain.ChainName, err)
-	}
 	go e.updateBlockLatestNumberTiming()
 
-	//go e.runSave()
-	e.scanChn <- e.fromBlock
-	e.mu.Lock()
-	e.updatedBlock = e.fromBlock
-	e.mu.Unlock()
+	// set start block number
+	e.currentBlockNum.Store(startBlock)
 
 	for {
 		select {
@@ -125,57 +113,38 @@ func (e *Explorer) Scan() {
 			return
 		default:
 		}
-		blockNumber := <-e.scanChn
-
-		//fmt.Println("scanChn len", len(e.scanChn))
-		if e.currentBlock < 1 || e.currentBlock < e.updatedBlock {
-			xylog.Logger.Infof("the updated height is greater than the current height. chain: %s currentBlock:%v updatedBlock:%v", e.config.Chain.ChainName, e.currentBlock, e.updatedBlock)
-			e.scanChn <- blockNumber
+		startBlock = e.currentBlockNum.Load()
+		latestBlockNum := e.latestBlockNum.Load()
+		if latestBlockNum < 1 {
+			xylog.Logger.Infof("latest block number is zero. chain:%s", e.config.Chain.ChainName)
+			<-time.After(time.Second)
 			continue
 		}
 
 		// wait more blocks for safety
-		if blockNumber > (e.currentBlock - e.config.Scan.DelayedBlockNum) {
-			time.Sleep(1 * time.Second)
-			e.scanChn <- blockNumber
+		if startBlock > (latestBlockNum - e.config.Scan.DelayedBlockNum) {
+			xylog.Logger.Infof("current block number[%d] is too close to the latest block number[%d]. chain:%s", startBlock, latestBlockNum, e.config.Chain.ChainName)
+			<-time.After(time.Second)
 			continue
 		}
 
-		if e.currentBlock-blockNumber > 100 {
-			endBlock := blockNumber + scanLimit
-			if e.config.Scan.BlockBatchWorkers > 0 {
-				endBlock = blockNumber + e.config.Scan.BlockBatchWorkers
-			}
-
-			// setting endBlock num
-			if endBlock > e.currentBlock {
-				endBlock = e.currentBlock
-			}
-
-			updateBlock, err := e.batchScan(blockNumber, endBlock)
-			xylog.Logger.Infof("startBlock:%v endBlock:%v, scanLimit:%v updatedBlock:%v", blockNumber, endBlock, e.config.Scan.BlockBatchWorkers, e.updatedBlock)
-			if err != nil {
-				e.scanChn <- updateBlock
-				xylog.Logger.Errorf("batch block scanning failed. startBlock:%d offsetBlock:%d err=%s", blockNumber, endBlock, err)
-			} else {
-				e.mu.Lock()
-				e.updatedBlock = updateBlock
-				e.mu.Unlock()
-				e.scanChn <- updateBlock + 1
-			}
-		} else {
-			updateBlock, err := e.scan(blockNumber)
-			xylog.Logger.Infof("block:%v, scanLimit:%v updatedBlock:%v", blockNumber, e.config.Scan.BlockBatchWorkers, e.updatedBlock)
-			if err != nil {
-				e.scanChn <- updateBlock
-				xylog.Logger.Errorf("batch block scanning failed. startBlock:%d err=%s", blockNumber, err)
-			} else {
-				e.mu.Lock()
-				e.updatedBlock = updateBlock
-				e.mu.Unlock()
-				e.scanChn <- updateBlock + 1
-			}
+		endBlock := startBlock
+		if e.config.Scan.BlockBatchWorkers > 0 {
+			endBlock = startBlock + e.config.Scan.BlockBatchWorkers - 1
 		}
+
+		if endBlock > latestBlockNum {
+			endBlock = latestBlockNum
+		}
+
+		err = e.batchScan(startBlock, endBlock)
+		if err != nil {
+			xylog.Logger.Errorf("batch block scanning failed. blocks[%d-%d] err=%s", startBlock, endBlock, err)
+			continue
+		}
+
+		// update current block number
+		e.currentBlockNum.Store(endBlock + 1)
 	}
 }
 
@@ -183,6 +152,8 @@ func (e *Explorer) updateBlockLatestNumberTiming() {
 	defer func() {
 		e.cancel()
 	}()
+
+	_ = e.syncLatestBlockNumber()
 
 	t := time.NewTicker(1 * time.Second)
 	defer t.Stop()
@@ -200,27 +171,21 @@ func (e *Explorer) updateBlockLatestNumberTiming() {
 
 func (e *Explorer) syncLatestBlockNumber() error {
 	// Add latency updating strategy for history data sync
-	if e.currentBlock-e.updatedBlock > 100 {
+	if e.latestBlockNum.Load() > e.currentBlockNum.Load() && e.latestBlockNum.Load()-e.currentBlockNum.Load() > 100 {
 		return nil
 	}
 
-	blockNumber, err := e.node.BlockNumber(e.ctx)
+	num, err := e.node.BlockNumber(e.ctx)
 	if err != nil {
 		return err
 	}
 
-	if blockNumber <= 0 {
+	if num <= 0 {
 		return errors.New("block number is zero")
 	}
 
-	e.mu.Lock()
-	defer e.mu.Unlock()
-
-	e.currentBlock = blockNumber
-	xylog.Logger.Info("currentBlock:", e.currentBlock)
-	if e.updatedBlock == 0 {
-		e.updatedBlock = e.currentBlock
-	}
+	e.latestBlockNum.Store(num)
+	xylog.Logger.Info("latestBlockNum:", num)
 	return nil
 }
 
@@ -266,7 +231,12 @@ DoFilter:
 	result <- groupLogs
 }
 
-func (e *Explorer) batchScan(startBlock, endBlock uint64) (uint64, error) {
+func (e *Explorer) batchScan(startBlock, endBlock uint64) error {
+	startTs := time.Now()
+	defer func() {
+		xylog.Logger.Infof("batchScan blocks cost[%v], blocks[%d-%d], num[%d], delayed[%d]", time.Since(startTs), startBlock, endBlock, endBlock-startBlock+1, e.latestBlockNum.Load()-e.currentBlockNum.Load())
+	}()
+
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
 
@@ -275,13 +245,12 @@ func (e *Explorer) batchScan(startBlock, endBlock uint64) (uint64, error) {
 
 	blockMap := &sync.Map{}
 	g, ctx := errgroup.WithContext(ctx)
-	xylog.Logger.Info("batch scan startBlock:", startBlock, " endBlock:", endBlock)
 	for i := startBlock; i <= endBlock; i++ {
 		blockNum := i
 		g.Go(func() error {
 			block, err := e.node.BlockByNumber(ctx, big.NewInt(int64(blockNum)))
 			if err != nil {
-				xylog.Logger.Errorf("[%v]call rpc BlockByNumber err:%v", blockNum, err)
+				xylog.Logger.Errorf("scan call rpc BlockByNumber[%d], err=%s", blockNum, err)
 				return err
 			}
 			blockMap.Store(blockNum, block)
@@ -289,8 +258,7 @@ func (e *Explorer) batchScan(startBlock, endBlock uint64) (uint64, error) {
 		})
 	}
 	if err := g.Wait(); err != nil {
-		xylog.Logger.Errorf("concurrent block scanning failed. err=%s", err)
-		return startBlock, err
+		return fmt.Errorf("concurrent block scanning failed. err=%s", err)
 	}
 
 	// wait rpc logs result
@@ -299,7 +267,7 @@ func (e *Explorer) batchScan(startBlock, endBlock uint64) (uint64, error) {
 	for blockNum := startBlock; blockNum <= endBlock; blockNum++ {
 		blockVal, ok := blockMap.Load(blockNum)
 		if !ok {
-			return startBlock, errors.New("failed to obtain block information")
+			return fmt.Errorf("failed to obtain block[%d] data", blockNum)
 		}
 
 		block := blockVal.(*xycommon.RpcBlock)
@@ -311,22 +279,7 @@ func (e *Explorer) batchScan(startBlock, endBlock uint64) (uint64, error) {
 		}
 		e.blocks <- block
 	}
-	return endBlock, nil
-}
-
-func (e *Explorer) scan(blockNum uint64) (uint64, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
-	defer cancel()
-
-	xylog.Logger.Info("batch scan block:", blockNum)
-	block, err := e.node.BlockByNumber(ctx, big.NewInt(int64(blockNum)))
-	if err != nil {
-		xylog.Logger.Errorf("[%v]call rpc BlockByNumber err:%v", blockNum, err)
-		return blockNum, err
-	}
-
-	e.blocks <- block
-	return blockNum, nil
+	return nil
 }
 
 func (e *Explorer) Stop() {

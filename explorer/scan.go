@@ -173,7 +173,7 @@ func (e *Explorer) updateBlockLatestNumberTiming() {
 
 func (e *Explorer) syncLatestBlockNumber() error {
 	// Add latency updating strategy for history data sync
-	if e.latestBlockNum.Load()-e.currentBlockNum.Load() > 100 {
+	if e.latestBlockNum.Load() > e.currentBlockNum.Load() && e.latestBlockNum.Load()-e.currentBlockNum.Load() > 100 {
 		return nil
 	}
 

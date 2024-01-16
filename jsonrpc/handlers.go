@@ -50,74 +50,8 @@ func handleFindAllInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan s
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-
 	xylog.Logger.Infof("find all Inscriptions cmd params:%v", req)
-
 	return findInsciptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, storage.OrderByModeDesc)
-	/*
-		req.Protocol = strings.ToLower(req.Protocol)
-		req.Tick = strings.ToLower(req.Tick)
-
-		inscriptions, total, err := s.dbc.GetInscriptions(req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, req.SortMode)
-		if err != nil {
-			return ErrRPCInternal, err
-		}
-
-		cacheKey := fmt.Sprintf("all_ins_%d_%d_%s_%s_%s_%s_%d_%d", req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, req.SortMode)
-		if ins, ok := s.cacheStore.Get(cacheKey); ok {
-			if allIns, ok := ins.(FindAllInscriptionsResponse); ok {
-				return allIns, nil
-			}
-		}
-
-		result := make([]*model.InscriptionBrief, 0, len(inscriptions))
-
-		for _, ins := range inscriptions {
-			brief := &model.InscriptionBrief{
-				Chain:        ins.Chain,
-				Protocol:     ins.Protocol,
-				Tick:         ins.Name,
-				DeployBy:     ins.DeployBy,
-				DeployHash:   ins.DeployHash,
-				TotalSupply:  ins.TotalSupply.String(),
-				Holders:      ins.Holders,
-				Minted:       ins.Minted.String(),
-				LimitPerMint: ins.LimitPerMint.String(),
-				TransferType: ins.TransferType,
-				Status:       model.MintStatusProcessing,
-				TxCnt:        ins.TxCnt,
-				CreatedAt:    uint32(ins.CreatedAt.Unix()),
-			}
-
-			minted := ins.Minted
-			totalSupply := ins.TotalSupply
-
-			if totalSupply != decimal.Zero && minted != decimal.Zero {
-				percentage, _ := minted.Div(totalSupply).Float64()
-				if percentage >= 1 {
-					percentage = 1
-				}
-				brief.MintedPercent = fmt.Sprintf("%.4f", percentage)
-			}
-
-			if ins.Minted.Cmp(ins.TotalSupply) >= 0 {
-				brief.Status = model.MintStatusAllMinted
-			}
-
-			result = append(result, brief)
-		}
-
-		resp := &FindAllInscriptionsResponse{
-			Inscriptions: result,
-			Total:        total,
-			Limit:        req.Limit,
-			Offset:       req.Offset,
-		}
-
-		s.cacheStore.Set(cacheKey, resp)
-
-		return resp, nil
-	*/
 }
 
 func handleFindInscriptionTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -160,9 +94,7 @@ func handleFindInscriptionTick(s *RpcServer, cmd interface{}, closeChan <-chan s
 		UpdatedAt:    uint32(data.UpdatedAt.Unix()),
 		Decimals:     data.Decimals,
 	}
-
 	s.cacheStore.Set(cacheKey, resp)
-
 	return resp, nil
 }
 
@@ -220,19 +152,6 @@ func handleFindAddressBalances(s *RpcServer, cmd interface{}, closeChan <-chan s
 	return findAddressBalances(s, req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key, storage.OrderByModeDesc)
 }
 
-//func handleFindAddressBalancesWithSort(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-//	req, ok := cmd.(*FindUserBalancesWithSortCmd)
-//	if !ok {
-//		return ErrRPCInvalidParams, errors.New("invalid params")
-//	}
-//	xylog.Logger.Infof("find user balances cmd params:%v", req)
-//
-//	req.Protocol = strings.ToLower(req.Protocol)
-//	req.Tick = strings.ToLower(req.Tick)
-//
-//	return findAddressBalances(s, req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key, req.Sort)
-//}
-
 func handleFindAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	req, ok := cmd.(*FindUserBalanceCmd)
 	if !ok {
@@ -254,6 +173,7 @@ func handleFindAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan st
 	resp := &BalanceBrief{
 		Tick:         inscription.Tick,
 		TransferType: inscription.TransferType,
+		DeployHash:   inscription.DeployHash,
 	}
 
 	// balance
@@ -293,10 +213,6 @@ func handleFindTickHolders(s *RpcServer, cmd interface{}, closeChan <-chan struc
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("find tick holders cmd params:%v", req)
-
-	req.Protocol = strings.ToLower(req.Protocol)
-	req.Tick = strings.ToLower(req.Tick)
-
 	return findTickHolders(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, storage.OrderByModeDesc)
 }
 
@@ -308,7 +224,6 @@ func handleGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan st
 	xylog.Logger.Infof("get last block number cmd params:%v", req)
 
 	result := make([]*BlockInfo, 0)
-
 	for _, chain := range req.Chains {
 		block, err := s.dbc.FindLastBlock(chain)
 		if err != nil {

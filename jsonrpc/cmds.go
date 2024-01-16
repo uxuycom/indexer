@@ -148,6 +148,7 @@ type BalanceBrief struct {
 	Balance      string       `json:"balance"`
 	TransferType int8         `json:"transfer_type"`
 	Utxos        []*UTXOBrief `json:"utxos,omitempty"`
+	DeployHash   string       `json:"deploy_hash"`
 }
 
 type UTXOBrief struct {

@@ -2,7 +2,6 @@ package jsonrpc
 
 import (
 	"errors"
-	"fmt"
 	"github.com/uxuycom/indexer/xylog"
 )
 
@@ -21,7 +20,6 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 func indsGetTicks(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	req, ok := cmd.(*IndsGetTicksCmd)
 	if !ok {
-		fmt.Printf("====--------------")
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 

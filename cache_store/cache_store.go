@@ -2,6 +2,7 @@ package cache_store
 
 import (
 	"fmt"
+	"github.com/uxuycom/indexer/xylog"
 	"sync"
 	"time"
 )
@@ -26,7 +27,7 @@ type CacheItem struct {
 func (m *CacheStore) Set(key string, value interface{}) {
 	useMemory := m.cacheMemory + int64(len(fmt.Sprintf("%v", key))) + int64(len(fmt.Sprintf("%v", value)))
 	if useMemory > m.maxCapacity {
-		fmt.Printf("the set maximum memory is exceeded. maxCapacity:%v, cacheMemory:%v\n", m.maxCapacity, m.cacheMemory)
+		xylog.Logger.Infof("the set maximum memory is exceeded. maxCapacity:%v, cacheMemory:%v\n", m.maxCapacity, m.cacheMemory)
 		return
 	}
 
@@ -34,19 +35,21 @@ func (m *CacheStore) Set(key string, value interface{}) {
 	expiration := time.Now().Add(duration).UnixNano()
 	item := CacheItem{Value: value, Expiration: expiration}
 	m.data.Store(key, item)
-
 	m.cacheMemory = useMemory
 }
 
 func (m *CacheStore) Get(key string) (interface{}, bool) {
 	item, ok := m.data.Load(key)
 	if !ok {
-		fmt.Printf("not using the cache. key:%s", key)
+		xylog.Logger.Infof("not using the cache. key:%s", key)
 		return nil, false
 	}
 
-	fmt.Printf("Using the cache. key:%s\n", key)
 	cacheItem := item.(CacheItem)
+	if time.Now().UnixNano() > cacheItem.Expiration {
+		m.data.Delete(key)
+		return nil, false
+	}
 	return cacheItem.Value, true
 }
 
@@ -68,12 +71,11 @@ func (m *CacheStore) clearExpiration() {
 		item := value.(CacheItem)
 		if time.Now().UnixNano() > item.Expiration {
 			m.data.Delete(key)
-			fmt.Printf("have expired. key:%s\n", key)
+			xylog.Logger.Infof("have expired. key:%s", key)
 		} else {
 			totalSize += int64(len(fmt.Sprintf("%v", key))) + int64(len(fmt.Sprintf("%v", item.Value)))
 		}
 		return true
 	})
-	fmt.Println("total size:", totalSize)
 	m.cacheMemory = totalSize
 }

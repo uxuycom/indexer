@@ -41,16 +41,16 @@ func findAddressBalances(s *RpcServer, limit, offset int, address, chain, protoc
 func findInsciptions(s *RpcServer, limit, offset int, chain, protocol, tick, deployBy string, sort, sortMode int) (interface{}, error) {
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
-	inscriptions, total, err := s.dbc.GetInscriptions(limit, offset, chain, protocol, tick, deployBy, sort, sortMode)
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-
 	cacheKey := fmt.Sprintf("all_ins_%d_%d_%s_%s_%s_%s_%d_%d", limit, offset, chain, protocol, tick, deployBy, sort, sortMode)
 	if ins, ok := s.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(FindAllInscriptionsResponse); ok {
 			return allIns, nil
 		}
+	}
+
+	inscriptions, total, err := s.dbc.GetInscriptions(limit, offset, chain, protocol, tick, deployBy, sort, sortMode)
+	if err != nil {
+		return ErrRPCInternal, err
 	}
 
 	result := make([]*model.InscriptionBrief, 0, len(inscriptions))
@@ -103,6 +103,15 @@ func findInsciptions(s *RpcServer, limit, offset int, chain, protocol, tick, dep
 }
 
 func findTickHolders(s *RpcServer, limit int, offset int, chain, protocol, tick string, sortMode int) (interface{}, error) {
+	protocol = strings.ToLower(protocol)
+	tick = strings.ToLower(tick)
+	cacheKey := fmt.Sprintf("all_ins_%d_%d_%s_%s_%s_%d", limit, offset, chain, protocol, tick, sortMode)
+	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+		if allIns, ok := ins.(FindTickHoldersResponse); ok {
+			return allIns, nil
+		}
+	}
+
 	holders, total, err := s.dbc.GetHoldersByTick(limit, offset, chain, protocol, tick, sortMode)
 	if err != nil {
 		return ErrRPCInternal, err
@@ -126,5 +135,7 @@ func findTickHolders(s *RpcServer, limit int, offset int, chain, protocol, tick 
 		Limit:   limit,
 		Offset:  offset,
 	}
+
+	s.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }

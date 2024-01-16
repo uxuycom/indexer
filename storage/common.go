@@ -604,3 +604,22 @@ func (conn *DBClient) FindLastBlock(chain string) (*model.Block, error) {
 	}
 	return data, nil
 }
+
+func (conn *DBClient) GetInscriptionsByChain(chain string, hashes []string) ([]*model.Inscriptions, error) {
+	inscriptions := make([]*model.Inscriptions, 0)
+	err := conn.SqlDB.Where("chain = ? AND deploy_hash in ?", chain, hashes).Find(&inscriptions).Error
+	if err != nil {
+		return nil, err
+	}
+	return inscriptions, nil
+}
+
+func (conn *DBClient) FindInscriptionsStatsByTick(chain string, protocol string, tick string) (*model.InscriptionsStats, error) {
+	inscriptionStats := &model.InscriptionsStats{}
+	err := conn.SqlDB.First(inscriptionStats, "chain = ? AND protocol = ? AND tick = ?", chain, protocol, tick).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return inscriptionStats, nil
+}

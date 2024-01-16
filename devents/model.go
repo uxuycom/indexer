@@ -71,7 +71,7 @@ func (tc *TxResultHandler) BuildInscription(e *TxResult) map[DBAction]*model.Ins
 		Name:         e.Deploy.Name,
 		LimitPerMint: e.Deploy.MintLimit,
 		TotalSupply:  e.Deploy.MaxSupply,
-		DeployedBy:   e.Tx.From,
+		DeployBy:     e.Tx.From,
 		DeployHash:   e.Tx.Hash,
 		DeployTime:   time.Unix(int64(e.Block.Time), 0),
 		Decimals:     e.Deploy.Decimal,

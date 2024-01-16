@@ -42,6 +42,7 @@ var rpcHandlersBeforeInit = map[string]commandHandler{
 	"block.LastNumber":          handleGetLastBlockNumber,
 	"tool.InscriptionTxOperate": handleGetTxOperate,
 	"transaction.Info":          handleGetTxByHash,
+	"tick.GetBriefs":            handleGetTickBriefs,
 }
 
 func handleFindAllInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -150,7 +151,7 @@ func handleFindInscriptionTick(s *RpcServer, cmd interface{}, closeChan <-chan s
 		Tick:         data.Tick,
 		Name:         data.Name,
 		LimitPerMint: data.LimitPerMint.String(),
-		DeployBy:     data.DeployedBy,
+		DeployBy:     data.DeployBy,
 		TotalSupply:  data.TotalSupply.String(),
 		DeployHash:   data.DeployHash,
 		DeployTime:   uint32(data.DeployTime.Unix()),
@@ -407,6 +408,55 @@ func handleGetTxByHash(s *RpcServer, cmd interface{}, closeChan <-chan struct{})
 
 	resp.IsInscription = true
 	resp.Transaction = transInfo
+
+	return resp, nil
+}
+
+func handleGetTickBriefs(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*GetTickBriefsCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("get tick briefs cmd params:%v", req)
+
+	deployHashGroups := make(map[string][]string)
+	for _, address := range req.Addresses {
+		deployHashGroups[address.Chain] = append(deployHashGroups[address.Chain], address.DeployHash)
+	}
+
+	result := make([]*model.InscriptionOverView, 0, len(req.Addresses))
+	for chain, groups := range deployHashGroups {
+		dbTicks, err := s.dbc.GetInscriptionsByChain(chain, groups)
+		if err != nil {
+			continue
+		}
+		for _, dbTick := range dbTicks {
+			overview := &model.InscriptionOverView{
+				Chain:        dbTick.Chain,
+				Protocol:     dbTick.Protocol,
+				Tick:         dbTick.Tick,
+				Name:         dbTick.Name,
+				LimitPerMint: dbTick.LimitPerMint,
+				TotalSupply:  dbTick.TotalSupply,
+				DeployBy:     dbTick.DeployBy,
+				DeployHash:   dbTick.DeployHash,
+				DeployTime:   dbTick.DeployTime,
+				TransferType: dbTick.TransferType,
+				Decimals:     dbTick.Decimals,
+				CreatedAt:    dbTick.CreatedAt,
+			}
+			stat, _ := s.dbc.FindInscriptionsStatsByTick(dbTick.Chain, dbTick.Protocol, dbTick.Tick)
+			if stat != nil {
+				overview.Holders = stat.Holders
+				overview.Minted = stat.Minted
+				overview.TxCnt = stat.TxCnt
+			}
+			result = append(result, overview)
+		}
+	}
+
+	resp := &GetTickBriefsResp{}
+	resp.Inscriptions = result
 
 	return resp, nil
 }

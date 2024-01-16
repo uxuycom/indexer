@@ -7,6 +7,8 @@
 
 package jsonrpc
 
+import "github.com/uxuycom/indexer/model"
+
 // EmptyCmd defines the empty JSON-RPC command.
 type EmptyCmd struct{}
 
@@ -182,6 +184,19 @@ type IndsGetHoldersByTickCmd struct {
 	SortMode int
 }
 
+type GetTickBriefsCmd struct {
+	Addresses []*TickAddress `json:"addresses"`
+}
+
+type TickAddress struct {
+	Chain      string `json:"chain"`
+	DeployHash string `json:"deploy_hash"`
+}
+
+type GetTickBriefsResp struct {
+	Inscriptions []*model.InscriptionOverView `json:"inscriptions"`
+}
+
 type FindTickHoldersResponse struct {
 	Holders interface{} `json:"holders"`
 	Total   int64       `json:"total"`
@@ -244,6 +259,7 @@ func init() {
 	MustRegisterCmd("block.LastNumber", (*LastBlockNumberCmd)(nil), flags)
 	MustRegisterCmd("tool.InscriptionTxOperate", (*TxOperateCmd)(nil), flags)
 	MustRegisterCmd("transaction.Info", (*GetTxByHashCmd)(nil), flags)
+	MustRegisterCmd("tick.GetBriefs", (*GetTickBriefsCmd)(nil), flags)
 
 	//v2
 	MustRegisterCmd("inds_getTicks", (*IndsGetTicksCmd)(nil), flags)

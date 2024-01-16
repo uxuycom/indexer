@@ -46,9 +46,15 @@ type Inscriptions struct {
 	Protocol     string          `json:"protocol" gorm:"column:protocol"`
 	Tick         string          `json:"tick" gorm:"column:tick"`
 	Name         string          `json:"name" gorm:"column:name"`
+<<<<<<< HEAD
 	LimitPerMint decimal.Decimal `gorm:"column:limit_per_mint;type:decimal(38,18)" json:"limit_per_mint"`
 	DeployedBy   string          `json:"deploy_by" gorm:"column:deploy_by"`
 	TotalSupply  decimal.Decimal `gorm:"column:total_supply;type:decimal(38,18)" json:"total_supply"`
+=======
+	LimitPerMint decimal.Decimal `gorm:"column:limit_per_mint;type:decimal(36,18)" json:"limit_per_mint"`
+	DeployBy     string          `json:"deploy_by" gorm:"column:deploy_by"`
+	TotalSupply  decimal.Decimal `gorm:"column:total_supply;type:decimal(36,18)" json:"total_supply"`
+>>>>>>> 707c327 (add tick.GetBriefs api)
 	DeployHash   string          `json:"deploy_hash" gorm:"column:deploy_hash"`
 	DeployTime   time.Time       `json:"deploy_time" gorm:"column:deploy_time"`
 	TransferType int8            `json:"transfer_type" gorm:"column:transfer_type"`

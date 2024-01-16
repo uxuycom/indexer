@@ -112,9 +112,39 @@ func (e *Explorer) tryFilterTxs(txs []*xycommon.RpcTransaction) []*xycommon.RpcT
 		if !e.tickEnabled(md.Tick) {
 			continue
 		}
+
+		// Add mint completed filter
+		if e.filterMintCompleted(md) {
+			continue
+		}
 		validTxs = append(validTxs, tx)
 	}
 	return validTxs
+}
+
+func (e *Explorer) filterMintCompleted(md *devents.MetaData) bool {
+	if md.Operate != devents.OperateDeploy {
+		return false
+	}
+
+	if md.Protocol == "" || md.Tick == "" {
+		return false
+	}
+
+	ok, inscription := e.dCache.Inscription.Get(md.Protocol, md.Tick)
+	if !ok {
+		return false
+	}
+
+	ok, stats := e.dCache.InscriptionStats.Get(md.Protocol, md.Tick)
+	if !ok {
+		return false
+	}
+
+	if stats.Minted.GreaterThanOrEqual(inscription.TotalSupply) {
+		return true
+	}
+	return false
 }
 
 func (e *Explorer) handleTxs(block *xycommon.RpcBlock, txs []*xycommon.RpcTransaction) *xyerrors.InsError {
@@ -292,6 +322,10 @@ func (e *Explorer) fastChecking(tx *xycommon.RpcTransaction) bool {
 }
 
 func (e *Explorer) protocolEnabled(protocol string) bool {
+	if protocol == "" {
+		return true
+	}
+
 	if e.config.Filters == nil || e.config.Filters.Whitelist == nil {
 		return true
 	}

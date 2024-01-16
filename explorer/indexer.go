@@ -39,6 +39,11 @@ import (
 )
 
 func (e *Explorer) validReceiptTxs(items []*xycommon.RpcTransaction) ([]*xycommon.RpcTransaction, *xyerrors.InsError) {
+	startTs := time.Now()
+	defer func() {
+		xylog.Logger.Infof("fetch receipt data cost[%v], items[%d]", time.Since(startTs), len(items))
+	}()
+
 	txHashList := make(map[string]struct{}, len(items))
 	for _, item := range items {
 		txHashList[item.Hash] = struct{}{}
@@ -148,6 +153,11 @@ func (e *Explorer) filterMintCompleted(md *devents.MetaData) bool {
 }
 
 func (e *Explorer) handleTxs(block *xycommon.RpcBlock, txs []*xycommon.RpcTransaction) *xyerrors.InsError {
+	startTs := time.Now()
+	defer func() {
+		xylog.Logger.Infof("handle txs cost[%v], txs[%d]", time.Since(startTs), len(txs))
+	}()
+
 	blockTxResults := make([]*devents.DBModelEvent, 0, len(txs))
 	for _, tx := range txs {
 		pt, md := protocol.GetProtocol(e.config, tx)
@@ -295,9 +305,7 @@ func (e *Explorer) writeDBAsync(block *xycommon.RpcBlock, txResults []*devents.D
 	}
 	e.dEvent.WriteDBAsync(event)
 
-	//dBytes, _ := json.Marshal(event)
-	dBytes := ""
-	xylog.Logger.Infof("push block data to events, cost:%v, block:%s, data:%s", time.Since(start), block.Number.String(), dBytes)
+	xylog.Logger.Infof("push block data to events, cost[%v], block[%d]", time.Since(start), block.Number.Uint64())
 }
 
 func (e *Explorer) fastChecking(tx *xycommon.RpcTransaction) bool {

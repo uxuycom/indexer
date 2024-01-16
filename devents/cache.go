@@ -25,6 +25,7 @@ package devents
 import (
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/dcache"
+	"github.com/uxuycom/indexer/xylog"
 )
 
 type TxResultHandler struct {
@@ -141,5 +142,6 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 	if holders == 0 {
 		return
 	}
+	xylog.Logger.Infof("update tick[%s] holders. holders[%d]", r.MD.Tick, holders)
 	tc.cache.InscriptionStats.Holders(r.MD.Protocol, r.MD.Tick, holders)
 }

@@ -1,7 +1,8 @@
 {
   "scan": {
     "start_block": 39205395,
-    "batch_workers": 1,
+    "block_batch_workers": 1,
+    "tx_batch_workers": 1,
     "delayed_block_num": 10
   },
   "database": {

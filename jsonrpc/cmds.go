@@ -1,25 +1,3 @@
-// Copyright (c) 2023-2024 The UXUY Developer Team
-// License:
-// MIT License
-
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//SOFTWARE
-
 // Copyright (c) 2014-2017 The btcsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
@@ -28,8 +6,6 @@
 // a chain server.
 
 package jsonrpc
-
-import "math/big"
 
 // EmptyCmd defines the empty JSON-RPC command.
 type EmptyCmd struct{}
@@ -43,6 +19,18 @@ type FindAllInscriptionsCmd struct {
 	Tick     string `json:"tick"`
 	DeployBy string `json:"deploy_by"`
 	Sort     int    `json:"sort"`
+	//SortMode int    `json:"sort_mode"`
+}
+
+type IndsGetTicksCmd struct {
+	Limit    int    `json:"limit"`
+	Offset   int    `json:"offset"`
+	Chain    string `json:"chain"`
+	Protocol string `json:"protocol"`
+	Tick     string `json:"tick"`
+	DeployBy string `json:"deploy_by"`
+	Sort     int    `json:"sort"`
+	SortMode int    `json:"sort_mode"`
 }
 
 type FindAllInscriptionsResponse struct {
@@ -53,18 +41,18 @@ type FindAllInscriptionsResponse struct {
 }
 
 type InscriptionInfo struct {
-	Chain        string `json:"chain"`
-	Protocol     string `json:"protocol"`
-	Tick         string `json:"tick"`
-	Name         string `json:"name"`
-	LimitPerMint string `json:"limit_per_mint"`
-	DeployBy     string `json:"deploy_by"`
-	TotalSupply  string `json:"total_supply"`
-	DeployHash   string `json:"deploy_hash"`
-	DeployTime   uint32 `json:"deploy_time"`
-	TransferType int8   `json:"transfer_type"`
-	CreatedAt    uint32 `json:"created_at"`
-	UpdatedAt    uint32 `json:"updated_at"`
+	Chain        string `json:"chain"`          // 链代码，chain code, eth / avax / btc / doge
+	Protocol     string `json:"protocol"`       // 协议，protocol code, POLS, ETHS, BRC20
+	Tick         string `json:"tick"`           // 代码
+	Name         string `json:"name"`           // 名称，预留字段
+	LimitPerMint string `json:"limit_per_mint"` // 每次mint限制数量
+	DeployBy     string `json:"deploy_by"`      // 部署address
+	TotalSupply  string `json:"total_supply"`   // 总供应数量
+	DeployHash   string `json:"deploy_hash"`    // 部署tx
+	DeployTime   uint32 `json:"deploy_time"`    // 部署时间
+	TransferType int8   `json:"transfer_type"`  // transfer类型： utxo转移模型 / 账户余额转移模型，由第一笔交易确定
+	CreatedAt    uint32 `json:"created_at"`     // 创建时间
+	UpdatedAt    uint32 `json:"updated_at"`     // 更新时间
 	Decimals     int8   `json:"decimals"`
 }
 
@@ -87,6 +75,7 @@ type FindUserTransactionsCmd struct {
 	Chain    string
 	Protocol string
 	Tick     string
+	Key      string
 	Event    int8
 }
 
@@ -95,6 +84,8 @@ type AddressTransaction struct {
 	Protocol  string `json:"protocol"`
 	Tick      string `json:"tick"`
 	Address   string `json:"address"`
+	From      string `json:"from"`
+	To        string `json:"to"`
 	TxHash    string `json:"tx_hash"`
 	Amount    string `json:"amount"`
 	Event     int8   `json:"event"`
@@ -119,6 +110,18 @@ type FindUserBalancesCmd struct {
 	Chain    string
 	Protocol string
 	Tick     string
+	Key      string
+}
+
+type IndsGetBalanceByAddressCmd struct {
+	Limit    int
+	Offset   int
+	Address  string
+	Chain    string
+	Protocol string
+	Tick     string
+	Key      string
+	Sort     int
 }
 
 type FindUserBalanceCmd struct {
@@ -170,6 +173,15 @@ type FindTickHoldersCmd struct {
 	Tick     string
 }
 
+type IndsGetHoldersByTickCmd struct {
+	Limit    int
+	Offset   int
+	Chain    string
+	Protocol string
+	Tick     string
+	SortMode int
+}
+
 type FindTickHoldersResponse struct {
 	Holders interface{} `json:"holders"`
 	Total   int64       `json:"total"`
@@ -177,12 +189,15 @@ type FindTickHoldersResponse struct {
 	Offset  int         `json:"offset"`
 }
 
-type LastBlockNumberCmd struct {
-	Chain string
+type BlockInfo struct {
+	Chain       string `json:"chain"`
+	BlockNumber string `json:"block_number"`
+	BlockTime   string `json:"block_time"`
+	TimeStamp   uint32 `json:"timestamp"`
 }
 
-type LastBlockNumberResponse struct {
-	BlockNumber *big.Int `json:"block_number"`
+type LastBlockNumberCmd struct {
+	Chains []string
 }
 
 type TxOperateCmd struct {
@@ -203,12 +218,12 @@ type GetTxByHashCmd struct {
 }
 
 type TransactionInfo struct {
-	Protocol string `json:"protocol"`
-	Tick     string `json:"tick"`
-	DeployBy string `json:"deploy_by"`
-	From     string `json:"from"`
-	To       string `json:"to"`
-	Amount   string `json:"amount"`
+	Protocol   string `json:"protocol"`
+	Tick       string `json:"tick"`
+	DeployHash string `json:"deploy_hash"`
+	From       string `json:"from"`
+	To         string `json:"to"`
+	Amount     string `json:"amount"`
 }
 
 type GetTxByHashResponse struct {
@@ -229,4 +244,13 @@ func init() {
 	MustRegisterCmd("block.LastNumber", (*LastBlockNumberCmd)(nil), flags)
 	MustRegisterCmd("tool.InscriptionTxOperate", (*TxOperateCmd)(nil), flags)
 	MustRegisterCmd("transaction.Info", (*GetTxByHashCmd)(nil), flags)
+
+	//v2
+	MustRegisterCmd("inds_getTicks", (*IndsGetTicksCmd)(nil), flags)
+	MustRegisterCmd("inds_getTransactionByAddress", (*FindUserTransactionsCmd)(nil), flags)
+	MustRegisterCmd("inds_getBalanceByAddress", (*IndsGetBalanceByAddressCmd)(nil), flags)
+	MustRegisterCmd("inds_getHoldersByTick", (*IndsGetHoldersByTickCmd)(nil), flags)
+	MustRegisterCmd("inds_getLastBlockNumberIndexed", (*LastBlockNumberCmd)(nil), flags)
+	MustRegisterCmd("inds_getTickByCallData", (*TxOperateCmd)(nil), flags)
+	MustRegisterCmd("inds_getTransactionByHash", (*GetTxByHashCmd)(nil), flags)
 }

@@ -41,6 +41,19 @@ const (
 
 const DBSessionLockKey = "db_session_global_lock_tx"
 
+const (
+	OrderByModeAsc  = 1
+	OrderByModeDesc = 2
+)
+
+const (
+	SortTypeId         = 0
+	SortTypeDeployTime = 1
+	SortTpyeProgress   = 2
+	SortTypeHolders    = 3
+	SortTypeTxCnt      = 4
+)
+
 type DBClient struct {
 	SqlDB *gorm.DB
 }
@@ -331,7 +344,7 @@ func (conn *DBClient) FindTransaction(chain string, hash string) (*model.Transac
 	return txn, nil
 }
 
-func (conn *DBClient) GetInscriptions(limit, offset int, chain, protocol, tick, deployBy string, sort int) (
+func (conn *DBClient) GetInscriptions(limit, offset int, chain, protocol, tick, deployBy string, sort int, sortMode int) (
 	[]*model.InscriptionOverView, int64, error) {
 
 	var data []*model.InscriptionOverView
@@ -352,18 +365,24 @@ func (conn *DBClient) GetInscriptions(limit, offset int, chain, protocol, tick, 
 		query = query.Where("`a`.deploy_by = ?", deployBy)
 	}
 
+	// sort mode 1: asc 2: desc
+	mode := "desc"
+	if sortMode == OrderByModeAsc {
+		mode = "asc"
+	}
+
 	// sort by  0.id  1.deploy_time  2.progress  3.holders  4.tx_cnt
 	switch sort {
-	case 0:
-		query = query.Order("`a`.id desc")
-	case 1:
-		query = query.Order("deploy_time desc")
-	case 2:
-		query = query.Order("progress desc")
-	case 3:
-		query = query.Order("holders desc")
-	case 4:
-		query = query.Order("tx_cnt desc")
+	case SortTypeId:
+		query = query.Order("`a`.id " + mode)
+	case SortTypeDeployTime:
+		query = query.Order("deploy_time " + mode)
+	case SortTpyeProgress:
+		query = query.Order("progress " + mode)
+	case SortTypeHolders:
+		query = query.Order("holders " + mode)
+	case SortTypeTxCnt:
+		query = query.Order("tx_cnt " + mode)
 	}
 
 	query = query.Count(&total)
@@ -409,7 +428,7 @@ func (conn *DBClient) GetInscriptionsByAddress(limit, offset int, address string
 	return balances, nil
 }
 
-func (conn *DBClient) GetTransactionsByAddress(limit, offset int, address, chain, protocol, tick string, event int8) (
+func (conn *DBClient) GetTransactionsByAddress(limit, offset int, address, chain, protocol, tick, key string, event int8) (
 	[]*model.AddressTransaction, int64, error) {
 
 	var data []*model.AddressTransaction
@@ -428,6 +447,9 @@ func (conn *DBClient) GetTransactionsByAddress(limit, offset int, address, chain
 	if tick != "" {
 		query = query.Where("`a`.tick = ?", tick)
 	}
+	if key != "" {
+		query = query.Where("`a`.tick like ?", "%"+key+"%")
+	}
 	if event > 0 {
 		query = query.Where("`a`.event = ?", event)
 	}
@@ -441,7 +463,7 @@ func (conn *DBClient) GetTransactionsByAddress(limit, offset int, address, chain
 	return data, total, nil
 }
 
-func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, protocol, tick string) (
+func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, protocol, tick, key string, sort int) (
 	[]*model.BalanceInscription, int64, error) {
 
 	var data []*model.BalanceInscription
@@ -461,9 +483,17 @@ func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, 
 	if tick != "" {
 		query = query.Where("`b`.tick = ?", tick)
 	}
+	if key != "" {
+		query = query.Where("`b`.tick like ?", "%"+key+"%")
+	}
 
 	query = query.Count(&total)
-	result := query.Limit(limit).Offset(offset).Find(&data)
+	orderBy := "`b`.balance DESC"
+	if sort == OrderByModeAsc {
+		orderBy = "`b`.balance ASC"
+	}
+
+	result := query.Order(orderBy).Limit(limit).Offset(offset).Find(&data)
 	if result.Error != nil {
 		return nil, 0, result.Error
 	}
@@ -487,22 +517,26 @@ func (conn *DBClient) GetBalancesByAddress(limit, offset int, address, chain, pr
 	if tick != "" {
 		query = query.Where("`tick` = ?", tick)
 	}
-
 	query = query.Count(&total)
-	err := query.Order("id desc").Limit(limit).Offset(offset).Find(&balances).Error
+	err := query.Limit(limit).Offset(offset).Find(&balances).Error
 	if err != nil {
 		return nil, 0, err
 	}
 	return balances, total, nil
 }
 
-func (conn *DBClient) GetHoldersByTick(limit, offset int, chain, protocol, tick string) ([]*model.Balances, int64, error) {
+func (conn *DBClient) GetHoldersByTick(limit, offset int, chain, protocol, tick string, sortMode int) ([]*model.Balances, int64, error) {
 	var holders []*model.Balances
 	var total int64
 	query := conn.SqlDB.Model(&model.Balances{}).
 		Where("balance > 0 and chain = ? and protocol = ? and tick = ?", chain, protocol, tick)
 	query = query.Count(&total)
-	result := query.Order("id desc").Limit(limit).Offset(offset).Find(&holders)
+	orderBy := "balance desc,"
+	if sortMode == OrderByModeAsc {
+		orderBy = "balance asc,"
+	}
+
+	result := query.Order(orderBy + " id asc").Limit(limit).Offset(offset).Find(&holders)
 	if result.Error != nil {
 		return nil, 0, result.Error
 	}
@@ -560,4 +594,13 @@ func (conn *DBClient) FindAddressTxByHash(chain, hash string) (*model.AddressTxs
 	}
 
 	return tx, nil
+}
+
+func (conn *DBClient) FindLastBlock(chain string) (*model.Block, error) {
+	data := &model.Block{}
+	err := conn.SqlDB.First(data, "chain = ? ", chain).Error
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

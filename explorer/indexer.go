@@ -41,7 +41,7 @@ import (
 func (e *Explorer) validReceiptTxs(items []*xycommon.RpcTransaction) ([]*xycommon.RpcTransaction, *xyerrors.InsError) {
 	startTs := time.Now()
 	defer func() {
-		xylog.Logger.Infof("hanlde txs, fetch receipt data cost[%v], items[%d]", time.Since(startTs), len(items))
+		xylog.Logger.Infof("handle txs, fetch receipt data cost[%v], items[%d]", time.Since(startTs), len(items))
 	}()
 
 	txHashList := make(map[string]struct{}, len(items))

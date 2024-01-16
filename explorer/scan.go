@@ -143,8 +143,8 @@ func (e *Explorer) Scan() {
 
 		if e.currentBlock-blockNumber > 100 {
 			endBlock := blockNumber + scanLimit
-			if e.config.Scan.BatchWorkers > 0 {
-				endBlock = blockNumber + e.config.Scan.BatchWorkers
+			if e.config.Scan.BlockBatchWorkers > 0 {
+				endBlock = blockNumber + e.config.Scan.BlockBatchWorkers
 			}
 
 			// setting endBlock num
@@ -153,7 +153,7 @@ func (e *Explorer) Scan() {
 			}
 
 			updateBlock, err := e.batchScan(blockNumber, endBlock)
-			xylog.Logger.Infof("startBlock:%v endBlock:%v, scanLimit:%v updatedBlock:%v", blockNumber, endBlock, e.config.Scan.BatchWorkers, e.updatedBlock)
+			xylog.Logger.Infof("startBlock:%v endBlock:%v, scanLimit:%v updatedBlock:%v", blockNumber, endBlock, e.config.Scan.BlockBatchWorkers, e.updatedBlock)
 			if err != nil {
 				e.scanChn <- updateBlock
 				xylog.Logger.Errorf("batch block scanning failed. startBlock:%d offsetBlock:%d err=%s", blockNumber, endBlock, err)
@@ -165,7 +165,7 @@ func (e *Explorer) Scan() {
 			}
 		} else {
 			updateBlock, err := e.scan(blockNumber)
-			xylog.Logger.Infof("block:%v, scanLimit:%v updatedBlock:%v", blockNumber, e.config.Scan.BatchWorkers, e.updatedBlock)
+			xylog.Logger.Infof("block:%v, scanLimit:%v updatedBlock:%v", blockNumber, e.config.Scan.BlockBatchWorkers, e.updatedBlock)
 			if err != nil {
 				e.scanChn <- updateBlock
 				xylog.Logger.Errorf("batch block scanning failed. startBlock:%d err=%s", blockNumber, err)

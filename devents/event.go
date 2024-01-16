@@ -27,6 +27,7 @@ import (
 	"github.com/uxuycom/indexer/storage"
 	"github.com/uxuycom/indexer/xylog"
 	"gorm.io/gorm"
+	"math/rand"
 	"time"
 )
 
@@ -128,6 +129,9 @@ func (h *DEvent) Sink(db *storage.DBClient) bool {
 	if len(events) < 1 {
 		return true
 	}
+
+	// Add random sleep to avoid db lock contention
+	<-time.After(time.Millisecond * time.Duration(rand.Intn(10)))
 
 	dm := BuildDBUpdateModel(events)
 	chain := dm.BlockStatus.Chain

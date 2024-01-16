@@ -415,7 +415,7 @@ func (conn *DBClient) GetInscriptionStatsByIdLimit(chain string, start uint64, l
 func (conn *DBClient) GetInscriptionsByAddress(limit, offset int, address string) ([]*model.Balances, error) {
 	balances := make([]*model.Balances, 0)
 
-	query := conn.SqlDB.Model(&model.Inscriptions{})
+	query := conn.SqlDB.Model(&model.Balances{})
 	if address != "" {
 		query = query.Where("`address` = ?", address)
 	}
@@ -436,6 +436,38 @@ func (conn *DBClient) GetTransactionsByAddress(limit, offset int, address, chain
 
 	query := conn.SqlDB.Select("*").Table("txs as t").
 		Joins("left join `address_txs` as a on (`t`.tx_hash = `a`.tx_hash and `t`.chain = `a`.chain and `t`.protocol = `a`.protocol and `t`.tick = `a`.tick)").
+		Where("`a`.address = ?", address)
+
+	if chain != "" {
+		query = query.Where("`a`.chain = ?", chain)
+	}
+	if protocol != "" {
+		query = query.Where("`a`.protocol = ?", protocol)
+	}
+	if tick != "" {
+		query = query.Where("`a`.tick = ?", tick)
+	}
+	if key != "" {
+		query = query.Where("`a`.tick like ?", "%"+key+"%")
+	}
+	if event > 0 {
+		query = query.Where("`a`.event = ?", event)
+	}
+
+	query = query.Count(&total)
+	result := query.Order("`a`.id desc").Limit(limit).Offset(offset).Find(&data)
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+
+	return data, total, nil
+}
+
+func (conn *DBClient) GetAddressTxs(limit, offset int, address, chain, protocol, tick, key string, event int8) ([]*model.AddressTransaction, int64, error) {
+	var data []*model.AddressTransaction
+	var total int64
+
+	query := conn.SqlDB.Select("*").Table("`address_txs`").
 		Where("`a`.address = ?", address)
 
 	if chain != "" {

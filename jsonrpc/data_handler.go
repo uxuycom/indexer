@@ -4,13 +4,19 @@ import (
 	"fmt"
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
-	"github.com/uxuycom/indexer/xylog"
 	"strings"
 )
 
 func findAddressBalances(s *RpcServer, limit, offset int, address, chain, protocol, tick, key string, sort int) (interface{}, error) {
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
+	cacheKey := fmt.Sprintf("addr_balances_%d_%d_%s_%s_%s_%s_%s_%d", limit, offset, address, chain, protocol, tick, key, sort)
+	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+		if allIns, ok := ins.(*FindUserBalancesResponse); ok {
+			return allIns, nil
+		}
+	}
+
 	balances, total, err := s.dbc.GetAddressInscriptions(limit, offset, address, chain, protocol, tick, key, sort)
 	if err != nil {
 		return ErrRPCInternal, err
@@ -36,6 +42,7 @@ func findAddressBalances(s *RpcServer, limit, offset int, address, chain, protoc
 		Limit:        limit,
 		Offset:       offset,
 	}
+	s.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
@@ -96,11 +103,7 @@ func findInsciptions(s *RpcServer, limit, offset int, chain, protocol, tick, dep
 		Limit:        limit,
 		Offset:       offset,
 	}
-
-	xylog.Logger.Info(resp)
-
 	s.cacheStore.Set(cacheKey, resp)
-
 	return resp, nil
 }
 

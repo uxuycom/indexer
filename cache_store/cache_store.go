@@ -1,6 +1,8 @@
 package cache_store
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"sync"
 	"time"
@@ -24,6 +26,7 @@ type CacheItem struct {
 }
 
 func (m *CacheStore) Set(key string, value interface{}) {
+	key = m.getCacheKey(key)
 	useMemory := m.cacheMemory + int64(len(fmt.Sprintf("%v", key))) + int64(len(fmt.Sprintf("%v", value)))
 	if useMemory > m.maxCapacity {
 		return
@@ -37,6 +40,7 @@ func (m *CacheStore) Set(key string, value interface{}) {
 }
 
 func (m *CacheStore) Get(key string) (interface{}, bool) {
+	key = m.getCacheKey(key)
 	item, ok := m.data.Load(key)
 	if !ok {
 		return nil, false
@@ -74,4 +78,14 @@ func (m *CacheStore) clearExpiration() {
 		return true
 	})
 	m.cacheMemory = totalSize
+}
+
+func (m *CacheStore) getCacheKey(key string) string {
+	hasher := sha256.New()
+	hasher.Write([]byte(key))
+	hashBytes := hasher.Sum(nil)
+	shortHash := hashBytes[:8]
+	shortString := hex.EncodeToString(shortHash)
+
+	return shortString
 }

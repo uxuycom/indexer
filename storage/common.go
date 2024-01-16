@@ -471,28 +471,37 @@ func (conn *DBClient) GetAddressTxs(limit, offset int, address, chain, protocol,
 		Where("`a`.address = ?", address)
 
 	if chain != "" {
-		query = query.Where("`a`.chain = ?", chain)
+		query = query.Where("chain = ?", chain)
 	}
 	if protocol != "" {
-		query = query.Where("`a`.protocol = ?", protocol)
+		query = query.Where("protocol = ?", protocol)
 	}
 	if tick != "" {
-		query = query.Where("`a`.tick = ?", tick)
+		query = query.Where("tick = ?", tick)
 	}
 	if key != "" {
-		query = query.Where("`a`.tick like ?", "%"+key+"%")
+		query = query.Where("tick like ?", "%"+key+"%")
 	}
 	if event > 0 {
-		query = query.Where("`a`.event = ?", event)
+		query = query.Where("event = ?", event)
 	}
 
 	query = query.Count(&total)
-	result := query.Order("`a`.id desc").Limit(limit).Offset(offset).Find(&data)
+	result := query.Order("id desc").Limit(limit).Offset(offset).Find(&data)
 	if result.Error != nil {
 		return nil, 0, result.Error
 	}
 
 	return data, total, nil
+}
+
+func (conn *DBClient) GetTxsByHashes(chain string, hashes []string) ([]*model.Transaction, error) {
+	txs := make([]*model.Transaction, 0)
+	err := conn.SqlDB.Where("chain = ? AND tx_hash in ?", chain, hashes).Find(&txs).Error
+	if err != nil {
+		return nil, err
+	}
+	return txs, nil
 }
 
 func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, protocol, tick, key string, sort int) (

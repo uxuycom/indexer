@@ -66,7 +66,7 @@ func handleFindInscriptionTick(s *RpcServer, cmd interface{}, closeChan <-chan s
 
 	cacheKey := fmt.Sprintf("tick_%s_%s_%s", req.Chain, req.Protocol, req.Tick)
 	if ins, ok := s.cacheStore.Get(cacheKey); ok {
-		if ticks, ok := ins.(InscriptionInfo); ok {
+		if ticks, ok := ins.(*InscriptionInfo); ok {
 			return ticks, nil
 		}
 	}
@@ -108,19 +108,54 @@ func handleFindAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-ch
 	req.Protocol = strings.ToLower(req.Protocol)
 	req.Tick = strings.ToLower(req.Tick)
 
-	transactions, total, err := s.dbc.GetTransactionsByAddress(req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key, req.Event)
+	cacheKey := fmt.Sprintf("addr_txs_%d_%d_%s_%s_%s_%s_%s_%d", req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key, req.Event)
+	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+		if allIns, ok := ins.(*FindUserTransactionsResponse); ok {
+			return allIns, nil
+		}
+	}
+
+	transactions, total, err := s.dbc.GetAddressTxs(req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key, req.Event)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
 
+	txsHashes := make(map[string][]string)
+	for _, v := range transactions {
+		txsHashes[v.Chain] = append(txsHashes[v.Chain], v.TxHash)
+	}
+
+	txMap := make(map[string]*model.Transaction)
+	for chain, hashes := range txsHashes {
+		txs, err := s.dbc.GetTxsByHashes(chain, hashes)
+		if err != nil {
+			xylog.Logger.Error(err)
+			continue
+		}
+		if len(txs) > 0 {
+			for _, v := range txs {
+				key := fmt.Sprintf("%s_%s", v.Chain, v.TxHash)
+				txMap[key] = v
+			}
+		}
+	}
+
 	list := make([]*AddressTransaction, 0, len(transactions))
 	for _, t := range transactions {
+		key := fmt.Sprintf("%s_%s", t.Chain, t.TxHash)
+		from := ""
+		to := ""
+		if tx, ok := txMap[key]; ok {
+			from = tx.From
+			to = tx.To
+		}
+
 		trans := &AddressTransaction{
 			Event:     t.Event,
 			TxHash:    t.TxHash,
 			Address:   t.Address,
-			From:      t.From,
-			To:        t.To,
+			From:      from,
+			To:        to,
 			Amount:    t.Amount.String(),
 			Tick:      t.Tick,
 			Protocol:  t.Protocol,
@@ -139,6 +174,7 @@ func handleFindAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-ch
 		Limit:        req.Limit,
 		Offset:       req.Offset,
 	}
+	s.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
@@ -161,7 +197,12 @@ func handleFindAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan st
 
 	req.Protocol = strings.ToLower(req.Protocol)
 	req.Tick = strings.ToLower(req.Tick)
-
+	cacheKey := fmt.Sprintf("addr_balance_%s_%s_%s", req.Chain, req.Protocol, req.Tick)
+	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+		if allIns, ok := ins.(*BalanceBrief); ok {
+			return allIns, nil
+		}
+	}
 	inscription, err := s.dbc.FindInscriptionByTick(req.Chain, req.Protocol, req.Tick)
 	if err != nil {
 		return ErrRPCInternal, err
@@ -203,7 +244,7 @@ func handleFindAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan st
 		}
 		resp.Utxos = utxos
 	}
-
+	s.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
@@ -222,7 +263,13 @@ func handleGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan st
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("get last block number cmd params:%v", req)
-
+	chains := strings.Join(req.Chains, "_")
+	cacheKey := fmt.Sprintf("block_number_%s", chains)
+	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+		if allIns, ok := ins.([]*BlockInfo); ok {
+			return allIns, nil
+		}
+	}
 	result := make([]*BlockInfo, 0)
 	for _, chain := range req.Chains {
 		block, err := s.dbc.FindLastBlock(chain)
@@ -237,7 +284,7 @@ func handleGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan st
 		}
 		result = append(result, blockInfo)
 	}
-
+	s.cacheStore.Set(cacheKey, result)
 	return result, nil
 }
 
@@ -246,7 +293,12 @@ func handleGetTxOperate(s *RpcServer, cmd interface{}, closeChan <-chan struct{}
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-
+	cacheKey := fmt.Sprintf("tx_operate_%s_%s", req.Chain, req.InputData)
+	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+		if allIns, ok := ins.(*TxOperateResponse); ok {
+			return allIns, nil
+		}
+	}
 	operate := protocol.GetOperateByTxInput(req.Chain, req.InputData, s.dbc)
 	if operate == nil {
 		return nil, errors.New("Record not found")
@@ -262,12 +314,14 @@ func handleGetTxOperate(s *RpcServer, cmd interface{}, closeChan <-chan struct{}
 		}
 	}
 
-	return TxOperateResponse{
-		Protocol:   string(operate.Protocol),
-		Operate:    string(operate.Operate),
+	resp := &TxOperateResponse{
+		Protocol:   operate.Protocol,
+		Operate:    operate.Operate,
 		Tick:       operate.Tick,
 		DeployHash: deployHash,
-	}, nil
+	}
+	s.cacheStore.Set(cacheKey, resp)
+	return resp, nil
 }
 
 func handleGetTxByHash(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -278,7 +332,12 @@ func handleGetTxByHash(s *RpcServer, cmd interface{}, closeChan <-chan struct{})
 	xylog.Logger.Infof("get tx by hash cmd params:%v", req)
 
 	req.TxHash = strings.ToLower(req.TxHash)
-
+	cacheKey := fmt.Sprintf("tx_info_%s_%s", req.Chain, req.TxHash)
+	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+		if allIns, ok := ins.(*GetTxByHashResponse); ok {
+			return allIns, nil
+		}
+	}
 	tx, err := s.dbc.FindTransaction(req.Chain, req.TxHash)
 	if err != nil {
 		return nil, err
@@ -323,7 +382,7 @@ func handleGetTxByHash(s *RpcServer, cmd interface{}, closeChan <-chan struct{})
 
 	resp.IsInscription = true
 	resp.Transaction = transInfo
-
+	s.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
@@ -335,8 +394,17 @@ func handleGetTickBriefs(s *RpcServer, cmd interface{}, closeChan <-chan struct{
 	xylog.Logger.Infof("get tick briefs cmd params:%v", req)
 
 	deployHashGroups := make(map[string][]string)
+	key := ""
 	for _, address := range req.Addresses {
 		deployHashGroups[address.Chain] = append(deployHashGroups[address.Chain], address.DeployHash)
+		key += fmt.Sprintf("%s_%s", address.Chain, address.DeployHash)
+	}
+
+	cacheKey := fmt.Sprintf("tick_briefs_%s", key)
+	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+		if allIns, ok := ins.(*GetTickBriefsResp); ok {
+			return allIns, nil
+		}
 	}
 
 	result := make([]*model.InscriptionOverView, 0, len(req.Addresses))
@@ -372,6 +440,7 @@ func handleGetTickBriefs(s *RpcServer, cmd interface{}, closeChan <-chan struct{
 
 	resp := &GetTickBriefsResp{}
 	resp.Inscriptions = result
+	s.cacheStore.Set(cacheKey, resp)
 
 	return resp, nil
 }

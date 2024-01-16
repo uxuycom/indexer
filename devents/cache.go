@@ -133,5 +133,9 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 			})
 		}
 	}
+
+	if holders == 0 {
+		return
+	}
 	tc.cache.InscriptionStats.Holders(r.MD.Protocol, r.MD.Tick, holders)
 }

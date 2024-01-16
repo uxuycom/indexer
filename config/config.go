@@ -31,9 +31,10 @@ import (
 )
 
 type ScanConfig struct {
-	StartBlock      uint64 `json:"start_block"`
-	BatchWorkers    uint64 `json:"batch_workers"`
-	DelayedBlockNum uint64 `json:"delayed_block_num"`
+	StartBlock        uint64 `json:"start_block"`
+	BlockBatchWorkers uint64 `json:"block_batch_workers"`
+	TxBatchWorkers    uint64 `json:"tx_batch_workers"`
+	DelayedBlockNum   uint64 `json:"delayed_block_num"`
 }
 
 type ChainConfig struct {

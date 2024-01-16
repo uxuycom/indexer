@@ -49,7 +49,7 @@ func (e *Explorer) validReceiptTxs(items []*xycommon.RpcTransaction) ([]*xycommo
 		txHashList[item.Hash] = struct{}{}
 	}
 
-	workers := int(e.config.Scan.BatchWorkers)
+	workers := int(e.config.Scan.TxBatchWorkers)
 	pool := pond.New(workers, 0, pond.MinWorkers(workers))
 
 	receiptsMap := &sync.Map{}

@@ -129,7 +129,7 @@ func (e *Explorer) tryFilterTxs(txs []*xycommon.RpcTransaction) []*xycommon.RpcT
 }
 
 func (e *Explorer) filterMintCompleted(md *devents.MetaData) bool {
-	if md.Operate != devents.OperateDeploy {
+	if md.Operate != devents.OperateMint {
 		return false
 	}
 

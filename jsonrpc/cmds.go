@@ -43,18 +43,18 @@ type FindAllInscriptionsResponse struct {
 }
 
 type InscriptionInfo struct {
-	Chain        string `json:"chain"`          // 链代码，chain code, eth / avax / btc / doge
-	Protocol     string `json:"protocol"`       // 协议，protocol code, POLS, ETHS, BRC20
-	Tick         string `json:"tick"`           // 代码
-	Name         string `json:"name"`           // 名称，预留字段
-	LimitPerMint string `json:"limit_per_mint"` // 每次mint限制数量
-	DeployBy     string `json:"deploy_by"`      // 部署address
-	TotalSupply  string `json:"total_supply"`   // 总供应数量
-	DeployHash   string `json:"deploy_hash"`    // 部署tx
-	DeployTime   uint32 `json:"deploy_time"`    // 部署时间
-	TransferType int8   `json:"transfer_type"`  // transfer类型： utxo转移模型 / 账户余额转移模型，由第一笔交易确定
-	CreatedAt    uint32 `json:"created_at"`     // 创建时间
-	UpdatedAt    uint32 `json:"updated_at"`     // 更新时间
+	Chain        string `json:"chain"`
+	Protocol     string `json:"protocol"`
+	Tick         string `json:"tick"`
+	Name         string `json:"name"`
+	LimitPerMint string `json:"limit_per_mint"`
+	DeployBy     string `json:"deploy_by"`
+	TotalSupply  string `json:"total_supply"`
+	DeployHash   string `json:"deploy_hash"`
+	DeployTime   uint32 `json:"deploy_time"`
+	TransferType int8   `json:"transfer_type"`
+	CreatedAt    uint32 `json:"created_at"`
+	UpdatedAt    uint32 `json:"updated_at"`
 	Decimals     int8   `json:"decimals"`
 }
 

@@ -41,7 +41,7 @@ import (
 func (e *Explorer) validReceiptTxs(items []*xycommon.RpcTransaction) ([]*xycommon.RpcTransaction, *xyerrors.InsError) {
 	startTs := time.Now()
 	defer func() {
-		xylog.Logger.Infof("fetch receipt data cost[%v], items[%d]", time.Since(startTs), len(items))
+		xylog.Logger.Infof("hanlde txs, fetch receipt data cost[%v], items[%d]", time.Since(startTs), len(items))
 	}()
 
 	txHashList := make(map[string]struct{}, len(items))
@@ -120,6 +120,7 @@ func (e *Explorer) tryFilterTxs(txs []*xycommon.RpcTransaction) []*xycommon.RpcT
 
 		// Add mint completed filter
 		if e.filterMintCompleted(md) {
+			xylog.Logger.Infof("tx hit mint completed strategy & ignore. tx[%s]", tx.Hash)
 			continue
 		}
 		validTxs = append(validTxs, tx)
@@ -155,7 +156,7 @@ func (e *Explorer) filterMintCompleted(md *devents.MetaData) bool {
 func (e *Explorer) handleTxs(block *xycommon.RpcBlock, txs []*xycommon.RpcTransaction) *xyerrors.InsError {
 	startTs := time.Now()
 	defer func() {
-		xylog.Logger.Infof("handle txs cost[%v], txs[%d]", time.Since(startTs), len(txs))
+		xylog.Logger.Infof("handle txs, parse & async sink cost[%v], txs[%d]", time.Since(startTs), len(txs))
 	}()
 
 	blockTxResults := make([]*devents.DBModelEvent, 0, len(txs))

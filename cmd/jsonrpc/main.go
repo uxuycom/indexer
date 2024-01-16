@@ -36,7 +36,7 @@ import (
 )
 
 var (
-	cfg        config.Config
+	cfg        config.JsonRcpConfig
 	flagConfig string
 )
 
@@ -45,7 +45,7 @@ func main() {
 	// init args
 	initArgs()
 
-	config.LoadConfig(&cfg, flagConfig)
+	config.LoadJsonRpcConfig(&cfg, flagConfig)
 
 	logLevel, _ := logrus.ParseLevel(cfg.LogLevel)
 	xylog.InitLog(logLevel, cfg.LogPath)
@@ -56,9 +56,8 @@ func main() {
 		log.Fatalf("initialize db client err:%v", err)
 		return
 	}
-
 	//init server
-	server, err := jsonrpc.NewRPCServer(dbc)
+	server, err := jsonrpc.NewRPCServer(dbc, cfg.CacheStore)
 	if err != nil {
 		log.Fatalf("server init err[%v]", err)
 	}
@@ -84,6 +83,6 @@ func main() {
 }
 
 func initArgs() {
-	flag.StringVar(&flagConfig, "config", "config.json", "config file")
+	flag.StringVar(&flagConfig, "config", "config_jsonrpc.json", "config file")
 	flag.Parse()
 }

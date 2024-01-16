@@ -9,16 +9,16 @@
   },
   "servers": [
     {
-      "url": "https://api.indexs.io/v1/rpc/"
+      "url": "https://api.indexs.io/v2/rpc/"
     }
   ],
   "paths": {
-    "/inscription.All": {
+    "/inds_getTicks": {
       "post": {
-        "operationId": "inscription.All",
+        "operationId": "inds_getTicks",
         "deprecated": false,
-        "summary": "Get All Inscriptions",
-        "description": "Get All Inscriptions From UXUY Indexer",
+        "summary": "Get All Tick",
+        "description": "Get All Tick From UXUY Indexer",
         "tags": [
           "JSONRPC"
         ],
@@ -42,7 +42,7 @@
                 "properties": {
                   "method": {
                     "type": "string",
-                    "default": "inscription.All",
+                    "default": "inds_getTicks",
                     "description": "Method name"
                   },
                   "id": {
@@ -69,7 +69,7 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "", "", "", "",  3]
+                    "default": [10, 0, "", "", "", "",  3, 1]
                   }
                 }
               }
@@ -78,74 +78,9 @@
         }
       }
     },
-    "/inscription.Tick": {
+    "/inds_getTransactionByAddress": {
       "post": {
-        "operationId": "inscription.Tick",
-        "deprecated": false,
-        "summary": "Get Inscription Tick",
-        "description": "Get Inscription Tick From UXUY Indexer",
-        "tags": [
-          "JSONRPC"
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "method",
-                  "id",
-                  "jsonrpc",
-                  "params"
-                ],
-                "properties": {
-                  "method": {
-                    "type": "string",
-                    "default": "inscription.Tick",
-                    "description": "Method name"
-                  },
-                  "id": {
-                    "type": "integer",
-                    "default": 1,
-                    "format": "int32",
-                    "description": "Request ID"
-                  },
-                  "jsonrpc": {
-                    "type": "string",
-                    "default": "2.0",
-                    "description": "JSON-RPC Version (2.0)"
-                  },
-                  "params": {
-                    "title": "Parameters",
-                    "type": "array",
-                    "required": [
-                      "jsonParam"
-                    ],
-                    "properties": {
-                      "jsonParam": {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "A param to include"
-                      }
-                    },
-                    "default": ["avalanche", "asc-20", "crazydog"]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/address.Transactions": {
-      "post": {
-        "operationId": "address.Transactions",
+        "operationId": "inds_getTransactionByAddress",
         "deprecated": false,
         "summary": "Get Address Transactions",
         "description": "Get Address Transactions From UXUY Indexer",
@@ -172,7 +107,7 @@
                 "properties": {
                   "method": {
                     "type": "string",
-                    "default": "address.Transactions",
+                    "default": "inds_getTransactionByAddress",
                     "description": "Method name"
                   },
                   "id": {
@@ -208,9 +143,9 @@
         }
       }
     },
-    "/address.Balances": {
+    "/inds_getBalanceByAddress": {
       "post": {
-        "operationId": "address.Balances",
+        "operationId": "inds_getBalanceByAddress",
         "deprecated": false,
         "summary": "Get Address Balances",
         "description": "Get Address Balances From UXUY Indexer",
@@ -237,7 +172,7 @@
                 "properties": {
                   "method": {
                     "type": "string",
-                    "default": "address.Balances",
+                    "default": "inds_getBalanceByAddress",
                     "description": "Method name"
                   },
                   "id": {
@@ -264,7 +199,7 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "0xF2f9D2575023D320475ed7875FCDCB9b52787E59", "", "", "", ""]
+                    "default": [10, 0, "0xF2f9D2575023D320475ed7875FCDCB9b52787E59", "", "", "", "", 1]
                   }
                 }
               }
@@ -273,74 +208,9 @@
         }
       }
     },
-    "/address.Balance": {
+    "/inds_getHoldersByTick": {
       "post": {
-        "operationId": "address.Balance",
-        "deprecated": false,
-        "summary": "Get Address Balance",
-        "description": "Get Address Balance From UXUY Indexer",
-        "tags": [
-          "JSONRPC"
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "method",
-                  "id",
-                  "jsonrpc",
-                  "params"
-                ],
-                "properties": {
-                  "method": {
-                    "type": "string",
-                    "default": "address.Balance",
-                    "description": "Method name"
-                  },
-                  "id": {
-                    "type": "integer",
-                    "default": 1,
-                    "format": "int32",
-                    "description": "Request ID"
-                  },
-                  "jsonrpc": {
-                    "type": "string",
-                    "default": "2.0",
-                    "description": "JSON-RPC Version (2.0)"
-                  },
-                  "params": {
-                    "title": "Parameters",
-                    "type": "array",
-                    "required": [
-                      "jsonParam"
-                    ],
-                    "properties": {
-                      "jsonParam": {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "A param to include"
-                      }
-                    },
-                    "default": ["0xF2f9D2575023D320475ed7875FCDCB9b52787E59", "avalanche", "asc-20", "crazydog"]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tick.Holders": {
-      "post": {
-        "operationId": "tick.Holders",
+        "operationId": "inds_getHoldersByTick",
         "deprecated": false,
         "summary": "Get Tick Holders",
         "description": "Get Tick Holders From UXUY Indexer",
@@ -367,7 +237,7 @@
                 "properties": {
                   "method": {
                     "type": "string",
-                    "default": "tick.Holders",
+                    "default": "inds_getHoldersByTick",
                     "description": "Method name"
                   },
                   "id": {
@@ -394,7 +264,7 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "avalanche", "asc-20", "crazydog"]
+                    "default": [10, 0, "avalanche", "asc-20", "crazydog", 1]
                   }
                 }
               }
@@ -403,9 +273,9 @@
         }
       }
     },
-    "/block.LastNumber": {
+    "/inds_getLastBlockNumberIndexed": {
       "post": {
-        "operationId": "block.LastNumber",
+        "operationId": "inds_getLastBlockNumberIndexed",
         "deprecated": false,
         "summary": "Get Last Block Number",
         "description": "Get Last Block Number From UXUY Indexer",
@@ -432,7 +302,7 @@
                 "properties": {
                   "method": {
                     "type": "string",
-                    "default": "block.LastNumber",
+                    "default": "inds_getLastBlockNumberIndexed",
                     "description": "Method name"
                   },
                   "id": {
@@ -468,9 +338,9 @@
         }
       }
     },
-    "/tool.InscriptionTxOperate": {
+    "/inds_getTickByCallData": {
       "post": {
-        "operationId": "tool.InscriptionTxOperate",
+        "operationId": "inds_getTickByCallData",
         "deprecated": false,
         "summary": "Get Tool InscriptionTxOperate",
         "description": "Get Tool InscriptionTxOperate From UXUY Indexer",
@@ -497,7 +367,7 @@
                 "properties": {
                   "method": {
                     "type": "string",
-                    "default": "tool.InscriptionTxOperate",
+                    "default": "inds_getTickByCallData",
                     "description": "Method name"
                   },
                   "id": {
@@ -533,9 +403,9 @@
         }
       }
     },
-    "/transaction.Info": {
+    "/inds_getTransactionByHash": {
       "post": {
-        "operationId": "transaction.Info",
+        "operationId": "inds_getTransactionByHash",
         "deprecated": false,
         "summary": "Get Transaction Info",
         "description": "Get Transaction Info From UXUY Indexer",
@@ -562,7 +432,7 @@
                 "properties": {
                   "method": {
                     "type": "string",
-                    "default": "transaction.Info",
+                    "default": "inds_getTransactionByHash",
                     "description": "Method name"
                   },
                   "id": {
@@ -622,7 +492,7 @@
         "properties": {
           "method": {
             "type": "string",
-            "default": "inscription.All",
+            "default": "inds_getTicks",
             "description": "Method name"
           },
           "id": {

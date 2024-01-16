@@ -39,12 +39,17 @@ import (
 )
 
 func (e *Explorer) validReceiptTxs(items []*xycommon.RpcTransaction) ([]*xycommon.RpcTransaction, *xyerrors.InsError) {
+	startTs := time.Now()
+	defer func() {
+		xylog.Logger.Infof("handle txs, fetch receipt data cost[%v], items[%d]", time.Since(startTs), len(items))
+	}()
+
 	txHashList := make(map[string]struct{}, len(items))
 	for _, item := range items {
 		txHashList[item.Hash] = struct{}{}
 	}
 
-	workers := int(e.config.Scan.BatchWorkers)
+	workers := int(e.config.Scan.TxBatchWorkers)
 	pool := pond.New(workers, 0, pond.MinWorkers(workers))
 
 	receiptsMap := &sync.Map{}
@@ -112,12 +117,48 @@ func (e *Explorer) tryFilterTxs(txs []*xycommon.RpcTransaction) []*xycommon.RpcT
 		if !e.tickEnabled(md.Tick) {
 			continue
 		}
+
+		// Add mint completed filter
+		if e.filterMintCompleted(md) {
+			xylog.Logger.Infof("tx hit mint completed strategy & ignore. tx[%s]", tx.Hash)
+			continue
+		}
 		validTxs = append(validTxs, tx)
 	}
 	return validTxs
 }
 
+func (e *Explorer) filterMintCompleted(md *devents.MetaData) bool {
+	if md.Operate != devents.OperateMint {
+		return false
+	}
+
+	if md.Protocol == "" || md.Tick == "" {
+		return false
+	}
+
+	ok, inscription := e.dCache.Inscription.Get(md.Protocol, md.Tick)
+	if !ok {
+		return false
+	}
+
+	ok, stats := e.dCache.InscriptionStats.Get(md.Protocol, md.Tick)
+	if !ok {
+		return false
+	}
+
+	if stats.Minted.GreaterThanOrEqual(inscription.TotalSupply) {
+		return true
+	}
+	return false
+}
+
 func (e *Explorer) handleTxs(block *xycommon.RpcBlock, txs []*xycommon.RpcTransaction) *xyerrors.InsError {
+	startTs := time.Now()
+	defer func() {
+		xylog.Logger.Infof("handle txs, parse & async sink cost[%v], txs[%d]", time.Since(startTs), len(txs))
+	}()
+
 	blockTxResults := make([]*devents.DBModelEvent, 0, len(txs))
 	for _, tx := range txs {
 		pt, md := protocol.GetProtocol(e.config, tx)
@@ -265,9 +306,7 @@ func (e *Explorer) writeDBAsync(block *xycommon.RpcBlock, txResults []*devents.D
 	}
 	e.dEvent.WriteDBAsync(event)
 
-	//dBytes, _ := json.Marshal(event)
-	dBytes := ""
-	xylog.Logger.Infof("push block data to events, cost:%v, block:%s, data:%s", time.Since(start), block.Number.String(), dBytes)
+	xylog.Logger.Infof("push block data to events, cost[%v], block[%d]", time.Since(start), block.Number.Uint64())
 }
 
 func (e *Explorer) fastChecking(tx *xycommon.RpcTransaction) bool {
@@ -292,6 +331,10 @@ func (e *Explorer) fastChecking(tx *xycommon.RpcTransaction) bool {
 }
 
 func (e *Explorer) protocolEnabled(protocol string) bool {
+	if protocol == "" {
+		return true
+	}
+
 	if e.config.Filters == nil || e.config.Filters.Whitelist == nil {
 		return true
 	}

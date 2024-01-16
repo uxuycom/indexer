@@ -47,7 +47,7 @@ type Inscriptions struct {
 	Tick         string          `json:"tick" gorm:"column:tick"`
 	Name         string          `json:"name" gorm:"column:name"`
 	LimitPerMint decimal.Decimal `gorm:"column:limit_per_mint;type:decimal(38,18)" json:"limit_per_mint"`
-	DeployedBy   string          `json:"deploy_by" gorm:"column:deploy_by"`
+	DeployBy     string          `json:"deploy_by" gorm:"column:deploy_by"`
 	TotalSupply  decimal.Decimal `gorm:"column:total_supply;type:decimal(38,18)" json:"total_supply"`
 	DeployHash   string          `json:"deploy_hash" gorm:"column:deploy_hash"`
 	DeployTime   time.Time       `json:"deploy_time" gorm:"column:deploy_time"`

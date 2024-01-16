@@ -83,6 +83,10 @@ func (tc *TxResultHandler) updateMintCache(r *TxResult) {
 		//mark minter init
 		r.Mint.Init = true
 	} else {
+		if balance.Overall.LessThanOrEqual(decimal.Zero) {
+			tc.cache.InscriptionStats.Holders(r.MD.Protocol, r.MD.Tick, 1)
+		}
+
 		amount := balance.Overall.Add(r.Mint.Amount)
 		tc.cache.Balance.Update(r.MD.Protocol, r.MD.Tick, r.Mint.Minter, &dcache.BalanceItem{
 			Overall: amount,

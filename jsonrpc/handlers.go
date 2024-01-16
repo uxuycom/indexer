@@ -108,14 +108,14 @@ func handleFindAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-ch
 	req.Protocol = strings.ToLower(req.Protocol)
 	req.Tick = strings.ToLower(req.Tick)
 
-	cacheKey := fmt.Sprintf("addr_txs_%d_%d_%s_%s_%s_%s_%s_%d", req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key, req.Event)
+	cacheKey := fmt.Sprintf("addr_txs_%d_%d_%s_%s_%s_%s_%d", req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Event)
 	if ins, ok := s.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*FindUserTransactionsResponse); ok {
 			return allIns, nil
 		}
 	}
 
-	transactions, total, err := s.dbc.GetAddressTxs(req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key, req.Event)
+	transactions, total, err := s.dbc.GetAddressTxs(req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Event)
 	if err != nil {
 		return ErrRPCInternal, err
 	}

@@ -463,7 +463,7 @@ func (conn *DBClient) GetTransactionsByAddress(limit, offset int, address, chain
 	return data, total, nil
 }
 
-func (conn *DBClient) GetAddressTxs(limit, offset int, address, chain, protocol, tick, key string, event int8) ([]*model.AddressTransaction, int64, error) {
+func (conn *DBClient) GetAddressTxs(limit, offset int, address, chain, protocol, tick string, event int8) ([]*model.AddressTransaction, int64, error) {
 	var data []*model.AddressTransaction
 	var total int64
 
@@ -477,10 +477,8 @@ func (conn *DBClient) GetAddressTxs(limit, offset int, address, chain, protocol,
 		query = query.Where("protocol = ?", protocol)
 	}
 	if tick != "" {
-		query = query.Where("tick = ?", tick)
-	}
-	if key != "" {
-		query = query.Where("tick like ?", "%"+key+"%")
+		//query = query.Where("tick = ?", tick)
+		query.Where("tick like ?", "%"+tick+"%")
 	}
 	if event > 0 {
 		query = query.Where("event = ?", event)

@@ -77,7 +77,6 @@ type FindUserTransactionsCmd struct {
 	Chain    string
 	Protocol string
 	Tick     string
-	Key      string
 	Event    int8
 }
 

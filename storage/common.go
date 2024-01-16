@@ -468,7 +468,7 @@ func (conn *DBClient) GetAddressTxs(limit, offset int, address, chain, protocol,
 	var total int64
 
 	query := conn.SqlDB.Select("*").Table("`address_txs`").
-		Where("`a`.address = ?", address)
+		Where("address = ?", address)
 
 	if chain != "" {
 		query = query.Where("chain = ?", chain)

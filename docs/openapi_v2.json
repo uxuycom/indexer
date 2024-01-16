@@ -134,7 +134,7 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "0x6Ac6f9231c86ba4Ea4C40D196DA930C1d66439f5", "", "", "", "", 0]
+                    "default": [10, 0, "0x6Ac6f9231c86ba4Ea4C40D196DA930C1d66439f5", "", "", "", 0]
                   }
                 }
               }
@@ -199,7 +199,7 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "0xF2f9D2575023D320475ed7875FCDCB9b52787E59", "", "", "", "", 1]
+                    "default": [10, 0, "0xF2f9D2575023D320475ed7875FCDCB9b52787E59", "", "", "", 1]
                   }
                 }
               }

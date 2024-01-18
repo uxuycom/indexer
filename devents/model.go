@@ -159,6 +159,13 @@ func (tc *TxResultHandler) BuildAddressTxEvents(e *TxResult) []*AddressTxEvent {
 			})
 		}
 	}
+
+	if e.InscribeTransfer != nil {
+		items = append(items, &AddressTxEvent{
+			Address: e.InscribeTransfer.Address,
+			Amount:  e.InscribeTransfer.Amount,
+		})
+	}
 	return items
 }
 

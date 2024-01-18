@@ -80,8 +80,8 @@ type Transfer struct {
 }
 
 type InscribeTransfer struct {
-	Sender string
-	Amount decimal.Decimal
+	Address string
+	Amount  decimal.Decimal
 }
 
 type TxResult struct {

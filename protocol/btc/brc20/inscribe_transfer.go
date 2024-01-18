@@ -40,8 +40,8 @@ func (p *Protocol) InscribeTransfer(block *xycommon.RpcBlock, tx *xycommon.RpcTr
 		Block: block,
 		Tx:    tx,
 		InscribeTransfer: &devents.InscribeTransfer{
-			Sender: tx.From,
-			Amount: amount,
+			Address: tx.From,
+			Amount:  amount,
 		},
 	}
 	return []*devents.TxResult{result}, nil

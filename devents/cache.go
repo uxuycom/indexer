@@ -49,6 +49,10 @@ func (tc *TxResultHandler) UpdateCache(r *TxResult) {
 	if r.Transfer != nil {
 		tc.updateTransferCache(r)
 	}
+
+	if r.InscribeTransfer != nil {
+		tc.updateInscribeTransferCache(r)
+	}
 }
 
 func (tc *TxResultHandler) updateDeployCache(r *TxResult) {
@@ -76,7 +80,8 @@ func (tc *TxResultHandler) updateMintCache(r *TxResult) {
 	ok, balance := tc.cache.Balance.Get(r.MD.Protocol, r.MD.Tick, r.Mint.Minter)
 	if !ok {
 		tc.cache.Balance.Create(r.MD.Protocol, r.MD.Tick, r.Mint.Minter, &dcache.BalanceItem{
-			Overall: r.Mint.Amount,
+			Available: r.Mint.Amount,
+			Overall:   r.Mint.Amount,
 		})
 		tc.cache.InscriptionStats.Holders(r.MD.Protocol, r.MD.Tick, 1)
 
@@ -87,9 +92,11 @@ func (tc *TxResultHandler) updateMintCache(r *TxResult) {
 			tc.cache.InscriptionStats.Holders(r.MD.Protocol, r.MD.Tick, 1)
 		}
 
-		amount := balance.Overall.Add(r.Mint.Amount)
+		available := balance.Available.Add(r.Mint.Amount)
+		overall := balance.Overall.Add(r.Mint.Amount)
 		tc.cache.Balance.Update(r.MD.Protocol, r.MD.Tick, r.Mint.Minter, &dcache.BalanceItem{
-			Overall: amount,
+			Available: available,
+			Overall:   overall,
 		})
 	}
 }
@@ -111,7 +118,8 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 		holders--
 	}
 	tc.cache.Balance.Update(r.MD.Protocol, r.MD.Tick, r.Transfer.Sender, &dcache.BalanceItem{
-		Overall: senderAmount,
+		Available: senderBalance.Available,
+		Overall:   senderAmount,
 	})
 
 	for _, item := range r.Transfer.Receives {
@@ -121,7 +129,8 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 
 			receiveAmount := item.Amount
 			tc.cache.Balance.Create(r.MD.Protocol, r.MD.Tick, item.Address, &dcache.BalanceItem{
-				Overall: receiveAmount,
+				Available: receiveAmount,
+				Overall:   receiveAmount,
 			})
 
 			//mark minter init
@@ -131,9 +140,11 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 				holders++
 			}
 
-			receiveAmount := receiveBalance.Overall.Add(item.Amount)
+			availableAmount := receiveBalance.Available.Add(item.Amount)
+			overallAmount := receiveBalance.Overall.Add(item.Amount)
 			tc.cache.Balance.Update(r.MD.Protocol, r.MD.Tick, item.Address, &dcache.BalanceItem{
-				Overall: receiveAmount,
+				Available: availableAmount,
+				Overall:   overallAmount,
 			})
 		}
 	}
@@ -142,4 +153,15 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 		return
 	}
 	tc.cache.InscriptionStats.Holders(r.MD.Protocol, r.MD.Tick, holders)
+}
+
+func (tc *TxResultHandler) updateInscribeTransferCache(r *TxResult) {
+	//Update minter balances
+	_, balance := tc.cache.Balance.Get(r.MD.Protocol, r.MD.Tick, r.InscribeTransfer.Address)
+
+	available := balance.Available.Sub(r.InscribeTransfer.Amount)
+	tc.cache.Balance.Update(r.MD.Protocol, r.MD.Tick, r.Mint.Minter, &dcache.BalanceItem{
+		Available: available,
+		Overall:   balance.Overall,
+	})
 }

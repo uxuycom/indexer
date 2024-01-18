@@ -28,7 +28,6 @@ import (
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/model"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"math/big"
 	"reflect"
 	"strings"
@@ -61,9 +60,10 @@ type DBClient struct {
 // NewDbClient creates a new database client instance.
 func NewDbClient(cfg *config.DatabaseConfig) (*DBClient, error) {
 	gormCfg := &gorm.Config{}
-	if cfg.EnableLog {
-		gormCfg.Logger = logger.Default.LogMode(logger.Info)
-	}
+	//if cfg.EnableLog {
+	//	gormCfg.Logger = logger.Default.LogMode(logger.Info)
+	//}
+	//gormCfg.PrepareStmt = false
 	switch cfg.Type {
 	case DatabaseTypeSqlite3:
 		return NewSqliteClient(cfg, gormCfg)
@@ -237,28 +237,28 @@ func (conn *DBClient) BatchAddTransaction(dbTx *gorm.DB, items []*model.Transact
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 2000)
+	return conn.CreateInBatches(dbTx, items, 5000)
 }
 
 func (conn *DBClient) BatchAddBalanceTx(dbTx *gorm.DB, items []*model.BalanceTxn) error {
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 1000)
+	return conn.CreateInBatches(dbTx, items, 5000)
 }
 
 func (conn *DBClient) BatchAddAddressTx(dbTx *gorm.DB, items []*model.AddressTxs) error {
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 2000)
+	return conn.CreateInBatches(dbTx, items, 5000)
 }
 
 func (conn *DBClient) BatchAddBalances(dbTx *gorm.DB, items []*model.Balances) error {
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 1000)
+	return conn.CreateInBatches(dbTx, items, 2000)
 }
 
 func (conn *DBClient) BatchUpdateBalances(dbTx *gorm.DB, chain string, items []*model.Balances) error {

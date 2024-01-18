@@ -41,8 +41,6 @@ type IRPCClient interface {
 
 	HeaderByNumber(ctx context.Context, number *big.Int) (*RpcHeader, error)
 
-	TransactionSender(ctx context.Context, txHash, blockHash string, txIndex uint) (string, error)
-
 	TransactionReceipt(ctx context.Context, txHash string) (*RpcReceipt, error)
 
 	FilterLogs(ctx context.Context, q ethereum.FilterQuery) ([]RpcLog, error)

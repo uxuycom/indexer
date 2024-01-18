@@ -18,11 +18,11 @@ import (
 type RawClient struct {
 	client      *rpcclient.Client
 	batchClient *rpcclient.Client
-	chainID     int64
+	chainID     int
 }
 
 // NewRawClient creates a client that uses the given RPC client.
-func NewRawClient(chainId int64, rpc string) (*RawClient, error) {
+func NewRawClient(chainId int, rpc string) (*RawClient, error) {
 	ul, err := url.Parse(rpc)
 	if err != nil {
 		return nil, fmt.Errorf("invalid rpc[%s] url error[%v]", rpc, err)
@@ -72,7 +72,7 @@ func (c *RawClient) Close() {
 
 // ChainID retrieves the current chain ID for transaction replay protection.
 func (c *RawClient) ChainID(ctx context.Context) (*big.Int, error) {
-	return big.NewInt(c.chainID), nil
+	return big.NewInt(int64(c.chainID)), nil
 }
 
 // BlockNumber returns the most recent block number

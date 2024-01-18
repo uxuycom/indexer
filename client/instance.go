@@ -23,11 +23,17 @@
 package client
 
 import (
+	"github.com/uxuycom/indexer/client/btc"
 	"github.com/uxuycom/indexer/client/evm"
 	"github.com/uxuycom/indexer/client/xycommon"
+	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/model"
 )
 
-func NewRPCClient(rpc string, proto model.ChainGroup) (xycommon.IRPCClient, error) {
-	return evm.Dial(rpc)
+func NewRPCClient(chainCfg *config.ChainConfig) (xycommon.IRPCClient, error) {
+	if chainCfg.ChainGroup == model.BtcChainGroup {
+		return btc.NewClient(chainCfg.ChainId, chainCfg.ChainRPC, chainCfg.OrdRpc, chainCfg.Testnet)
+	}
+
+	return evm.Dial(chainCfg.ChainRPC)
 }

@@ -9,21 +9,19 @@ import (
 
 // BClient defines typed wrappers for the Ethereum RPC API.
 type BClient struct {
-	testnet bool
 	client  *RawClient
 	convert *Convert
 }
 
 // NewClient creates a client that uses the given RPC client.
-func NewClient(chainId int64, rpc string, testnet bool) (*BClient, error) {
+func NewClient(chainId int, rpc string, ordEndpoint string, testnet bool) (*BClient, error) {
 	btcClient, err := NewRawClient(chainId, rpc)
 	if err != nil {
 		return nil, err
 	}
 
-	convert := NewConvert(8, btcClient, testnet, "")
+	convert := NewConvert(8, btcClient, testnet, ordEndpoint)
 	return &BClient{
-		testnet: testnet,
 		client:  btcClient,
 		convert: convert,
 	}, nil

@@ -80,7 +80,7 @@ func main() {
 	if err != nil {
 		xylog.Logger.Fatalf("db init err:%v", err)
 	}
-	rpcClient, err := client.NewRPCClient(cfg.Chain.Rpc, cfg.Chain.ChainGroup)
+	rpcClient, err := client.NewRPCClient(cfg.Chain)
 	if err != nil {
 		xylog.Logger.Fatalf("initialize rpc client err:%v", err)
 	}

@@ -38,8 +38,11 @@ type ScanConfig struct {
 }
 
 type ChainConfig struct {
+	ChainId    int              `json:"chain_id"`
 	ChainName  string           `json:"chain_name"`
-	Rpc        string           `json:"rpc"`
+	ChainRPC   string           `json:"rpc"`
+	OrdRpc     string           `json:"ord_rpc"`
+	Testnet    bool             `json:"testnet"`
 	UserName   string           `json:"username"`
 	PassWord   string           `json:"password"`
 	ChainGroup model.ChainGroup `json:"chain_group"`
@@ -67,7 +70,7 @@ type ProfileConfig struct {
 
 type Config struct {
 	Scan     ScanConfig     `json:"scan"`
-	Chain    ChainConfig    `json:"chain"`
+	Chain    *ChainConfig   `json:"chain"`
 	LogLevel string         `json:"log_level"`
 	LogPath  string         `json:"log_path"`
 	Filters  *IndexFilter   `json:"filters"`

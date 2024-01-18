@@ -30,6 +30,7 @@ import (
 	"github.com/uxuycom/indexer/devents"
 	"github.com/uxuycom/indexer/model"
 	"github.com/uxuycom/indexer/protocol/avax/asc20"
+	"github.com/uxuycom/indexer/protocol/btc/brc20"
 	"strings"
 )
 
@@ -106,5 +107,5 @@ func ParseEVMMetaData(chain string, inputData string) (*devents.MetaData, error)
 }
 
 func ParseBTCMetaData(chain string, tx *xycommon.RpcTransaction) (*devents.MetaData, error) {
-	return nil, nil
+	return brc20.ParseMetaData(tx)
 }

@@ -12,7 +12,6 @@ import (
 	"math/big"
 	"net/url"
 	"os"
-	"time"
 )
 
 // RawClient defines typed wrappers for the Ethereum RPC API.
@@ -29,13 +28,12 @@ func NewRawClient(chainId int64, rpc string) (*RawClient, error) {
 		return nil, fmt.Errorf("invalid rpc[%s] url error[%v]", rpc, err)
 	}
 
-	//rpc 限制了必须得有 pass
+	//rpc password limit
 	pass, _ := ul.User.Password()
 	if pass == "" {
 		pass = "pass"
 	}
 
-	// 设置连接信息
 	connConfig := &rpcclient.ConnConfig{
 		Host:         ul.Host + ul.Path,
 		User:         ul.User.Username(),
@@ -44,7 +42,6 @@ func NewRawClient(chainId int64, rpc string) (*RawClient, error) {
 		DisableTLS:   ul.Scheme != "https" && ul.Scheme != "wss",
 	}
 
-	// 连接比特币节点
 	backendLogger := btclog.NewBackend(os.Stdout).Logger("MAIN")
 	backendLogger.SetLevel(btclog.LevelTrace)
 
@@ -217,8 +214,6 @@ func (c *RawClient) GetMultiRawTransactionVerbose(ctx context.Context, reqHashes
 		if ended {
 			break
 		}
-
-		<-time.After(time.Second)
 	}
 	return txs, nil
 }

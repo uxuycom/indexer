@@ -28,12 +28,13 @@ import (
 )
 
 const (
-	OperateDeploy   string = "deploy"
-	OperateMint     string = "mint"
-	OperateTransfer string = "transfer"
-	OperateList     string = "list"
-	OperateDelist   string = "delist"
-	OperateExchange string = "exchange"
+	OperateDeploy           string = "deploy"
+	OperateMint             string = "mint"
+	OperateTransfer         string = "transfer"
+	OperateInscribeTransfer string = "inscribe_transfer"
+	OperateList             string = "list"
+	OperateDelist           string = "delist"
+	OperateExchange         string = "exchange"
 )
 
 type MetaData struct {
@@ -78,11 +79,17 @@ type Transfer struct {
 	Receives []*Receive
 }
 
+type InscribeTransfer struct {
+	Sender string
+	Amount decimal.Decimal
+}
+
 type TxResult struct {
-	MD       *MetaData
-	Block    *xycommon.RpcBlock
-	Tx       *xycommon.RpcTransaction
-	Mint     *Mint
-	Deploy   *Deploy
-	Transfer *Transfer
+	MD               *MetaData
+	Block            *xycommon.RpcBlock
+	Tx               *xycommon.RpcTransaction
+	Mint             *Mint
+	Deploy           *Deploy
+	Transfer         *Transfer
+	InscribeTransfer *InscribeTransfer
 }

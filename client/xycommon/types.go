@@ -25,7 +25,6 @@ package xycommon
 import (
 	"context"
 	"errors"
-	"github.com/btcsuite/btcd/btcjson"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -73,22 +72,20 @@ type Inscription struct {
 }
 
 type RpcTransaction struct {
-	BlockHash   string               `json:"blockHash"`
-	BlockNumber *big.Int             `json:"blockNumber"`
-	TxIndex     *big.Int             `json:"transactionIndex"`
-	Type        *big.Int             `json:"type"`
-	Hash        string               `json:"hash"`
-	ChainID     *big.Int             `json:"chainId,omitempty"`
-	From        string               `json:"from"`
-	To          string               `json:"to"`
-	Input       string               `json:"input"`
-	Value       *big.Int             `json:"value"`
-	Gas         *big.Int             `json:"gas"`
-	GasPrice    *big.Int             `json:"gasPrice"`
-	Vin         []btcjson.VinPrevOut `json:"vin"`
-	Vout        []btcjson.Vout       `json:"vout"`
-	Events      []RpcLog             `json:"events"`
-	Status      int64                `json:"status"`
+	BlockHash   string   `json:"blockHash"`
+	BlockNumber *big.Int `json:"blockNumber"`
+	TxIndex     *big.Int `json:"transactionIndex"`
+	Type        *big.Int `json:"type"`
+	Hash        string   `json:"hash"`
+	ChainID     *big.Int `json:"chainId,omitempty"`
+	From        string   `json:"from"`
+	To          string   `json:"to"`
+	Input       string   `json:"input"`
+	Value       *big.Int `json:"value"`
+	Gas         *big.Int `json:"gas"`
+	GasPrice    *big.Int `json:"gasPrice"`
+	Events      []RpcLog `json:"events"`
+	Status      int64    `json:"status"`
 }
 
 type RpcLog struct {

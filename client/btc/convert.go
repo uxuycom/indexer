@@ -3,7 +3,6 @@ package btc
 import (
 	"context"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/btcutil"
@@ -12,7 +11,6 @@ import (
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/client/xycommon"
-	"github.com/uxuycom/indexer/xylog"
 	"math"
 	"math/big"
 )
@@ -50,20 +48,6 @@ func (c *Convert) convertHeader(block *btcjson.GetBlockVerboseResult, be error) 
 	return header, nil
 }
 
-func (c *Convert) prefetchRawTransactions(block *btcjson.GetBlockVerboseTxResult) (txs map[string]*btcjson.TxRawResult, err error) {
-	hashes := make([]string, 0, len(block.Tx)*2)
-	for _, tx := range block.Tx {
-		for _, vin := range tx.Vin {
-			// Retrieve the previous transaction output
-			if vin.IsCoinBase() {
-				continue
-			}
-			hashes = append(hashes, vin.Txid)
-		}
-	}
-	return c.btcClient.GetMultiRawTransactionVerbose(context.Background(), hashes)
-}
-
 func (c *Convert) convertBlock(block *btcjson.GetBlockVerboseTxResult, be error) (cBlock *xycommon.RpcBlock, err error) {
 	if be != nil {
 		return nil, be
@@ -78,22 +62,25 @@ func (c *Convert) convertBlock(block *btcjson.GetBlockVerboseTxResult, be error)
 		Transactions: make([]*xycommon.RpcTransaction, 0, len(block.Tx)),
 	}
 
-	//cBlock.InsIDs, err = c.ordClient.BlockInscriptions(context.Background(), block.Height)
-	//if err != nil {
-	//	return nil, fmt.Errorf("prefetchRawTransactions err[%v], block[%d]", err, block.Height)
-	//}
-
-	rawTxs, err := c.prefetchRawTransactions(block)
+	brc20Inscriptions, err := c.ordClient.BlockBRC20Inscriptions(context.Background(), block.Height)
 	if err != nil {
 		return nil, fmt.Errorf("prefetchRawTransactions err[%v], block[%d]", err, block.Height)
 	}
 
 	for idx, tx := range block.Tx {
-		ftx, err1 := c.convertTransaction(block.Height, idx, tx, rawTxs)
-		if err1 != nil {
-			return nil, fmt.Errorf("convert transaction tx[%+v] idx[%d] data error[%v]", tx, idx, err1)
+		if inscription, ok := brc20Inscriptions[tx.Txid]; ok {
+			insTx := c.convertInscriptionTx(block.Height, idx, tx, inscription)
+			cBlock.Transactions = append(cBlock.Transactions, insTx)
+		} else {
+			ttx, err1 := c.convertTransferTx(block.Height, idx, tx)
+			if err1 != nil {
+				return nil, fmt.Errorf("convert transaction tx[%+v] idx[%d] data error[%v]", tx, idx, err1)
+			}
+			if ttx == nil {
+				continue
+			}
+			cBlock.Transactions = append(cBlock.Transactions, ttx)
 		}
-		cBlock.Transactions = append(cBlock.Transactions, ftx)
 	}
 	return cBlock, nil
 }
@@ -129,123 +116,161 @@ func (c *Convert) convertBitcoinSats(value decimal.Decimal) decimal.Decimal {
 	return value.Mul(decimal.NewFromFloat(math.Pow10(c.decimals))).Round(int32(c.decimals))
 }
 
-func (c *Convert) convertTransaction(blockHeight int64, idx int, tx btcjson.TxRawResult, prevRawTxs map[string]*btcjson.TxRawResult) (*xycommon.RpcTransaction, error) {
+func (c *Convert) convertInscriptionTx(blockHeight int64, idx int, tx btcjson.TxRawResult, inscription Inscription) *xycommon.RpcTransaction {
 	blockHash, _ := chainhash.NewHashFromStr(tx.BlockHash)
 	txHash, _ := chainhash.NewHashFromStr(tx.Txid)
-
-	totalOutAmount := decimal.Zero
-	for _, output := range tx.Vout {
-		totalOutAmount = totalOutAmount.Add(decimal.NewFromFloatWithExponent(output.Value, int32(-c.decimals)))
-	}
-
-	// Iterate over each transaction input
-	totalInAmount := decimal.Zero
-	senders := make(map[int]btcutil.Address, len(tx.Vin))
-	sendersMap := make(map[string]struct{}, len(tx.Vin))
-	prevTxs := make(map[int]*btcjson.TxRawResult, len(tx.Vin))
-
-	vins := make([]*btcjson.VinPrevOut, 0, len(tx.Vin))
-	for j, vin := range tx.Vin {
-		// Retrieve the previous transaction output
-		if vin.IsCoinBase() {
-			continue
-		}
-
-		prevTx, ok := prevRawTxs[vin.Txid]
-		if !ok {
-			xylog.Logger.Infof("GetRawTransactionVerbose rpc tx[%s] nil", vin.Txid)
-			continue
-		}
-		prevTxs[j] = prevTx
-		if len(prevTx.Vout) == 0 || int(vin.Vout) >= len(prevTx.Vout) {
-			prefTxBytes, _ := json.Marshal(prevTx)
-			xylog.Logger.Infof("get prev tx out data empty, tx[%s-%d], data[%s]", vin.Txid, vin.Vout, prefTxBytes)
-			continue
-		}
-
-		senderAddress, err := c.getAddressFromScriptPubKey(prevTx.Vout[vin.Vout].ScriptPubKey)
-		if err != nil {
-			return nil, fmt.Errorf("decode vin public[%+v] addr error[%v]", prevTx.Vout[vin.Vout].ScriptPubKey, err)
-		}
-
-		if senderAddress == nil {
-			continue
-		}
-		senders[j] = senderAddress
-		totalInAmount = totalInAmount.Add(decimal.NewFromFloatWithExponent(prevTx.Vout[vin.Vout].Value, int32(-c.decimals)))
-		sendersMap[senderAddress.EncodeAddress()] = struct{}{}
-
-		vins = append(vins, &btcjson.VinPrevOut{
-			Coinbase:  vin.Coinbase,
-			Txid:      vin.Txid,
-			Vout:      vin.Vout,
-			ScriptSig: vin.ScriptSig,
-			Witness:   vin.Witness,
-			PrevOut: &btcjson.PrevOut{
-				Addresses: []string{senderAddress.EncodeAddress()},
-				Value:     prevTx.Vout[vin.Vout].Value,
-			},
-			Sequence: vin.Sequence,
-		})
-	}
-	feeAmount := totalInAmount.Sub(totalOutAmount)
-	feeAmountSats := c.convertBitcoinSats(feeAmount)
-	gasPrice := decimal.Zero
-	if tx.Vsize > 0 {
-		gasPrice = feeAmountSats.Div(decimal.NewFromInt(int64(tx.Vsize)))
-	}
-
-	// Iterate over each transaction output
-	receivers := make(map[int]btcutil.Address, len(tx.Vout))
-	receiversMap := make(map[string]struct{}, len(tx.Vout))
-	for k, vout := range tx.Vout {
-		// Retrieve the receiver address from the transaction output
-		receiverAddress, err := c.getAddressFromScriptPubKey(vout.ScriptPubKey)
-		if err != nil {
-			return nil, fmt.Errorf("getAddressFromScriptPubKey, ScriptPubKey[%+v] err[%v]", vout.ScriptPubKey, err)
-		}
-
-		if receiverAddress == nil {
-			continue
-		}
-		receivers[k] = receiverAddress
-		receiversMap[receiverAddress.EncodeAddress()] = struct{}{}
-	}
-
 	rtx := &xycommon.RpcTransaction{
 		BlockHash:   blockHash.String(),
 		BlockNumber: big.NewInt(blockHeight),
 		TxIndex:     big.NewInt(int64(idx)),
 		Type:        big.NewInt(0),
 		Hash:        txHash.String(),
-		Gas:         big.NewInt(feeAmountSats.IntPart()),
-		GasPrice:    big.NewInt(gasPrice.IntPart()),
 	}
-	return rtx, nil
+	rtx.Input = inscription.Content
+	rtx.From = inscription.Meta.Address
+	rtx.Gas = big.NewInt(int64(inscription.Meta.GenesisFee))
+	if tx.Vsize > 0 {
+		rtx.GasPrice = big.NewInt(1).Div(rtx.Gas, big.NewInt(int64(tx.Vsize)))
+	}
+	return rtx
 }
 
-func (c *Convert) formatTx(defaultTx *xycommon.RpcTransaction, from, to btcutil.Address, vout float64) *xycommon.RpcTransaction {
-	fromAddr := ""
-	if from != nil {
-		fromAddr = from.String()
+func (c *Convert) getOutputReceivers(vouts []btcjson.Vout, metadata InscriptionMeta) (to string, err error) {
+	addrMap := make(map[string]struct{}, len(vouts))
+	addrs := make([]string, 0, len(vouts))
+	for _, vout := range vouts {
+		addr, err1 := c.getAddressFromScriptPubKey(vout.ScriptPubKey)
+		if err1 != nil {
+			return "", fmt.Errorf("getAddressFromScriptPubKey, ScriptPubKey[%+v] err[%v]", vout.ScriptPubKey, err1)
+		}
+		if addr == nil {
+			continue
+		}
+
+		if c.convertBitcoinSats(decimal.NewFromFloat(vout.Value)).Equal(decimal.NewFromInt(metadata.OutputValue)) {
+			addrMap[addr.EncodeAddress()] = struct{}{}
+			addrs = append(addrs, addr.EncodeAddress())
+		}
 	}
 
-	toAddr := ""
-	if to != nil {
-		toAddr = to.String()
+	if len(addrMap) == 1 {
+		return addrs[0], nil
 	}
 
-	return &xycommon.RpcTransaction{
-		BlockHash:   defaultTx.BlockHash,
-		BlockNumber: defaultTx.BlockNumber,
-		TxIndex:     defaultTx.TxIndex,
-		Type:        defaultTx.Type,
-		Hash:        defaultTx.Hash,
-		ChainID:     defaultTx.ChainID,
-		From:        fromAddr,
-		To:          toAddr,
-		Value:       big.NewInt(c.convertBitcoinSats(decimal.NewFromFloat(vout)).IntPart()),
-		Gas:         defaultTx.Gas,
-		GasPrice:    defaultTx.GasPrice,
+	if len(addrMap) > 1 {
+		for addr := range addrMap {
+			if addr != metadata.Address {
+				return addr, nil
+			}
+		}
 	}
+
+	// inscription may be used as minter fee, so we need to return to the sender
+	return metadata.Address, nil
+}
+
+func (c *Convert) findInscriptionFromVins(vins []btcjson.Vin) (bool, string, error) {
+	for _, vin := range vins {
+		if vin.IsCoinBase() {
+			continue
+		}
+
+		// valid inscription input
+		output, err := c.ordClient.InscriptionOutput(context.Background(), vin.Txid, vin.Vout)
+		if err != nil {
+			return false, "", fmt.Errorf("get inscription output error[%v], txid[%s:%d]", err, vin.Txid, vin.Vout)
+		}
+
+		// if output inscriptions nil, it means that the input is not inscription
+		if len(output.Inscriptions) == 0 {
+			continue
+		}
+		return true, output.Inscriptions[0], nil
+	}
+	return false, "", nil
+}
+
+func (c *Convert) convertTransferTx(blockHeight int64, idx int, tx btcjson.TxRawResult) (*xycommon.RpcTransaction, error) {
+	blockHash, _ := chainhash.NewHashFromStr(tx.BlockHash)
+	txHash, _ := chainhash.NewHashFromStr(tx.Txid)
+
+	ttx := &xycommon.RpcTransaction{
+		BlockHash:   blockHash.String(),
+		BlockNumber: big.NewInt(blockHeight),
+		TxIndex:     big.NewInt(int64(idx)),
+		Type:        big.NewInt(0),
+		Hash:        txHash.String(),
+	}
+
+	// query inscription from vins
+	ok, inscriptionID, err := c.findInscriptionFromVins(tx.Vin)
+	if err != nil {
+		return nil, fmt.Errorf("findInscriptionFromVins error[%v]", err)
+	}
+	if !ok {
+		return nil, nil
+	}
+
+	// query inscription metadata
+	metadata, err := c.ordClient.InscriptionMetaByID(context.Background(), inscriptionID)
+	if err != nil {
+		return nil, fmt.Errorf("get inscription metadata error[%v], id[%s]", err, inscriptionID)
+	}
+	ttx.From = metadata.Address
+
+	// query inscription content
+	ttx.Input, err = c.ordClient.InscriptionContentByID(context.Background(), inscriptionID)
+	if err != nil {
+		return nil, fmt.Errorf("get inscription content error[%v], id[%s]", err, inscriptionID)
+	}
+
+	// extract inscription output address
+	ttx.To, err = c.getOutputReceivers(tx.Vout, metadata)
+	if err != nil {
+		return nil, fmt.Errorf("getOutputReceivers error[%v]", err)
+	}
+
+	// Iterate over each transaction input
+	totalInAmount, err := c.getTxVinTotalAmount(tx.Vin)
+	if err != nil {
+		return nil, fmt.Errorf("getTxVinTotalAmount error[%v]", err)
+	}
+
+	totalOutAmount := decimal.Zero
+	for _, output := range tx.Vout {
+		totalOutAmount = totalOutAmount.Add(decimal.NewFromFloatWithExponent(output.Value, int32(-c.decimals)))
+	}
+
+	feeAmount := totalInAmount.Sub(totalOutAmount)
+	feeAmountSats := c.convertBitcoinSats(feeAmount)
+	gasPrice := decimal.Zero
+	if tx.Vsize > 0 {
+		gasPrice = feeAmountSats.Div(decimal.NewFromInt(int64(tx.Vsize)))
+	}
+	ttx.Gas = feeAmountSats.BigInt()
+	ttx.GasPrice = c.convertBitcoinSats(gasPrice).BigInt()
+	return ttx, nil
+}
+
+func (c *Convert) getTxVinTotalAmount(vins []btcjson.Vin) (amount decimal.Decimal, err error) {
+	hashes := make([]string, 0, len(vins))
+	for _, vin := range vins {
+		if vin.IsCoinBase() {
+			continue
+		}
+		hashes = append(hashes, vin.Txid)
+	}
+
+	prevOuts, err := c.btcClient.GetMultiRawTransactionVerbose(context.Background(), hashes)
+	if err != nil {
+		return decimal.Zero, fmt.Errorf("getMultiRawTransactionVerbose error[%v]", err)
+	}
+
+	for _, vin := range vins {
+		if vin.IsCoinBase() {
+			continue
+		}
+		amount = amount.Add(decimal.NewFromFloat(prevOuts[vin.Txid].Vout[vin.Vout].Value))
+	}
+	return
 }

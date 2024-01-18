@@ -4,10 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/alitto/pond"
+	"github.com/uxuycom/indexer/xylog"
 	"io"
 	"net/http"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -37,7 +40,7 @@ type BlockInscriptions struct {
 	PageIndex    int      `json:"page_index"`
 }
 
-func (c *OrdClient) callContext(ctx context.Context, path string, out interface{}) error {
+func (c *OrdClient) doCallContext(ctx context.Context, path string, out interface{}) error {
 	// check out whether is a pointer
 	if reflect.TypeOf(out).Kind() != reflect.Ptr {
 		return fmt.Errorf("out should be a pointer")
@@ -56,7 +59,13 @@ func (c *OrdClient) callContext(ctx context.Context, path string, out interface{
 	if err != nil {
 		return fmt.Errorf("error sending request: %v", err)
 	}
-	defer response.Body.Close()
+	defer func() {
+		_ = response.Body.Close()
+	}()
+
+	if response.StatusCode == http.StatusNotFound {
+		return nil
+	}
 
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -88,13 +97,70 @@ func (c *OrdClient) callContext(ctx context.Context, path string, out interface{
 	return nil
 }
 
+func (c *OrdClient) callContext(ctx context.Context, path string, out interface{}) (err error) {
+	ts := time.Millisecond * 100
+	for retry := 0; retry < 5; retry++ {
+		err = c.doCallContext(ctx, path, out)
+		if err == nil {
+			return nil
+		}
+		<-time.After(ts * time.Duration(retry))
+	}
+	return err
+}
+
 func (c *OrdClient) blockInscriptionsByPage(ctx context.Context, blockNum int64, page int) (ret BlockInscriptions, err error) {
 	path := fmt.Sprintf("inscriptions/block/%d/%d", blockNum, page)
 	err = c.callContext(ctx, path, &ret)
 	return
 }
 
-func (c *OrdClient) BlockInscriptions(ctx context.Context, blockNum int64) ([]string, error) {
+type Inscription struct {
+	ID      string
+	Meta    InscriptionMeta
+	Content string
+}
+
+func (c *OrdClient) BlockBRC20Inscriptions(ctx context.Context, blockNum int64) (map[string]Inscription, error) {
+	ids, err := c.BlockInscriptionIDs(ctx, blockNum)
+	if err != nil {
+		return nil, fmt.Errorf("call BlockInscriptionIDs error: %v", err)
+	}
+
+	// get inscriptions meta
+	metas, err := c.InscriptionMetaByIDs(ctx, ids)
+	if err != nil {
+		return nil, fmt.Errorf("call InscriptionMetaByIDs error: %v", err)
+	}
+
+	validIds := make([]string, 0, len(ids))
+	for _, meta := range metas {
+		// meta.ContentType must contains "text/plain" or "application/json".
+		if !strings.Contains(meta.ContentType, "text/plain") && !strings.Contains(meta.ContentType, "application/json") {
+			continue
+		}
+		validIds = append(validIds, meta.InscriptionID)
+	}
+
+	// get inscriptions content
+	contents, err := c.InscriptionContentByIDs(ctx, validIds)
+	if err != nil {
+		return nil, fmt.Errorf("call InscriptionContentByIDs error: %v", err)
+	}
+
+	result := make(map[string]Inscription, len(validIds))
+	for id, content := range contents {
+		txId := strings.Split(id, "i")[0]
+		result[txId] = Inscription{
+			ID:      id,
+			Meta:    metas[id],
+			Content: content,
+		}
+	}
+	return result, nil
+}
+
+func (c *OrdClient) BlockInscriptionIDs(ctx context.Context, blockNum int64) ([]string, error) {
 	ids := make([]string, 0, 1000)
 	page := 0
 	for {
@@ -115,13 +181,67 @@ func (c *OrdClient) BlockInscriptions(ctx context.Context, blockNum int64) ([]st
 	return ids, nil
 }
 
-func (c *OrdClient) InscriptionContent(ctx context.Context, id string) (ret string, err error) {
+func (c *OrdClient) InscriptionContentByIDs(ctx context.Context, insIDs []string) (map[string]string, error) {
+	pool := pond.New(100, 0, pond.MinWorkers(100))
+	contentsMap := &sync.Map{}
+	for _, insID := range insIDs {
+		id := insID
+		pool.Submit(func() {
+			content, err := c.InscriptionContentByID(ctx, id)
+			if err != nil {
+				xylog.Logger.Errorf("get inscription content err[%v], id[%s]", err, id)
+				return
+			}
+			contentsMap.Store(id, content)
+		})
+	}
+	pool.StopAndWait()
+
+	result := make(map[string]string, len(insIDs))
+	for _, insID := range insIDs {
+		v, ok := contentsMap.Load(insID)
+		if !ok {
+			return nil, fmt.Errorf("get inscription content nil, id[%s]", insID)
+		}
+		result[insID] = v.(string)
+	}
+	return result, nil
+}
+
+func (c *OrdClient) InscriptionContentByID(ctx context.Context, id string) (ret string, err error) {
 	path := fmt.Sprintf("content/%s", id)
 	err = c.callContext(ctx, path, &ret)
 	return
 }
 
-type Inscription struct {
+func (c *OrdClient) InscriptionMetaByIDs(ctx context.Context, insIDs []string) (map[string]InscriptionMeta, error) {
+	pool := pond.New(100, 0, pond.MinWorkers(100))
+	inscriptionsMap := &sync.Map{}
+	for _, insID := range insIDs {
+		id := insID
+		pool.Submit(func() {
+			inscription, err := c.InscriptionMetaByID(ctx, id)
+			if err != nil {
+				xylog.Logger.Errorf("get inscription meta err[%v], id[%s]", err, id)
+				return
+			}
+			inscriptionsMap.Store(id, inscription)
+		})
+	}
+	pool.StopAndWait()
+
+	result := make(map[string]InscriptionMeta, len(insIDs))
+	for _, insID := range insIDs {
+		v, ok := inscriptionsMap.Load(insID)
+		if !ok {
+			return nil, fmt.Errorf("get inscription meta nil, id[%s]", insID)
+		}
+		result[insID] = v.(InscriptionMeta)
+	}
+	return result, nil
+}
+
+type InscriptionMeta struct {
 	Address           string `json:"address"`
 	ContentLength     int    `json:"content_length"`
 	ContentType       string `json:"content_type"`
@@ -135,8 +255,23 @@ type Inscription struct {
 	Timestamp         int64  `json:"timestamp"`
 }
 
-func (c *OrdClient) Inscription(ctx context.Context, id string) (ret Inscription, err error) {
+func (c *OrdClient) InscriptionMetaByID(ctx context.Context, id string) (ret InscriptionMeta, err error) {
 	path := fmt.Sprintf("inscription/%s", id)
+	err = c.callContext(ctx, path, &ret)
+	return
+}
+
+type InscriptionOutput struct {
+	Value        int64    `json:"value"`
+	ScriptPubkey string   `json:"script_pubkey"`
+	Address      string   `json:"address"`
+	Transaction  string   `json:"transaction"`
+	SatRanges    []int    `json:"sat_ranges,omitempty"`
+	Inscriptions []string `json:"inscriptions"`
+}
+
+func (c *OrdClient) InscriptionOutput(ctx context.Context, txID string, index uint32) (ret InscriptionOutput, err error) {
+	path := fmt.Sprintf("output/%s:%d", txID, index)
 	err = c.callContext(ctx, path, &ret)
 	return
 }

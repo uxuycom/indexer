@@ -28,6 +28,7 @@ import (
 	"github.com/alitto/pond"
 	"github.com/uxuycom/indexer/client/xycommon"
 	"github.com/uxuycom/indexer/devents"
+	"github.com/uxuycom/indexer/model"
 	"github.com/uxuycom/indexer/protocol"
 	"github.com/uxuycom/indexer/protocol/common"
 	"github.com/uxuycom/indexer/xyerrors"
@@ -39,6 +40,11 @@ import (
 )
 
 func (e *Explorer) validReceiptTxs(items []*xycommon.RpcTransaction) ([]*xycommon.RpcTransaction, *xyerrors.InsError) {
+	// filter txs only active for evm chain
+	if e.config.Chain.ChainGroup != "" && e.config.Chain.ChainGroup != model.EvmChainGroup {
+		return items, nil
+	}
+
 	startTs := time.Now()
 	defer func() {
 		xylog.Logger.Infof("handle txs, fetch receipt data cost[%v], items[%d]", time.Since(startTs), len(items))

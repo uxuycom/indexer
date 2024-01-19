@@ -524,5 +524,13 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 	for _, item := range dm.Balances[DBActionUpdate] {
 		dmf.Balances[DBActionUpdate] = append(dmf.Balances[DBActionUpdate], item)
 	}
+
+	// flatten balances records
+	for _, item := range dm.UTXOs[DBActionCreate] {
+		dmf.UTXOs[DBActionCreate] = append(dmf.UTXOs[DBActionCreate], item)
+	}
+	for _, item := range dm.UTXOs[DBActionUpdate] {
+		dmf.UTXOs[DBActionUpdate] = append(dmf.UTXOs[DBActionUpdate], item)
+	}
 	return dmf
 }

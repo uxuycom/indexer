@@ -316,6 +316,11 @@ func (e *Explorer) writeDBAsync(block *xycommon.RpcBlock, txResults []*devents.D
 }
 
 func (e *Explorer) fastChecking(tx *xycommon.RpcTransaction) bool {
+	// fast checking txs only valid for evm chain
+	if e.config.Chain.ChainGroup != "" && e.config.Chain.ChainGroup != model.EvmChainGroup {
+		return true
+	}
+
 	// events log checking
 	if len(tx.Events) > 0 {
 		return true

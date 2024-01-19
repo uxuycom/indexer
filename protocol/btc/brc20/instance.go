@@ -65,7 +65,7 @@ func (p *Protocol) Parse(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, 
 	return nil, nil
 }
 
-func ParseMetaData(tx *xycommon.RpcTransaction) (*devents.MetaData, error) {
+func ParseMetaData(chain string, tx *xycommon.RpcTransaction) (*devents.MetaData, error) {
 	proto := &devents.MetaData{}
 	if err := json.Unmarshal([]byte(tx.Input), proto); err != nil {
 		return nil, fmt.Errorf("tx input data parsed failed, data[%s], err[%v]", tx.Input, err)
@@ -84,10 +84,11 @@ func ParseMetaData(tx *xycommon.RpcTransaction) (*devents.MetaData, error) {
 	switch proto.Operate {
 	case devents.OperateDeploy, devents.OperateMint, devents.OperateTransfer:
 		return &devents.MetaData{
+			Chain:    chain,
 			Protocol: proto.Protocol,
 			Tick:     strings.ToLower(proto.Tick),
 			Operate:  proto.Operate,
-			Data:     proto.Data,
+			Data:     tx.Input,
 		}, nil
 	}
 	xylog.Logger.Infof("protocol operate invalid & ignored, operation[%s]", proto.Operate)

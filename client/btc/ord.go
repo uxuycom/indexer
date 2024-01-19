@@ -161,6 +161,11 @@ func (c *OrdClient) BlockBRC20Inscriptions(ctx context.Context, blockNum int64) 
 			xylog.Logger.Fatalf("txId[%s] has more than one inscription", txId)
 		}
 
+		// filter only brc20 inscriptions
+		if !strings.Contains(content, "brc-20") {
+			continue
+		}
+
 		result[txId] = Inscription{
 			ID:      id,
 			Meta:    metas[id],

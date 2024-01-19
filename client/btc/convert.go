@@ -87,6 +87,7 @@ func (c *Convert) convertBlock(block *btcjson.GetBlockVerboseTxResult, be error)
 			cBlock.Transactions = append(cBlock.Transactions, ttx)
 		}
 	}
+	xylog.Logger.Infof("convert block[%d] txs[%d] success", block.Height, len(cBlock.Transactions))
 	return cBlock, nil
 }
 
@@ -124,7 +125,7 @@ func (c *Convert) convertBitcoinSats(value decimal.Decimal) decimal.Decimal {
 func (c *Convert) convertInscriptionTx(blockHeight int64, idx int, num int, tx btcjson.TxRawResult, inscription Inscription) *xycommon.RpcTransaction {
 	startTs := time.Now()
 	defer func() {
-		xylog.Logger.Infof("[%d/%d]convertInscriptionTx cost[%v], block[%d], tx[%s]", idx, num, time.Since(startTs), blockHeight, tx.Txid)
+		xylog.Logger.Infof("[%d/%d]convertInscriptionTx cost[%v], block[%d], tx[%s]", idx+1, num, time.Since(startTs), blockHeight, tx.Txid)
 	}()
 
 	blockHash, _ := chainhash.NewHashFromStr(tx.BlockHash)
@@ -220,7 +221,7 @@ func (c *Convert) findInscriptionFromVins(vins []btcjson.Vin, brc20Inscriptions 
 func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.TxRawResult, brc20Inscriptions map[string]Inscription) (*xycommon.RpcTransaction, error) {
 	startTs := time.Now()
 	defer func() {
-		xylog.Logger.Infof("[%d/%d]convertTransferTx cost[%v], block[%d], tx[%s]", idx, num, time.Since(startTs), blockHeight, tx.Txid)
+		xylog.Logger.Infof("[%d/%d]convertTransferTx cost[%v], block[%d], tx[%s]", idx+1, num, time.Since(startTs), blockHeight, tx.Txid)
 	}()
 
 	blockHash, _ := chainhash.NewHashFromStr(tx.BlockHash)
@@ -242,6 +243,7 @@ func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.
 	if !ok {
 		return nil, nil
 	}
+	xylog.Logger.Infof("find tx inscription[%s] from vins, tx[%s]", inscriptionID, tx.Txid)
 
 	// query inscription metadata
 	metadata, err := c.ordClient.InscriptionMetaByID(context.Background(), inscriptionID)

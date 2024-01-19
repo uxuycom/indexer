@@ -107,5 +107,5 @@ func ParseEVMMetaData(chain string, inputData string) (*devents.MetaData, error)
 }
 
 func ParseBTCMetaData(chain string, tx *xycommon.RpcTransaction) (*devents.MetaData, error) {
-	return brc20.ParseMetaData(tx)
+	return brc20.ParseMetaData(chain, tx)
 }

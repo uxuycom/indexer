@@ -80,7 +80,7 @@ func (p *Protocol) verifyDeploy(md *devents.MetaData) (*Deploy, *xyerrors.InsErr
 	var deployParams map[string]interface{}
 	err := json.Unmarshal([]byte(md.Data), &deployParams)
 	if err != nil {
-		return nil, xyerrors.NewInsError(-13, fmt.Sprintf("json decode err:%v", err))
+		return nil, xyerrors.NewInsError(-13, fmt.Sprintf("json decode err:%v, data[%s]", err, md.Data))
 	}
 
 	// decimal param parse

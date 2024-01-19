@@ -27,13 +27,13 @@ import (
 	"github.com/uxuycom/indexer/client/evm"
 	"github.com/uxuycom/indexer/client/xycommon"
 	"github.com/uxuycom/indexer/config"
+	"github.com/uxuycom/indexer/dcache"
 	"github.com/uxuycom/indexer/model"
 )
 
-func NewRPCClient(chainCfg *config.ChainConfig) (xycommon.IRPCClient, error) {
+func NewRPCClient(chainCfg *config.ChainConfig, cache *dcache.Manager) (xycommon.IRPCClient, error) {
 	if chainCfg.ChainGroup == model.BtcChainGroup {
-		return btc.NewClient(chainCfg.ChainId, chainCfg.ChainRPC, chainCfg.OrdRpc, chainCfg.Testnet)
+		return btc.NewClient(chainCfg, cache)
 	}
-
 	return evm.Dial(chainCfg.ChainRPC)
 }

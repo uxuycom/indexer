@@ -77,15 +77,16 @@ func main() {
 	}
 
 	dbClient, err := storage.NewDbClient(&cfg.Database)
+
+	dCache := dcache.NewManager(dbClient, cfg.Chain.ChainName)
+
 	if err != nil {
 		xylog.Logger.Fatalf("db init err:%v", err)
 	}
-	rpcClient, err := client.NewRPCClient(cfg.Chain)
+	rpcClient, err := client.NewRPCClient(cfg.Chain, dCache)
 	if err != nil {
 		xylog.Logger.Fatalf("initialize rpc client err:%v", err)
 	}
-
-	dCache := dcache.NewManager(dbClient, cfg.Chain.ChainName)
 
 	// init protocols
 	protocol.InitProtocols(dCache)

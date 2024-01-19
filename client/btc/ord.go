@@ -41,6 +41,11 @@ type BlockInscriptions struct {
 }
 
 func (c *OrdClient) doCallContext(ctx context.Context, path string, out interface{}) error {
+	startTs := time.Now()
+	defer func() {
+		xylog.Logger.Infof("call ord api[%s] cost[%v]", path, time.Since(startTs))
+	}()
+
 	// check out whether is a pointer
 	if reflect.TypeOf(out).Kind() != reflect.Ptr {
 		return fmt.Errorf("out should be a pointer")
@@ -151,6 +156,11 @@ func (c *OrdClient) BlockBRC20Inscriptions(ctx context.Context, blockNum int64) 
 	result := make(map[string]Inscription, len(validIds))
 	for id, content := range contents {
 		txId := strings.Split(id, "i")[0]
+
+		if _, ok := result[txId]; ok {
+			xylog.Logger.Fatalf("txId[%s] has more than one inscription", txId)
+		}
+
 		result[txId] = Inscription{
 			ID:      id,
 			Meta:    metas[id],

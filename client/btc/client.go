@@ -9,6 +9,7 @@ import (
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btclog"
+	"github.com/uxuycom/indexer/config"
 	"math/big"
 	"net/url"
 	"os"
@@ -22,22 +23,16 @@ type RawClient struct {
 }
 
 // NewRawClient creates a client that uses the given RPC client.
-func NewRawClient(chainId int, rpc string) (*RawClient, error) {
-	ul, err := url.Parse(rpc)
+func NewRawClient(chainCfg *config.ChainConfig) (*RawClient, error) {
+	ul, err := url.Parse(chainCfg.ChainRPC)
 	if err != nil {
-		return nil, fmt.Errorf("invalid rpc[%s] url error[%v]", rpc, err)
-	}
-
-	//rpc password limit
-	pass, _ := ul.User.Password()
-	if pass == "" {
-		pass = "pass"
+		return nil, fmt.Errorf("invalid rpc[%s] url error[%v]", chainCfg.ChainRPC, err)
 	}
 
 	connConfig := &rpcclient.ConnConfig{
 		Host:         ul.Host + ul.Path,
-		User:         ul.User.Username(),
-		Pass:         pass,
+		User:         chainCfg.UserName,
+		Pass:         chainCfg.PassWord,
 		HTTPPostMode: ul.Scheme == "http" || ul.Scheme == "https",
 		DisableTLS:   ul.Scheme != "https" && ul.Scheme != "wss",
 	}
@@ -48,16 +43,16 @@ func NewRawClient(chainId int, rpc string) (*RawClient, error) {
 	rpcclient.UseLogger(backendLogger)
 	client, err := rpcclient.New(connConfig, nil)
 	if err != nil {
-		return nil, fmt.Errorf("rpc[%s] client init error[%v]", rpc, err)
+		return nil, fmt.Errorf("rpc[%s] client init error[%v]", chainCfg.ChainRPC, err)
 	}
 
 	batchClient, err := rpcclient.NewBatch(connConfig)
 	if err != nil {
-		return nil, fmt.Errorf("rpc[%s] client init error[%v]", rpc, err)
+		return nil, fmt.Errorf("rpc[%s] client init error[%v]", chainCfg.ChainRPC, err)
 	}
 
 	return &RawClient{
-		chainID:     chainId,
+		chainID:     chainCfg.ChainId,
 		client:      client,
 		batchClient: batchClient,
 	}, nil

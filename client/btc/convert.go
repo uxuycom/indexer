@@ -11,8 +11,11 @@ import (
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/client/xycommon"
+	"github.com/uxuycom/indexer/dcache"
+	"github.com/uxuycom/indexer/xylog"
 	"math"
 	"math/big"
+	"time"
 )
 
 type Convert struct {
@@ -20,14 +23,16 @@ type Convert struct {
 	chainParams *chaincfg.Params
 	btcClient   *RawClient
 	ordClient   *OrdClient
+	cache       *dcache.Manager
 }
 
-func NewConvert(decimals int, client *RawClient, testnet bool, ordEndpoint string) *Convert {
+func NewConvert(decimals int, client *RawClient, testnet bool, ordEndpoint string, cache *dcache.Manager) *Convert {
 	chainParams := &chaincfg.MainNetParams
 	if testnet {
 		chainParams = &chaincfg.TestNet3Params
 	}
 	return &Convert{
+		cache:       cache,
 		decimals:    decimals,
 		btcClient:   client,
 		chainParams: chainParams,
@@ -69,10 +74,10 @@ func (c *Convert) convertBlock(block *btcjson.GetBlockVerboseTxResult, be error)
 
 	for idx, tx := range block.Tx {
 		if inscription, ok := brc20Inscriptions[tx.Txid]; ok {
-			insTx := c.convertInscriptionTx(block.Height, idx, tx, inscription)
+			insTx := c.convertInscriptionTx(block.Height, idx, len(block.Tx), tx, inscription)
 			cBlock.Transactions = append(cBlock.Transactions, insTx)
 		} else {
-			ttx, err1 := c.convertTransferTx(block.Height, idx, tx)
+			ttx, err1 := c.convertTransferTx(block.Height, idx, len(block.Tx), tx)
 			if err1 != nil {
 				return nil, fmt.Errorf("convert transaction tx[%+v] idx[%d] data error[%v]", tx, idx, err1)
 			}
@@ -116,7 +121,12 @@ func (c *Convert) convertBitcoinSats(value decimal.Decimal) decimal.Decimal {
 	return value.Mul(decimal.NewFromFloat(math.Pow10(c.decimals))).Round(int32(c.decimals))
 }
 
-func (c *Convert) convertInscriptionTx(blockHeight int64, idx int, tx btcjson.TxRawResult, inscription Inscription) *xycommon.RpcTransaction {
+func (c *Convert) convertInscriptionTx(blockHeight int64, idx int, num int, tx btcjson.TxRawResult, inscription Inscription) *xycommon.RpcTransaction {
+	startTs := time.Now()
+	defer func() {
+		xylog.Logger.Infof("[%d/%d]convertInscriptionTx cost[%v], block[%d], tx[%s]", idx, num, time.Since(startTs), blockHeight, tx.Txid)
+	}()
+
 	blockHash, _ := chainhash.NewHashFromStr(tx.BlockHash)
 	txHash, _ := chainhash.NewHashFromStr(tx.Txid)
 	rtx := &xycommon.RpcTransaction{
@@ -190,7 +200,14 @@ func (c *Convert) findInscriptionFromVins(vins []btcjson.Vin) (bool, string, err
 	return false, "", nil
 }
 
-func (c *Convert) convertTransferTx(blockHeight int64, idx int, tx btcjson.TxRawResult) (*xycommon.RpcTransaction, error) {
+func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.TxRawResult) (*xycommon.RpcTransaction, error) {
+	startTs := time.Now()
+	defer func() {
+		xylog.Logger.Infof("[%d/%d]convertTransferTx cost[%v], block[%d], tx[%s]", idx, num, time.Since(startTs), blockHeight, tx.Txid)
+	}()
+
+	xylog.Logger.Infof("")
+
 	blockHash, _ := chainhash.NewHashFromStr(tx.BlockHash)
 	txHash, _ := chainhash.NewHashFromStr(tx.Txid)
 

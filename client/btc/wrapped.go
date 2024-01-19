@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/ethereum/go-ethereum"
 	"github.com/uxuycom/indexer/client/xycommon"
+	"github.com/uxuycom/indexer/config"
+	"github.com/uxuycom/indexer/dcache"
 	"math/big"
 )
 
@@ -14,13 +16,13 @@ type BClient struct {
 }
 
 // NewClient creates a client that uses the given RPC client.
-func NewClient(chainId int, rpc string, ordEndpoint string, testnet bool) (*BClient, error) {
-	btcClient, err := NewRawClient(chainId, rpc)
+func NewClient(chainCfg *config.ChainConfig, cache *dcache.Manager) (*BClient, error) {
+	btcClient, err := NewRawClient(chainCfg)
 	if err != nil {
 		return nil, err
 	}
 
-	convert := NewConvert(8, btcClient, testnet, ordEndpoint)
+	convert := NewConvert(8, btcClient, chainCfg.Testnet, chainCfg.OrdRpc, cache)
 	return &BClient{
 		client:  btcClient,
 		convert: convert,

@@ -43,7 +43,7 @@ type BlockInscriptions struct {
 func (c *OrdClient) doCallContext(ctx context.Context, path string, out interface{}) error {
 	startTs := time.Now()
 	defer func() {
-		xylog.Logger.Infof("call ord api[%s] cost[%v]", path, time.Since(startTs))
+		xylog.Logger.Debugf("call ord api[%s] cost[%v]", path, time.Since(startTs))
 	}()
 
 	// check out whether is a pointer

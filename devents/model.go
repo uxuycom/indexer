@@ -297,6 +297,18 @@ func (tc *TxResultHandler) BuildBalanceTxEvents(e *TxResult) []BalanceTxEvent {
 			})
 		}
 	}
+
+	if e.InscribeTransfer != nil {
+		_, senderBalance := tc.cache.Balance.Get(e.MD.Protocol, e.MD.Tick, e.InscribeTransfer.Address)
+		items = append(items, BalanceTxEvent{
+			Action:           DBActionUpdate,
+			SID:              senderBalance.SID,
+			Address:          e.InscribeTransfer.Address,
+			Amount:           e.InscribeTransfer.Amount.Neg(),
+			AvailableBalance: senderBalance.Available,
+			OverallBalance:   senderBalance.Overall,
+		})
+	}
 	return items
 }
 

@@ -71,14 +71,14 @@ func (p *Protocol) verifyInscribeTransfer(tx *xycommon.RpcTransaction, md *deven
 	}
 
 	// sender balance checking
-	ok, balance := p.cache.Balance.Get(protocol, tick, tx.From)
+	ok, balance := p.cache.Balance.Get(protocol, tick, tx.To)
 	if !ok {
 		return decimal.Zero, xyerrors.NewInsError(-17, fmt.Sprintf("sender balance record not exist, tick[%s-%s], address[%s]", protocol, tick, tx.From))
 	}
 
 	// available balance checking
 	if balance.Available.LessThan(amount) {
-		return decimal.Zero, xyerrors.NewInsError(-18, fmt.Sprintf("sender availabe balance[%v] < inscribe amount[%v]", balance.Overall, amount))
+		return decimal.Zero, xyerrors.NewInsError(-18, fmt.Sprintf("sender availabe balance[%v] < inscribe amount[%v], , tick[%s-%s], address[%s]", balance.Available, amount, protocol, tick, tx.To))
 	}
 	return amount, nil
 }

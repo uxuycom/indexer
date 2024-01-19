@@ -52,7 +52,7 @@ func (Balances) TableName() string {
 
 type UTXO struct {
 	ID        uint64          `gorm:"primaryKey" json:"id"`
-	Sn        string          `json:"sn" gorm:"column:sn"`
+	SN        string          `json:"sn" gorm:"column:sn"`
 	Chain     string          `json:"chain" gorm:"column:chain"`
 	Protocol  string          `json:"protocol" gorm:"column:protocol"`
 	Address   string          `json:"address" gorm:"column:address"`

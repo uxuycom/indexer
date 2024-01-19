@@ -51,6 +51,7 @@ func (base *Protocol) Deploy(block *xycommon.RpcBlock, tx *xycommon.RpcTransacti
 		Block: block,
 		Tx:    tx,
 		Deploy: &devents.Deploy{
+			Address:   tx.From,
 			Name:      d.Tick,
 			MaxSupply: d.MaxSupply,
 			MintLimit: d.MintLimit,

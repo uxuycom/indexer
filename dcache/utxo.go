@@ -23,10 +23,7 @@
 package dcache
 
 import (
-	"encoding/base64"
-	"encoding/hex"
 	"github.com/shopspring/decimal"
-	"github.com/uxuycom/indexer/xylog"
 	"sync"
 )
 
@@ -55,20 +52,16 @@ func NewUTXO() *UTXO {
 /***************************************
  * idx define utxo unique id
  ***************************************/
-func (d *UTXO) idx(txHash string) string {
-	txBytes, err := hex.DecodeString(txHash)
-	if err != nil {
-		xylog.Logger.Fatalf("decode tx hash failed: %s, tx[%s]", err.Error(), txHash)
-	}
-	return base64.RawStdEncoding.EncodeToString(txBytes)
+func (d *UTXO) idx(sn string) string {
+	return sn
 }
 
 // Add
 /***************************************
  * Add new utxo record
  ***************************************/
-func (d *UTXO) Add(protocol, tick, txHash, address string, amount decimal.Decimal) {
-	idx := d.idx(txHash)
+func (d *UTXO) Add(protocol, tick, sn, address string, amount decimal.Decimal) {
+	idx := d.idx(sn)
 	d.hashes.Store(idx, &UTXOItem{
 		Protocol: protocol,
 		Tick:     tick,
@@ -77,12 +70,24 @@ func (d *UTXO) Add(protocol, tick, txHash, address string, amount decimal.Decima
 	})
 }
 
+// Transfer
+/***************************************
+ * transfer utxo owner
+ ***************************************/
+func (d *UTXO) Transfer(sn string, owner string) {
+	ok, item := d.Get(sn)
+	if !ok {
+		return
+	}
+	item.Owner = owner
+}
+
 // Get
 /***************************************
  * get utxo record by mint tx hash
  ***************************************/
-func (d *UTXO) Get(txHash string) (bool, *UTXOItem) {
-	idx := d.idx(txHash)
+func (d *UTXO) Get(sn string) (bool, *UTXOItem) {
+	idx := d.idx(sn)
 	item, ok := d.hashes.Load(idx)
 	if !ok {
 		return false, nil

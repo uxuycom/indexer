@@ -211,7 +211,7 @@ func (h *Manager) initUtxoCache(chain string) {
 		}
 
 		for _, v := range utxos {
-			h.UTXO.Add(v.Protocol, v.Tick, v.TxHash, v.Address, v.Amount)
+			h.UTXO.Add(v.Protocol, v.Tick, v.SN, v.Address, v.Amount)
 		}
 
 		//update id index

@@ -78,6 +78,20 @@ func (p *Protocol) verifyTransfer(tx *xycommon.RpcTransaction, md *devents.MetaD
 		return decimal.Zero, xyerrors.NewInsError(-16, fmt.Sprintf("inscribe transfer amount precision > inscription decimals, precision[%d], decimals[%d]", precision, inscription.Decimals))
 	}
 
+	// query inscription last owner
+	ok, tfInscription := p.cache.UTXO.Get(tx.InscriptionID)
+	if !ok {
+		return decimal.Zero, xyerrors.NewInsError(-17, fmt.Sprintf("inscribe transfer record not exist, inscription id[%s]", tx.InscriptionID))
+	}
+
+	// verify amount
+	if !amount.Equal(tfInscription.Amount) {
+		return decimal.Zero, xyerrors.NewInsError(-18, fmt.Sprintf("inscribe transfer amount not equal, amount[%v], inscription amount[%v]", amount, tfInscription.Amount))
+	}
+
+	// setting sender
+	tx.From = tfInscription.Owner
+
 	// sender balance checking
 	ok, balance := p.cache.Balance.Get(protocol, tick, tx.From)
 	if !ok {

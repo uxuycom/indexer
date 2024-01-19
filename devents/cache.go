@@ -153,17 +153,26 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 		return
 	}
 	tc.cache.InscriptionStats.Holders(r.MD.Protocol, r.MD.Tick, holders)
+
+	// update utxo owners
+	if r.Tx.InscriptionID == "" {
+		return
+	}
+	if len(r.Transfer.Receives) != 1 {
+		return
+	}
+	tc.cache.UTXO.Transfer(r.Tx.InscriptionID, r.Transfer.Receives[0].Address)
 }
 
 func (tc *TxResultHandler) updateInscribeTransferCache(r *TxResult) {
 	// update available balance
 	_, balance := tc.cache.Balance.Get(r.MD.Protocol, r.MD.Tick, r.InscribeTransfer.Address)
 	available := balance.Available.Sub(r.InscribeTransfer.Amount)
-	tc.cache.Balance.Update(r.MD.Protocol, r.MD.Tick, r.Mint.Minter, &dcache.BalanceItem{
+	tc.cache.Balance.Update(r.MD.Protocol, r.MD.Tick, r.InscribeTransfer.Address, &dcache.BalanceItem{
 		Available: available,
 		Overall:   balance.Overall,
 	})
 
 	// add utxo record
-	tc.cache.UTXO.Add(r.MD.Protocol, r.MD.Tick, r.Tx.Hash, r.InscribeTransfer.Address, r.InscribeTransfer.Amount)
+	tc.cache.UTXO.Add(r.MD.Protocol, r.MD.Tick, r.Tx.InscriptionID, r.InscribeTransfer.Address, r.InscribeTransfer.Amount)
 }

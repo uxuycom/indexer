@@ -56,7 +56,7 @@ func (p *Protocol) Parse(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, 
 		return p.Mint(block, tx, md)
 
 	case devents.OperateTransfer:
-		if tx.To != "" {
+		if tx.From != "" {
 			return p.Transfer(block, tx, md)
 		}
 		md.Operate = devents.OperateInscribeTransfer

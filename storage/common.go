@@ -25,6 +25,7 @@ package storage
 import (
 	"errors"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/model"
 	"gorm.io/gorm"
@@ -163,24 +164,24 @@ func (conn *DBClient) BatchUpdateInscription(dbTx *gorm.DB, chain string, items 
 			"transfer_type": item.TransferType,
 		})
 	}
-	err, _ := conn.BatchUpdatesBySID(dbTx, chain, model.Inscriptions{}.TableName(), fields, vals)
+	err, _ := conn.BatchUpdatesBySID(dbTx, chain, "sid", model.Inscriptions{}.TableName(), fields, vals)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (conn *DBClient) BatchUpdatesBySID(dbTx *gorm.DB, chain string, tblName string, fields map[string]string, values []map[string]interface{}) (error, int64) {
+func (conn *DBClient) BatchUpdatesBySID(dbTx *gorm.DB, chain string, uniqKey string, tblName string, fields map[string]string, values []map[string]interface{}) (error, int64) {
 	if len(values) < 1 {
 		return nil, 0
 	}
 
 	updates := make([]string, 0, len(fields))
 	for field, vt := range fields {
-		update := fmt.Sprintf(" %s = CASE sid ", field)
+		update := fmt.Sprintf(" %s = CASE %s ", field, uniqKey)
 		tpl := fmt.Sprintf(" WHEN %s THEN '%s'", "%d", vt)
 		for _, value := range values {
-			update += fmt.Sprintf(tpl, value["sid"], value[field])
+			update += fmt.Sprintf(tpl, value[uniqKey], value[field])
 		}
 		update += " END"
 		updates = append(updates, update)
@@ -188,10 +189,10 @@ func (conn *DBClient) BatchUpdatesBySID(dbTx *gorm.DB, chain string, tblName str
 
 	ids := make([]string, 0, len(values))
 	for _, value := range values {
-		ids = append(ids, fmt.Sprintf("%d", value["sid"]))
+		ids = append(ids, fmt.Sprintf("%d", value[uniqKey]))
 	}
 
-	finalSql := fmt.Sprintf("UPDATE %s SET %s WHERE chain = '%s' AND sid IN (%s)", tblName, strings.Join(updates, ","), chain, strings.Join(ids, ","))
+	finalSql := fmt.Sprintf("UPDATE %s SET %s WHERE chain = '%s' AND `%s` IN (%s)", tblName, strings.Join(updates, ","), chain, uniqKey, strings.Join(ids, ","))
 	ret := dbTx.Exec(finalSql)
 	if ret.Error != nil {
 		return ret.Error, 0
@@ -219,7 +220,7 @@ func (conn *DBClient) BatchUpdateInscriptionStats(dbTx *gorm.DB, chain string, i
 			"tx_cnt":  item.TxCnt,
 		})
 	}
-	err, _ := conn.BatchUpdatesBySID(dbTx, chain, model.InscriptionsStats{}.TableName(), fields, vals)
+	err, _ := conn.BatchUpdatesBySID(dbTx, chain, "sid", model.InscriptionsStats{}.TableName(), fields, vals)
 	if err != nil {
 		return err
 	}
@@ -258,14 +259,44 @@ func (conn *DBClient) BatchAddBalances(dbTx *gorm.DB, items []*model.Balances) e
 	if len(items) < 1 {
 		return nil
 	}
+
+	// reset available balance except for btc chain
+	for _, item := range items {
+		if item.Chain != model.ChainBTC {
+			item.Available = decimal.Zero
+		}
+	}
 	return conn.CreateInBatches(dbTx, items, 1000)
 }
 
-func (conn *DBClient) BatchUTXOs(dbTx *gorm.DB, items []*model.UTXO) error {
+func (conn *DBClient) BatchAddUTXOs(dbTx *gorm.DB, items []*model.UTXO) error {
 	if len(items) < 1 {
 		return nil
 	}
 	return conn.CreateInBatches(dbTx, items, 1000)
+}
+
+func (conn *DBClient) BatchUpdateUTXOs(dbTx *gorm.DB, chain string, items []*model.UTXO) error {
+	if len(items) < 1 {
+		return nil
+	}
+
+	fields := map[string]string{
+		"address": "%s",
+	}
+
+	vals := make([]map[string]interface{}, 0, len(items))
+	for _, item := range items {
+		vals = append(vals, map[string]interface{}{
+			"sn":      item.SN,
+			"address": item.Address,
+		})
+	}
+	err, _ := conn.BatchUpdatesBySID(dbTx, chain, "sn", model.Balances{}.TableName(), fields, vals)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (conn *DBClient) BatchUpdateBalances(dbTx *gorm.DB, chain string, items []*model.Balances) error {
@@ -278,6 +309,13 @@ func (conn *DBClient) BatchUpdateBalances(dbTx *gorm.DB, chain string, items []*
 		"balance":   "%s",
 	}
 
+	// update balance field only for non-btc chain
+	if chain != model.ChainBTC {
+		fields = map[string]string{
+			"balance": "%s",
+		}
+	}
+
 	vals := make([]map[string]interface{}, 0, len(items))
 	for _, item := range items {
 		vals = append(vals, map[string]interface{}{
@@ -286,7 +324,7 @@ func (conn *DBClient) BatchUpdateBalances(dbTx *gorm.DB, chain string, items []*
 			"balance":   item.Balance,
 		})
 	}
-	err, _ := conn.BatchUpdatesBySID(dbTx, chain, model.Balances{}.TableName(), fields, vals)
+	err, _ := conn.BatchUpdatesBySID(dbTx, chain, "sid", model.Balances{}.TableName(), fields, vals)
 	if err != nil {
 		return err
 	}

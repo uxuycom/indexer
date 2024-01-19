@@ -245,9 +245,18 @@ func (h *DEvent) Sink(db *storage.DBClient) bool {
 		}
 
 		// insert utxos
-		if len(dm.UTXOs) > 0 {
-			if err := db.BatchUTXOs(tx, dm.UTXOs); err != nil {
-				xylog.Logger.Errorf("failed insert utxos related tx records. err=%s", err)
+		if items := dm.UTXOs[DBActionCreate]; len(items) > 0 {
+			if err := db.BatchAddUTXOs(tx, items); err != nil {
+				xylog.Logger.Errorf("failed insert balances records. err=%s", err)
+				return err
+			}
+		}
+
+		// update utxos
+		if items := dm.UTXOs[DBActionUpdate]; len(items) > 0 {
+			err := db.BatchUpdateUTXOs(tx, chain, items)
+			if err != nil {
+				xylog.Logger.Errorf("failed update balances records. err=%s", err)
 				return err
 			}
 		}

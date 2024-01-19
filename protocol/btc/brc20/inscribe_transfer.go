@@ -40,7 +40,7 @@ func (p *Protocol) InscribeTransfer(block *xycommon.RpcBlock, tx *xycommon.RpcTr
 		Block: block,
 		Tx:    tx,
 		InscribeTransfer: &devents.InscribeTransfer{
-			Address: tx.From,
+			Address: tx.To,
 			Amount:  amount,
 		},
 	}

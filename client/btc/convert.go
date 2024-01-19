@@ -74,7 +74,10 @@ func (c *Convert) convertBlock(block *btcjson.GetBlockVerboseTxResult, be error)
 
 	for idx, tx := range block.Tx {
 		if inscription, ok := brc20Inscriptions[tx.Txid]; ok {
-			insTx := c.convertInscriptionTx(block.Height, idx, len(block.Tx), tx, inscription)
+			insTx, err1 := c.convertInscriptionTx(block.Height, idx, len(block.Tx), tx, inscription)
+			if err1 != nil {
+				return nil, fmt.Errorf("convert inscription tx[%+v] idx[%d] data error[%v]", tx, idx, err1)
+			}
 			cBlock.Transactions = append(cBlock.Transactions, insTx)
 		} else {
 			ttx, err1 := c.convertTransferTx(block.Height, idx, len(block.Tx), tx, brc20Inscriptions)
@@ -122,7 +125,7 @@ func (c *Convert) convertBitcoinSats(value decimal.Decimal) decimal.Decimal {
 	return value.Mul(decimal.NewFromFloat(math.Pow10(c.decimals))).Round(int32(c.decimals))
 }
 
-func (c *Convert) convertInscriptionTx(blockHeight int64, idx int, num int, tx btcjson.TxRawResult, inscription Inscription) *xycommon.RpcTransaction {
+func (c *Convert) convertInscriptionTx(blockHeight int64, idx int, num int, tx btcjson.TxRawResult, inscription Inscription) (*xycommon.RpcTransaction, error) {
 	startTs := time.Now()
 	defer func() {
 		xylog.Logger.Infof("[%d/%d]convertInscriptionTx cost[%v], block[%d], tx[%s]", idx+1, num, time.Since(startTs), blockHeight, tx.Txid)
@@ -131,24 +134,26 @@ func (c *Convert) convertInscriptionTx(blockHeight int64, idx int, num int, tx b
 	blockHash, _ := chainhash.NewHashFromStr(tx.BlockHash)
 	txHash, _ := chainhash.NewHashFromStr(tx.Txid)
 	rtx := &xycommon.RpcTransaction{
-		BlockHash:   blockHash.String(),
-		BlockNumber: big.NewInt(blockHeight),
-		TxIndex:     big.NewInt(int64(idx)),
-		Type:        big.NewInt(0),
-		Hash:        txHash.String(),
+		BlockHash:     blockHash.String(),
+		BlockNumber:   big.NewInt(blockHeight),
+		TxIndex:       big.NewInt(int64(idx)),
+		Hash:          txHash.String(),
+		InscriptionID: inscription.ID,
 	}
 	rtx.Input = inscription.Content
-	rtx.From = inscription.Meta.Address
+	addr, err := c.getOutputReceivers(tx.Vout, inscription.Meta)
+	if err != nil {
+		return nil, fmt.Errorf("getOutputReceivers error[%v]", err)
+	}
+	rtx.To = addr
 	rtx.Gas = big.NewInt(int64(inscription.Meta.GenesisFee))
 	if tx.Vsize > 0 {
 		rtx.GasPrice = big.NewInt(1).Div(rtx.Gas, big.NewInt(int64(tx.Vsize)))
 	}
-	return rtx
+	return rtx, nil
 }
 
 func (c *Convert) getOutputReceivers(vouts []btcjson.Vout, metadata InscriptionMeta) (to string, err error) {
-	addrMap := make(map[string]struct{}, len(vouts))
-	addrs := make([]string, 0, len(vouts))
 	for _, vout := range vouts {
 		addr, err1 := c.getAddressFromScriptPubKey(vout.ScriptPubKey)
 		if err1 != nil {
@@ -159,25 +164,10 @@ func (c *Convert) getOutputReceivers(vouts []btcjson.Vout, metadata InscriptionM
 		}
 
 		if c.convertBitcoinSats(decimal.NewFromFloat(vout.Value)).Equal(decimal.NewFromInt(metadata.OutputValue)) {
-			addrMap[addr.EncodeAddress()] = struct{}{}
-			addrs = append(addrs, addr.EncodeAddress())
+			return addr.EncodeAddress(), nil
 		}
 	}
-
-	if len(addrMap) == 1 {
-		return addrs[0], nil
-	}
-
-	if len(addrMap) > 1 {
-		for addr := range addrMap {
-			if addr != metadata.Address {
-				return addr, nil
-			}
-		}
-	}
-
-	// inscription may be used as minter fee, so we need to return to the sender
-	return metadata.Address, nil
+	return "", fmt.Errorf("can't find output address")
 }
 
 func (c *Convert) tryFindInscriptionByTxID(txId string, brc20Inscriptions map[string]Inscription) bool {
@@ -244,13 +234,13 @@ func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.
 		return nil, nil
 	}
 	xylog.Logger.Infof("find tx inscription[%s] from vins, tx[%s]", inscriptionID, tx.Txid)
+	ttx.InscriptionID = inscriptionID
 
 	// query inscription metadata
 	metadata, err := c.ordClient.InscriptionMetaByID(context.Background(), inscriptionID)
 	if err != nil {
 		return nil, fmt.Errorf("get inscription metadata error[%v], id[%s]", err, inscriptionID)
 	}
-	ttx.From = metadata.Address
 
 	// query inscription content
 	ttx.Input, err = c.ordClient.InscriptionContentByID(context.Background(), inscriptionID)
@@ -259,6 +249,7 @@ func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.
 	}
 
 	// extract inscription output address
+	ttx.From = "00"
 	ttx.To, err = c.getOutputReceivers(tx.Vout, metadata)
 	if err != nil {
 		return nil, fmt.Errorf("getOutputReceivers error[%v]", err)

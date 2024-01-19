@@ -35,8 +35,6 @@ func (p *Protocol) Mint(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, m
 	if err != nil {
 		return nil, xyerrors.ErrDataVerifiedFailed.WrapCause(err)
 	}
-
-	tx.To = tx.From
 	result := &devents.TxResult{
 		MD:    md,
 		Block: block,

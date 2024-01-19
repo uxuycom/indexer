@@ -56,6 +56,7 @@ func (original *MetaData) Copy() *MetaData {
 }
 
 type Deploy struct {
+	Address   string
 	Name      string
 	MaxSupply decimal.Decimal
 	MintLimit decimal.Decimal

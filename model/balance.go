@@ -58,7 +58,6 @@ type UTXO struct {
 	Address   string          `json:"address" gorm:"column:address"`
 	Tick      string          `json:"tick" gorm:"column:tick"`
 	Amount    decimal.Decimal `json:"amount" gorm:"column:amount;type:decimal(38,18)"` // amount
-	RootHash  string          `json:"root_hash" gorm:"column:root_hash"`
 	TxHash    string          `json:"tx_hash" gorm:"column:tx_hash"`
 	Status    int8            `json:"status" gorm:"column:status"` // tx status
 	CreatedAt time.Time       `json:"created_at" gorm:"column:created_at"`

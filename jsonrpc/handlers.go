@@ -196,9 +196,8 @@ func handleFindAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan st
 		utxos := make([]*UTXOBrief, 0, len(result))
 		for _, u := range result {
 			utxos = append(utxos, &UTXOBrief{
-				Tick:     u.Tick,
-				Amount:   u.Amount.String(),
-				RootHash: u.RootHash,
+				Tick:   u.Tick,
+				Amount: u.Amount.String(),
 			})
 		}
 		resp.Utxos = utxos

@@ -232,7 +232,7 @@ func (c *Convert) findInscriptionFromVins(vins []btcjson.Vin, brc20Inscriptions 
 func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.TxRawResult, brc20Inscriptions map[string]Inscription) (*xycommon.RpcTransaction, error) {
 	startTs := time.Now()
 	defer func() {
-		xylog.Logger.Debugf("[%d/%d]convertTransferTx cost[%v], block[%d], tx[%s]", idx+1, num, time.Since(startTs), blockHeight, tx.Txid)
+		xylog.Logger.Debugf("[%d/%d]convertTransferTx cost[%v], block[%d]", idx+1, num, time.Since(startTs), blockHeight)
 	}()
 
 	blockHash, _ := chainhash.NewHashFromStr(tx.BlockHash)

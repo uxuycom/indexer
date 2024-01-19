@@ -77,7 +77,7 @@ func (c *Convert) convertBlock(block *btcjson.GetBlockVerboseTxResult, be error)
 			insTx := c.convertInscriptionTx(block.Height, idx, len(block.Tx), tx, inscription)
 			cBlock.Transactions = append(cBlock.Transactions, insTx)
 		} else {
-			ttx, err1 := c.convertTransferTx(block.Height, idx, len(block.Tx), tx)
+			ttx, err1 := c.convertTransferTx(block.Height, idx, len(block.Tx), tx, brc20Inscriptions)
 			if err1 != nil {
 				return nil, fmt.Errorf("convert transaction tx[%+v] idx[%d] data error[%v]", tx, idx, err1)
 			}
@@ -179,9 +179,26 @@ func (c *Convert) getOutputReceivers(vouts []btcjson.Vout, metadata InscriptionM
 	return metadata.Address, nil
 }
 
-func (c *Convert) findInscriptionFromVins(vins []btcjson.Vin) (bool, string, error) {
+func (c *Convert) tryFindInscriptionByTxID(txId string, brc20Inscriptions map[string]Inscription) bool {
+	// query from cache
+	if ok, _ := c.cache.UTXO.Get(txId); ok {
+		return true
+	}
+
+	if _, ok := brc20Inscriptions[txId]; ok {
+		return true
+	}
+	return false
+}
+
+func (c *Convert) findInscriptionFromVins(vins []btcjson.Vin, brc20Inscriptions map[string]Inscription) (bool, string, error) {
 	for _, vin := range vins {
 		if vin.IsCoinBase() {
+			continue
+		}
+
+		// try find from cache & current block inscriptions
+		if !c.tryFindInscriptionByTxID(vin.Txid, brc20Inscriptions) {
 			continue
 		}
 
@@ -200,13 +217,11 @@ func (c *Convert) findInscriptionFromVins(vins []btcjson.Vin) (bool, string, err
 	return false, "", nil
 }
 
-func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.TxRawResult) (*xycommon.RpcTransaction, error) {
+func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.TxRawResult, brc20Inscriptions map[string]Inscription) (*xycommon.RpcTransaction, error) {
 	startTs := time.Now()
 	defer func() {
 		xylog.Logger.Infof("[%d/%d]convertTransferTx cost[%v], block[%d], tx[%s]", idx, num, time.Since(startTs), blockHeight, tx.Txid)
 	}()
-
-	xylog.Logger.Infof("")
 
 	blockHash, _ := chainhash.NewHashFromStr(tx.BlockHash)
 	txHash, _ := chainhash.NewHashFromStr(tx.Txid)
@@ -220,7 +235,7 @@ func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.
 	}
 
 	// query inscription from vins
-	ok, inscriptionID, err := c.findInscriptionFromVins(tx.Vin)
+	ok, inscriptionID, err := c.findInscriptionFromVins(tx.Vin, brc20Inscriptions)
 	if err != nil {
 		return nil, fmt.Errorf("findInscriptionFromVins error[%v]", err)
 	}

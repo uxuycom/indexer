@@ -43,6 +43,7 @@ type DBModelEvent struct {
 	Balances         map[DBAction][]*model.Balances
 	AddressTxs       []*model.AddressTxs
 	BalanceTxs       []*model.BalanceTxn
+	UTXOs            []*model.UTXO
 }
 
 func (tc *TxResultHandler) BuildModel(r *TxResult) *DBModelEvent {
@@ -50,9 +51,10 @@ func (tc *TxResultHandler) BuildModel(r *TxResult) *DBModelEvent {
 
 	dm.Tx = tc.BuildTx(r)
 	dm.Inscriptions = tc.BuildInscription(r)
-	dm.InscriptionStats = tc.BuildInscriptionStat(r)
+	dm.InscriptionStats = tc.BuildInscriptionStats(r)
 	dm.BalanceTxs, dm.Balances = tc.BuildBalance(r)
 	dm.AddressTxs = tc.BuildAddressTxs(r)
+	dm.UTXOs = tc.BuildUTXOs(r)
 	return dm
 }
 
@@ -79,7 +81,7 @@ func (tc *TxResultHandler) BuildInscription(e *TxResult) map[DBAction]*model.Ins
 	return ret
 }
 
-func (tc *TxResultHandler) BuildInscriptionStat(e *TxResult) map[DBAction]*model.InscriptionsStats {
+func (tc *TxResultHandler) BuildInscriptionStats(e *TxResult) map[DBAction]*model.InscriptionsStats {
 	_, d := tc.cache.InscriptionStats.Get(e.MD.Protocol, e.MD.Tick)
 
 	data := &model.InscriptionsStats{
@@ -186,6 +188,23 @@ func (tc *TxResultHandler) BuildAddressTxs(e *TxResult) (txs []*model.AddressTxs
 		})
 	}
 	return txs
+}
+
+func (tc *TxResultHandler) BuildUTXOs(e *TxResult) (items []*model.UTXO) {
+	if e.InscribeTransfer == nil {
+		return nil
+	}
+
+	return []*model.UTXO{
+		{
+			Chain:    e.MD.Chain,
+			Protocol: e.MD.Protocol,
+			Tick:     e.MD.Tick,
+			TxHash:   e.Tx.Hash,
+			Address:  e.InscribeTransfer.Address,
+			Amount:   e.InscribeTransfer.Amount,
+		},
+	}
 }
 
 func (tc *TxResultHandler) getEventByOperate(operate string) model.TxEvent {
@@ -327,6 +346,7 @@ type DBModelsFattened struct {
 	AddressTxs       []*model.AddressTxs
 	BalanceTxs       []*model.BalanceTxn
 	BlockStatus      *model.BlockStatus
+	UTXOs            []*model.UTXO
 }
 
 type DBModels struct {
@@ -336,6 +356,7 @@ type DBModels struct {
 	Txs              map[string]*model.Transaction
 	AddressTxs       []*model.AddressTxs
 	BalanceTxs       []*model.BalanceTxn
+	UTXOs            []*model.UTXO
 }
 
 func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
@@ -355,6 +376,7 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 		Txs:        make(map[string]*model.Transaction, len(blocksEvents)*2),
 		AddressTxs: make([]*model.AddressTxs, 0, len(blocksEvents)*2),
 		BalanceTxs: make([]*model.BalanceTxn, 0, len(blocksEvents)*2),
+		UTXOs:      make([]*model.UTXO, 0, len(blocksEvents)*2),
 	}
 	for _, blockEvent := range blocksEvents {
 		for _, event := range blockEvent.Items {
@@ -397,6 +419,10 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 				dm.BalanceTxs = append(dm.BalanceTxs, event.BalanceTxs...)
 			}
 
+			if len(event.UTXOs) > 0 {
+				dm.UTXOs = append(dm.UTXOs, event.UTXOs...)
+			}
+
 			for action, items := range event.Balances {
 				for _, item := range items {
 					if _, ok := dm.Balances[action][item.SID]; ok {
@@ -433,6 +459,7 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 		AddressTxs:  dm.AddressTxs,
 		BalanceTxs:  dm.BalanceTxs,
 		BlockStatus: bs,
+		UTXOs:       dm.UTXOs,
 	}
 
 	// flatten tx

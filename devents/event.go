@@ -244,6 +244,14 @@ func (h *DEvent) Sink(db *storage.DBClient) bool {
 			}
 		}
 
+		// insert utxos
+		if len(dm.UTXOs) > 0 {
+			if err := db.BatchUTXOs(tx, dm.UTXOs); err != nil {
+				xylog.Logger.Errorf("failed insert utxos related tx records. err=%s", err)
+				return err
+			}
+		}
+
 		// record block status
 		if err := db.SaveLastBlock(tx, dm.BlockStatus); err != nil {
 			xylog.Logger.Errorf("failed to save block information. err=%s", err)

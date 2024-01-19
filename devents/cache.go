@@ -156,12 +156,14 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 }
 
 func (tc *TxResultHandler) updateInscribeTransferCache(r *TxResult) {
-	//Update minter balances
+	// update available balance
 	_, balance := tc.cache.Balance.Get(r.MD.Protocol, r.MD.Tick, r.InscribeTransfer.Address)
-
 	available := balance.Available.Sub(r.InscribeTransfer.Amount)
 	tc.cache.Balance.Update(r.MD.Protocol, r.MD.Tick, r.Mint.Minter, &dcache.BalanceItem{
 		Available: available,
 		Overall:   balance.Overall,
 	})
+
+	// add utxo record
+	tc.cache.UTXO.Add(r.MD.Protocol, r.MD.Tick, r.Tx.Hash, r.InscribeTransfer.Address, r.InscribeTransfer.Amount)
 }

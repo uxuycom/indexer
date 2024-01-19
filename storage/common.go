@@ -261,6 +261,13 @@ func (conn *DBClient) BatchAddBalances(dbTx *gorm.DB, items []*model.Balances) e
 	return conn.CreateInBatches(dbTx, items, 1000)
 }
 
+func (conn *DBClient) BatchUTXOs(dbTx *gorm.DB, items []*model.UTXO) error {
+	if len(items) < 1 {
+		return nil
+	}
+	return conn.CreateInBatches(dbTx, items, 1000)
+}
+
 func (conn *DBClient) BatchUpdateBalances(dbTx *gorm.DB, chain string, items []*model.Balances) error {
 	if len(items) < 1 {
 		return nil

@@ -23,8 +23,10 @@
 package dcache
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"github.com/shopspring/decimal"
-	"strings"
+	"github.com/uxuycom/indexer/xylog"
 	"sync"
 )
 
@@ -42,7 +44,6 @@ type UTXOItem struct {
 	Tick     string
 	Amount   decimal.Decimal
 	Owner    string
-	SN       string
 }
 
 func NewUTXO() *UTXO {
@@ -55,21 +56,24 @@ func NewUTXO() *UTXO {
  * idx define utxo unique id
  ***************************************/
 func (d *UTXO) idx(txHash string) string {
-	return strings.ToLower(txHash)
+	txBytes, err := hex.DecodeString(txHash)
+	if err != nil {
+		xylog.Logger.Fatalf("decode tx hash failed: %s, tx[%s]", err.Error(), txHash)
+	}
+	return base64.RawStdEncoding.EncodeToString(txBytes)
 }
 
 // Add
 /***************************************
  * Add new utxo record
  ***************************************/
-func (d *UTXO) Add(protocol, tick, txHash, address string, amount decimal.Decimal, sn string) {
+func (d *UTXO) Add(protocol, tick, txHash, address string, amount decimal.Decimal) {
 	idx := d.idx(txHash)
 	d.hashes.Store(idx, &UTXOItem{
 		Protocol: protocol,
 		Tick:     tick,
 		Amount:   amount,
 		Owner:    address,
-		SN:       sn,
 	})
 }
 

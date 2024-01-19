@@ -570,9 +570,9 @@ func (conn *DBClient) GetBalancesByIdLimit(chain string, start uint64, limit int
 	return balances, nil
 }
 
-func (conn *DBClient) GetUTXOsByIdLimit(start uint64, limit int) ([]model.UTXO, error) {
+func (conn *DBClient) GetUTXOsByIdLimit(chain string, start uint64, limit int) ([]model.UTXO, error) {
 	utxos := make([]model.UTXO, 0, limit)
-	err := conn.SqlDB.Where("id > ? ", start).Where("status = ? ", model.UTXOStatusUnspent).Order("id asc").Limit(limit).Find(&utxos).Error
+	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ? ", start).Order("id asc").Limit(limit).Find(&utxos).Error
 	if err != nil {
 		return nil, err
 	}

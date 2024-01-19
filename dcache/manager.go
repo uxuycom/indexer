@@ -54,7 +54,7 @@ func NewManager(db *storage.DBClient, chain string) *Manager {
 	e.initInscriptionCache(chain)
 	e.initInscriptionStatsCache(chain)
 	e.initBalanceCache(chain)
-	e.initUtxoCache()
+	e.initUtxoCache(chain)
 	return e
 }
 
@@ -190,7 +190,7 @@ func (h *Manager) initBalanceCache(chain string) {
 	xylog.Logger.Infof("load balances data finished, cost ts:%v", time.Since(startTs))
 }
 
-func (h *Manager) initUtxoCache() {
+func (h *Manager) initUtxoCache(chain string) {
 	h.UTXO = NewUTXO()
 
 	startTs := time.Now()
@@ -199,7 +199,7 @@ func (h *Manager) initUtxoCache() {
 	limit := 1000
 	xylog.Logger.Infof("load utxos data start...")
 	for {
-		utxos, err := h.db.GetUTXOsByIdLimit(start, limit)
+		utxos, err := h.db.GetUTXOsByIdLimit(chain, start, limit)
 		if err != nil {
 			xylog.Logger.Fatalf("failed to initialize utxos cache data. err:%v", err)
 		}

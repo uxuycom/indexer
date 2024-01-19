@@ -104,7 +104,7 @@ func (p *Protocol) verifyDeploy(md *devents.MetaData) (*Deploy, *xyerrors.InsErr
 	// max param parse
 	maxVal, exist := deployParams["max"]
 	if !exist {
-		return nil, xyerrors.NewInsError(-16, fmt.Sprintf("max not exist"))
+		return nil, xyerrors.NewInsError(-16, "max not exist")
 	}
 	maxString, ok := maxVal.(string)
 	if !ok {

@@ -157,8 +157,10 @@ func (c *OrdClient) BlockBRC20Inscriptions(ctx context.Context, blockNum int64) 
 	for id, content := range contents {
 		txId := strings.Split(id, "i")[0]
 
+		// tx contains multiple inscriptions only keep the first one
 		if _, ok := result[txId]; ok {
-			xylog.Logger.Fatalf("txId[%s] has more than one inscription", txId)
+			xylog.Logger.Warnf("txId[%s] has more than one inscription", txId)
+			continue
 		}
 
 		// filter only brc20 inscriptions

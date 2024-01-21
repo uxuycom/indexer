@@ -36,12 +36,13 @@ const (
 )
 
 const (
-	TransactionEventDeploy   TxEvent = 1
-	TransactionEventMint     TxEvent = 2
-	TransactionEventTransfer TxEvent = 3
-	TransactionEventList     TxEvent = 4
-	TransactionEventDelist   TxEvent = 5
-	TransactionEventExchange TxEvent = 6
+	TransactionEventDeploy           TxEvent = 1
+	TransactionEventMint             TxEvent = 2
+	TransactionEventTransfer         TxEvent = 3
+	TransactionEventList             TxEvent = 4
+	TransactionEventDelist           TxEvent = 5
+	TransactionEventExchange         TxEvent = 6
+	TransactionEventInscribeTransfer TxEvent = 7
 )
 
 type TransactionRaw struct {

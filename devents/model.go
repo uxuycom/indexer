@@ -234,6 +234,8 @@ func (tc *TxResultHandler) getEventByOperate(operate string) model.TxEvent {
 		return model.TransactionEventDelist
 	case OperateExchange:
 		return model.TransactionEventExchange
+	case OperateInscribeTransfer:
+		return model.TransactionEventInscribeTransfer
 	}
 	return model.TxEvent(0)
 }

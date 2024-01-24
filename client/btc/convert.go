@@ -143,7 +143,7 @@ func (c *Convert) convertInscriptionTx(blockHeight int64, idx int, num int, tx b
 	rtx.Input = inscription.Content
 	addr, err := c.getOutputReceivers(tx.Vout, inscription.Meta, true)
 	if err != nil {
-		return nil, fmt.Errorf("getOutputReceivers error[%v]", err)
+		return nil, fmt.Errorf("getOutputReceivers error[%v], txid:%s", err, tx.Txid)
 	}
 
 	rtx.To = addr
@@ -185,7 +185,7 @@ func (c *Convert) getOutputReceivers(vouts []btcjson.Vout, metadata InscriptionM
 		addrs = append(addrs, addr.EncodeAddress())
 	}
 
-	if failover {
+	if failover && len(addrs) > 0 {
 		return addrs[0], nil
 	}
 	return "", nil

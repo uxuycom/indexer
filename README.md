@@ -24,10 +24,15 @@ mysql -uroot -p < db/init_mysql.sql
 
 ### Modify config.json
 
+### Build & Install
+```
+make build install
+```
+
 ### Build indexer
 ```
-make dev-indexer-build-darwin-arm64
-./bin/indexer-alpha-0.0.1 -config config.json
+make build install-indexer
+indexer -config config.json
 ```
 
 
@@ -36,8 +41,8 @@ make dev-indexer-build-darwin-arm64
 
 ### Build apiserver
 ```
-make dev-apiserver-build-darwin-arm64:
-./bin/apiserver-alpha-0.0.1 -config config_jsonrpc.json
+make build install-jsonrpc
+apiserver -config config_jsonrpc.json
 ```
 
 

@@ -1,6 +1,6 @@
 PKG := github.com/uxuycom/indexer
 
-GO_BIN := ${GOAPTH}/bin
+GO_BIN := ${GOPATH}/bin
 GOACC_BIN := $(GO_BIN)/go-acc
 GOIMPORTS_BIN := $(GO_BIN)/goimports
 MIGRATE_BIN := $(GO_BIN)/migrate

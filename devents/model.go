@@ -209,11 +209,20 @@ func (tc *TxResultHandler) BuildUTXOs(e *TxResult) (items map[DBAction]*model.UT
 	}
 
 	if e.Transfer != nil {
+		address := ""
+		amount := decimal.NewFromInt(0)
+		if len(e.Transfer.Receives) > 0 {
+			address = e.Transfer.Receives[0].Address
+			amount = e.Transfer.Receives[0].Amount
+		}
+
+		xylog.Logger.Infof("BuildUTXOs txid:%s address:[%s]", e.Tx.Hash, address)
 		return map[DBAction]*model.UTXO{
 			DBActionUpdate: {
 				Chain:   e.MD.Chain,
 				SN:      e.Tx.InscriptionID,
-				Address: e.InscribeTransfer.Address,
+				Address: address,
+				Amount:  amount,
 			},
 		}
 	}
@@ -257,6 +266,7 @@ func (tc *TxResultHandler) BuildBalanceTxEvents(e *TxResult) []BalanceTxEvent {
 		if e.Mint.Init {
 			action = DBActionCreate
 		}
+
 		items = append(items, BalanceTxEvent{
 			Action:           action,
 			SID:              balance.SID,
@@ -289,6 +299,7 @@ func (tc *TxResultHandler) BuildBalanceTxEvents(e *TxResult) []BalanceTxEvent {
 			if item.Init {
 				action = DBActionCreate
 			}
+
 			items = append(items, BalanceTxEvent{
 				Action:           action,
 				SID:              receiveBalance.SID,

@@ -203,7 +203,7 @@ func (c *Convert) tryFindInscriptionByTxID(txId string, brc20Inscriptions map[st
 	return false
 }
 
-func (c *Convert) findInscriptionFromVins(vins []btcjson.Vin, brc20Inscriptions map[string]Inscription) (bool, string, error) {
+func (c *Convert) findInscriptionFromVins(vins []btcjson.Vin, brc20Inscriptions map[string]Inscription, txId string) (bool, string, error) {
 	for _, vin := range vins {
 		if vin.IsCoinBase() {
 			continue
@@ -215,7 +215,7 @@ func (c *Convert) findInscriptionFromVins(vins []btcjson.Vin, brc20Inscriptions 
 		}
 
 		// valid inscription input
-		output, err := c.ordClient.InscriptionOutput(context.Background(), vin.Txid, vin.Vout)
+		output, err := c.ordClient.InscriptionOutput(context.Background(), txId, vin.Vout)
 		if err != nil {
 			return false, "", fmt.Errorf("get inscription output error[%v], txid[%s:%d]", err, vin.Txid, vin.Vout)
 		}
@@ -247,7 +247,7 @@ func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.
 	}
 
 	// query inscription from vins
-	ok, inscriptionID, err := c.findInscriptionFromVins(tx.Vin, brc20Inscriptions)
+	ok, inscriptionID, err := c.findInscriptionFromVins(tx.Vin, brc20Inscriptions, tx.Txid)
 	if err != nil {
 		return nil, fmt.Errorf("findInscriptionFromVins error[%v]", err)
 	}
@@ -262,7 +262,6 @@ func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.
 	if err != nil {
 		return nil, fmt.Errorf("get inscription metadata error[%v], id[%s]", err, inscriptionID)
 	}
-
 	// query inscription content
 	ttx.Input, err = c.ordClient.InscriptionContentByID(context.Background(), inscriptionID)
 	if err != nil {

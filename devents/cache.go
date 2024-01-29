@@ -123,6 +123,7 @@ func (tc *TxResultHandler) updateTransferCache(r *TxResult) {
 	})
 
 	for _, item := range r.Transfer.Receives {
+
 		ok, receiveBalance := tc.cache.Balance.Get(r.MD.Protocol, r.MD.Tick, item.Address)
 		if !ok {
 			holders++

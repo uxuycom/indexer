@@ -178,8 +178,8 @@ func (conn *DBClient) BatchUpdatesBySID(dbTx *gorm.DB, chain string, uniqKey str
 
 	updates := make([]string, 0, len(fields))
 	for field, vt := range fields {
-		update := fmt.Sprintf(" %s = CASE %s ", field, uniqKey)
-		tpl := fmt.Sprintf(" WHEN %s THEN '%s'", "%d", vt)
+		update := fmt.Sprintf(" %s = CASE  ", field)
+		tpl := fmt.Sprintf(" WHEN %s = '%s' THEN '%s'", uniqKey, "%v", vt)
 		for _, value := range values {
 			update += fmt.Sprintf(tpl, value[uniqKey], value[field])
 		}
@@ -189,7 +189,7 @@ func (conn *DBClient) BatchUpdatesBySID(dbTx *gorm.DB, chain string, uniqKey str
 
 	ids := make([]string, 0, len(values))
 	for _, value := range values {
-		ids = append(ids, fmt.Sprintf("%d", value[uniqKey]))
+		ids = append(ids, fmt.Sprintf("'%v'", value[uniqKey]))
 	}
 
 	finalSql := fmt.Sprintf("UPDATE %s SET %s WHERE chain = '%s' AND `%s` IN (%s)", tblName, strings.Join(updates, ","), chain, uniqKey, strings.Join(ids, ","))
@@ -292,7 +292,7 @@ func (conn *DBClient) BatchUpdateUTXOs(dbTx *gorm.DB, chain string, items []*mod
 			"address": item.Address,
 		})
 	}
-	err, _ := conn.BatchUpdatesBySID(dbTx, chain, "sn", model.Balances{}.TableName(), fields, vals)
+	err, _ := conn.BatchUpdatesBySID(dbTx, chain, "sn", model.UTXO{}.TableName(), fields, vals)
 	if err != nil {
 		return err
 	}

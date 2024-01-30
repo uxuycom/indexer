@@ -283,6 +283,7 @@ func (conn *DBClient) BatchUpdateUTXOs(dbTx *gorm.DB, chain string, items []*mod
 
 	fields := map[string]string{
 		"address": "%s",
+		"status":  "%v",
 	}
 
 	vals := make([]map[string]interface{}, 0, len(items))
@@ -290,6 +291,7 @@ func (conn *DBClient) BatchUpdateUTXOs(dbTx *gorm.DB, chain string, items []*mod
 		vals = append(vals, map[string]interface{}{
 			"sn":      item.SN,
 			"address": item.Address,
+			"status":  item.Status,
 		})
 	}
 	err, _ := conn.BatchUpdatesBySID(dbTx, chain, "sn", model.UTXO{}.TableName(), fields, vals)

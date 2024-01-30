@@ -178,7 +178,6 @@ func (c *Convert) getOutputReceivers(vouts []btcjson.Vout, metadata InscriptionM
 		if addr == nil {
 			continue
 		}
-
 		if c.convertBitcoinSats(decimal.NewFromFloat(vout.Value)).Equal(decimal.NewFromInt(metadata.OutputValue)) {
 			return addr.EncodeAddress(), nil
 		}
@@ -191,9 +190,10 @@ func (c *Convert) getOutputReceivers(vouts []btcjson.Vout, metadata InscriptionM
 	return "", nil
 }
 
-func (c *Convert) tryFindInscriptionByTxID(txId string, brc20Inscriptions map[string]Inscription) bool {
+func (c *Convert) tryFindInscriptionByTxID(txId string, vout uint32, brc20Inscriptions map[string]Inscription) bool {
 	// query from cache
-	if ok, _ := c.cache.UTXO.Get(txId); ok {
+	insId := fmt.Sprintf("%si%d", txId, vout)
+	if ok, _ := c.cache.UTXO.Get(insId); ok {
 		return true
 	}
 
@@ -210,7 +210,7 @@ func (c *Convert) findInscriptionFromVins(vins []btcjson.Vin, brc20Inscriptions 
 		}
 
 		// try find from cache & current block inscriptions
-		if !c.tryFindInscriptionByTxID(vin.Txid, brc20Inscriptions) {
+		if !c.tryFindInscriptionByTxID(vin.Txid, vin.Vout, brc20Inscriptions) {
 			continue
 		}
 
@@ -249,7 +249,7 @@ func (c *Convert) convertTransferTx(blockHeight int64, idx, num int, tx btcjson.
 	// query inscription from vins
 	ok, inscriptionID, err := c.findInscriptionFromVins(tx.Vin, brc20Inscriptions, tx.Txid)
 	if err != nil {
-		return nil, fmt.Errorf("findInscriptionFromVins error[%v]", err)
+		return nil, fmt.Errorf("findInscriptionFromVins error[%v] txid[%s]", err, tx.Txid)
 	}
 	if !ok {
 		return nil, nil

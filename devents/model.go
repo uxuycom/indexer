@@ -202,6 +202,7 @@ func (tc *TxResultHandler) BuildUTXOs(e *TxResult) (items map[DBAction]*model.UT
 				Protocol: e.MD.Protocol,
 				Tick:     e.MD.Tick,
 				SN:       e.Tx.InscriptionID,
+				Status:   model.UTXOStatusUnspent,
 				Address:  e.InscribeTransfer.Address,
 				Amount:   e.InscribeTransfer.Amount,
 			},
@@ -210,10 +211,8 @@ func (tc *TxResultHandler) BuildUTXOs(e *TxResult) (items map[DBAction]*model.UT
 
 	if e.Transfer != nil {
 		address := ""
-		amount := decimal.NewFromInt(0)
 		if len(e.Transfer.Receives) > 0 {
 			address = e.Transfer.Receives[0].Address
-			amount = e.Transfer.Receives[0].Amount
 		}
 
 		xylog.Logger.Infof("BuildUTXOs txid:%s address:[%s]", e.Tx.Hash, address)
@@ -222,7 +221,7 @@ func (tc *TxResultHandler) BuildUTXOs(e *TxResult) (items map[DBAction]*model.UT
 				Chain:   e.MD.Chain,
 				SN:      e.Tx.InscriptionID,
 				Address: address,
-				Amount:  amount,
+				Status:  model.UTXOStatusSpent,
 			},
 		}
 	}

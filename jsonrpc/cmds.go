@@ -24,14 +24,18 @@ type FindAllInscriptionsCmd struct {
 	//SortMode int    `json:"sort_mode"`
 }
 
-// CommonResponse common response
-type CommonResponse struct {
-	Data   interface{} `json:"data"`
-	Total  int64       `json:"total"`
-	Limit  int         `json:"limit"`
-	Offset int         `json:"offset"`
-}
 type IndsGetTicksCmd struct {
+	Limit    int    `json:"limit"`
+	Offset   int    `json:"offset"`
+	Chain    string `json:"chain"`
+	Protocol string `json:"protocol"`
+	Tick     string `json:"tick"`
+	DeployBy string `json:"deploy_by"`
+	Sort     int    `json:"sort"`
+	SortMode int    `json:"sort_mode"`
+}
+
+type IndsGetTxsCmd struct {
 	Limit    int    `json:"limit"`
 	Offset   int    `json:"offset"`
 	Chain    string `json:"chain"`
@@ -47,6 +51,13 @@ type FindAllInscriptionsResponse struct {
 	Total        int64       `json:"total"`
 	Limit        int         `json:"limit"`
 	Offset       int         `json:"offset"`
+}
+
+type CommonResponse struct {
+	Data   interface{} `json:"data"`
+	Total  int64       `json:"total"`
+	Limit  int         `json:"limit"`
+	Offset int         `json:"offset"`
 }
 
 type InscriptionInfo struct {
@@ -274,4 +285,5 @@ func init() {
 	MustRegisterCmd("inds_getLastBlockNumberIndexed", (*LastBlockNumberCmd)(nil), flags)
 	MustRegisterCmd("inds_getTickByCallData", (*TxOperateCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactionByHash", (*GetTxByHashCmd)(nil), flags)
+	MustRegisterCmd("inds_GetTxs", (*IndsGetTxsCmd)(nil), flags)
 }

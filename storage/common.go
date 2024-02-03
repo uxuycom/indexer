@@ -502,6 +502,26 @@ func (conn *DBClient) GetTxsByHashes(chain string, hashes []string) ([]*model.Tr
 	return txs, nil
 }
 
+// GetTxs find all txs
+func (conn *DBClient) GetTxs(limit int, offset int, sort int) ([]*model.Transaction, int64, error) {
+
+	txs := make([]*model.Transaction, 0)
+	query := conn.SqlDB.Model(&model.Transaction{})
+
+	var total int64
+	query.Count(&total)
+
+	orderBy := " id DESC"
+	if sort == OrderByModeAsc {
+		orderBy = " id ASC"
+	}
+	err := query.Order(orderBy).Limit(limit).Offset(offset).Find(&txs).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return txs, total, nil
+}
+
 func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, protocol, tick string, sort int) (
 	[]*model.BalanceInscription, int64, error) {
 

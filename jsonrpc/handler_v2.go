@@ -6,6 +6,7 @@ import (
 )
 
 var rpcHandlersBeforeInitV2 = map[string]commandHandler{
+	"inds_GetTxs":                    indsGetTxs,
 	"inds_getTicks":                  indsGetTicks, //handleFindAllInscriptions,
 	"inds_getTransactionByAddress":   handleFindAddressTransactions,
 	"inds_getBalanceByAddress":       indsGetBalanceByAddress,
@@ -15,6 +16,17 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getTransactionByHash":      handleGetTxByHash,
 	//"inscription.Tick":          handleFindInscriptionTick,
 	//"address.Balance": handleFindAddressBalance,
+}
+
+func indsGetTxs(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+
+	req, ok := cmd.(*IndsGetTicksCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("find all txs cmd params:%v", req)
+	return findTxs(s, req.Limit, req.Offset, req.SortMode)
+
 }
 
 func indsGetTicks(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {

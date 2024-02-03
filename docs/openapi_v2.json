@@ -467,6 +467,71 @@
           }
         }
       }
+    },
+    "/inds_GetTxs": {
+      "post": {
+        "operationId": "inds_GetTxs",
+        "deprecated": false,
+        "summary": "Get Transaction List Info",
+        "description": "Get Transaction Info From UXUY Indexer",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "inds_GetTxs",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "A param to include"
+                      }
+                    },
+                    "default":  [10, 0, "0x4273173187f1108007b1C1ABE5301eFa03f7fc8A", "0x4273173187f1108007b1C1ABE5301eFa03f7fc8A", "avalanche", "asc-20", "cczzc",1]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "x-headers": [],

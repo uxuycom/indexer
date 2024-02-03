@@ -144,3 +144,19 @@ func findTickHolders(s *RpcServer, limit int, offset int, chain, protocol, tick 
 	s.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
+
+func findTxs(s *RpcServer, limit int, offset int, sortMode int) (interface{},
+	error) {
+	txs, total, err := s.dbc.GetTxs(limit, offset, sortMode)
+	if err != nil {
+		return ErrRPCInternal, err
+	}
+
+	resp := &CommonResponse{
+		Data:   txs,
+		Total:  total,
+		Limit:  limit,
+		Offset: offset,
+	}
+	return resp, nil
+}

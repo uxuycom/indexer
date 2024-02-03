@@ -24,13 +24,13 @@ type FindAllInscriptionsCmd struct {
 	//SortMode int    `json:"sort_mode"`
 }
 
+// CommonResponse common response
 type CommonResponse struct {
 	Data   interface{} `json:"data"`
 	Total  int64       `json:"total"`
 	Limit  int         `json:"limit"`
 	Offset int         `json:"offset"`
 }
-
 type IndsGetTicksCmd struct {
 	Limit    int    `json:"limit"`
 	Offset   int    `json:"offset"`

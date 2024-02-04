@@ -2,6 +2,7 @@ package jsonrpc
 
 import (
 	"errors"
+	"github.com/uxuycom/indexer/storage"
 	"github.com/uxuycom/indexer/xylog"
 )
 
@@ -26,7 +27,7 @@ func indsGetInscriptionsStats(s *RpcServer, cmd interface{}, closeChan <-chan st
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("find all txs cmd params:%v", req)
-	return findInscriptionsStats(s, req.Limit, req.Offset, req.SortMode)
+	return findInsciptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, storage.OrderByModeDesc)
 }
 
 func indsGetTxs(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {

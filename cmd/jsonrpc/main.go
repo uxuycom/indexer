@@ -48,13 +48,13 @@ func main() {
 
 	config.LoadJsonRpcConfig(&cfg, flagConfig)
 
-	fmt.Printf("start with config = %v", cfg)
+	fmt.Printf("start with config = %v\n", cfg)
 	logLevel, err := logrus.ParseLevel(cfg.LogLevel)
 
 	if err != nil {
-		fmt.Printf("start ParseLevel err  = %v", err)
+		fmt.Printf("start ParseLevel err  = %v\n", err)
 	}
-	fmt.Printf("start with logLevel = %v", logLevel)
+	fmt.Printf("start with logLevel = %v\n", logLevel)
 
 	xylog.InitLog(logLevel, cfg.LogPath)
 

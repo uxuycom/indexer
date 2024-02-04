@@ -24,6 +24,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/jsonrpc"
@@ -47,7 +48,7 @@ func main() {
 
 	config.LoadJsonRpcConfig(&cfg, flagConfig)
 
-	log.Printf("start with config = %v", cfg)
+	fmt.Printf("start with config = %v", cfg)
 	logLevel, _ := logrus.ParseLevel(cfg.LogLevel)
 	xylog.InitLog(logLevel, cfg.LogPath)
 

@@ -31,7 +31,7 @@ func indsGetInscriptionsStats(s *RpcServer, cmd interface{}, closeChan <-chan st
 
 func indsGetTxs(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 
-	req, ok := cmd.(*IndsGetTicksCmd)
+	req, ok := cmd.(*IndsGetTxsCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}

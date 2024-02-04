@@ -49,7 +49,13 @@ func main() {
 	config.LoadJsonRpcConfig(&cfg, flagConfig)
 
 	fmt.Printf("start with config = %v", cfg)
-	logLevel, _ := logrus.ParseLevel(cfg.LogLevel)
+	logLevel, err := logrus.ParseLevel(cfg.LogLevel)
+
+	if err != nil {
+		fmt.Printf("start ParseLevel err  = %v", err)
+	}
+	fmt.Printf("start with logLevel = %v", logLevel)
+
 	xylog.InitLog(logLevel, cfg.LogPath)
 
 	//db client

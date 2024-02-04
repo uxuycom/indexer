@@ -6,7 +6,7 @@ import (
 )
 
 var rpcHandlersBeforeInitV2 = map[string]commandHandler{
-	"inds_GetTxs":                    indsGetTxs,
+	"inds_getTxs":                    indsGetTxs,
 	"inds_getTicks":                  indsGetTicks, //handleFindAllInscriptions,
 	"inds_getTransactionByAddress":   handleFindAddressTransactions,
 	"inds_getBalanceByAddress":       indsGetBalanceByAddress,

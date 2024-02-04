@@ -23,8 +23,8 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/jsonrpc"
@@ -48,13 +48,14 @@ func main() {
 
 	config.LoadJsonRpcConfig(&cfg, flagConfig)
 
-	fmt.Printf("start with config = %v\n", cfg)
+	json.Marshal()
+	log.Printf("start with config = %v\n", cfg)
 	logLevel, err := logrus.ParseLevel(cfg.LogLevel)
 
 	if err != nil {
-		fmt.Printf("start ParseLevel err  = %v\n", err)
+		log.Printf("start ParseLevel err  = %v\n", err)
 	}
-	fmt.Printf("start with logLevel = %v\n", logLevel)
+	log.Printf("start with logLevel = %v\n", logLevel)
 
 	xylog.InitLog(logLevel, cfg.LogPath)
 

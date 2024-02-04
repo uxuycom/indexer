@@ -285,5 +285,5 @@ func init() {
 	MustRegisterCmd("inds_getLastBlockNumberIndexed", (*LastBlockNumberCmd)(nil), flags)
 	MustRegisterCmd("inds_getTickByCallData", (*TxOperateCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactionByHash", (*GetTxByHashCmd)(nil), flags)
-	MustRegisterCmd("inds_GetTxs", (*IndsGetTxsCmd)(nil), flags)
+	MustRegisterCmd("inds_getTxs", (*IndsGetTxsCmd)(nil), flags)
 }

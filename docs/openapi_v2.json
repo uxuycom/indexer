@@ -9,7 +9,7 @@
   },
   "servers": [
     {
-      "url": "https://api.indexs.io/v2/rpc/"
+      "url": "https://alpha.indexs.io/v2/rpc"
     }
   ],
   "paths": {

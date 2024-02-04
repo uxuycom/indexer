@@ -289,8 +289,6 @@ func init() {
 	MustRegisterCmd("tick.GetBriefs", (*GetTickBriefsCmd)(nil), flags)
 
 	//v2
-
-	MustRegisterCmd("inds_getInscriptions", (*IndsGetInscriptionsCmd)(nil), flags)
 	MustRegisterCmd("inds_getTicks", (*IndsGetTicksCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactionByAddress", (*FindUserTransactionsCmd)(nil), flags)
 	MustRegisterCmd("inds_getBalanceByAddress", (*IndsGetBalanceByAddressCmd)(nil), flags)
@@ -299,4 +297,5 @@ func init() {
 	MustRegisterCmd("inds_getTickByCallData", (*TxOperateCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactionByHash", (*GetTxByHashCmd)(nil), flags)
 	MustRegisterCmd("inds_getTxs", (*IndsGetTxsCmd)(nil), flags)
+	MustRegisterCmd("inds_getInscriptions", (*IndsGetInscriptionsCmd)(nil), flags)
 }

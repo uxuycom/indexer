@@ -536,7 +536,7 @@ func (conn *DBClient) GetTxs(limit int, offset int, sort int) ([]*model.Transact
 	query := conn.SqlDB.Model(&model.Transaction{})
 
 	var total int64
-	query.Count(&total)
+	//query.Count(&total)
 
 	orderBy := " id DESC"
 	if sort == OrderByModeAsc {

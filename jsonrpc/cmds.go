@@ -46,6 +46,17 @@ type IndsGetTxsCmd struct {
 	SortMode int    `json:"sort_mode"`
 }
 
+type IndsGetInscriptionsStatsCmd struct {
+	Limit    int    `json:"limit"`
+	Offset   int    `json:"offset"`
+	Chain    string `json:"chain"`
+	Protocol string `json:"protocol"`
+	Tick     string `json:"tick"`
+	DeployBy string `json:"deploy_by"`
+	Sort     int    `json:"sort"`
+	SortMode int    `json:"sort_mode"`
+}
+
 type FindAllInscriptionsResponse struct {
 	Inscriptions interface{} `json:"inscriptions"`
 	Total        int64       `json:"total"`

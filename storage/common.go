@@ -412,6 +412,33 @@ func (conn *DBClient) GetInscriptionStatsByIdLimit(chain string, start uint64, l
 	return stats, nil
 }
 
+func (conn *DBClient) GetInscriptionStats(chain string, start uint64, limit int) ([]model.InscriptionsStats, error) {
+	stats := make([]model.InscriptionsStats, 0)
+	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ?", start).Order("id asc").Limit(limit).Find(&stats).Error
+	if err != nil {
+		return nil, err
+	}
+	return stats, nil
+}
+
+func (conn *DBClient) GetInscriptionStatsList(limit int, offset int, sort int) ([]model.InscriptionsStats, int64, error) {
+	stats := make([]model.InscriptionsStats, 0)
+	query := conn.SqlDB.Model(&model.InscriptionsStats{})
+
+	var total int64
+	query.Count(&total)
+
+	orderBy := " id DESC"
+	if sort == OrderByModeAsc {
+		orderBy = " id ASC"
+	}
+	err := query.Order(orderBy).Limit(limit).Offset(offset).Find(&stats).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return stats, total, nil
+}
+
 func (conn *DBClient) GetInscriptionsByAddress(limit, offset int, address string) ([]*model.Balances, error) {
 	balances := make([]*model.Balances, 0)
 

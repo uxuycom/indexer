@@ -160,3 +160,19 @@ func findTxs(s *RpcServer, limit int, offset int, sortMode int) (interface{},
 	}
 	return resp, nil
 }
+
+func findInscriptionsStats(s *RpcServer, limit int, offset int, sortMode int) (interface{},
+	error) {
+	txs, total, err := s.dbc.GetInscriptionStatsList(limit, offset, sortMode)
+	if err != nil {
+		return ErrRPCInternal, err
+	}
+
+	resp := &CommonResponse{
+		Data:   txs,
+		Total:  total,
+		Limit:  limit,
+		Offset: offset,
+	}
+	return resp, nil
+}

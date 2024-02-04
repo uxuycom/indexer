@@ -34,6 +34,7 @@
       ]
     }
   },
+
   "profile": {
     "enabled": false,
     "listen": ":6060"

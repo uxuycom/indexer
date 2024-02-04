@@ -47,6 +47,7 @@ func main() {
 
 	config.LoadJsonRpcConfig(&cfg, flagConfig)
 
+	log.Printf("start with config = %v", cfg)
 	logLevel, _ := logrus.ParseLevel(cfg.LogLevel)
 	xylog.InitLog(logLevel, cfg.LogPath)
 

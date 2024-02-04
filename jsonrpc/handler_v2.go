@@ -7,7 +7,7 @@ import (
 )
 
 var rpcHandlersBeforeInitV2 = map[string]commandHandler{
-	"inds_getInscriptionsStats":      indsGetInscriptionsStats,
+	"inds_getInscriptions":           indsGetInscriptions,
 	"inds_getTxs":                    indsGetTxs,
 	"inds_getTicks":                  indsGetTicks, //handleFindAllInscriptions,
 	"inds_getTransactionByAddress":   handleFindAddressTransactions,
@@ -20,9 +20,9 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	//"address.Balance": handleFindAddressBalance,
 }
 
-func indsGetInscriptionsStats(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+func indsGetInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 
-	req, ok := cmd.(*IndsGetInscriptionsStatsCmd)
+	req, ok := cmd.(*IndsGetInscriptionsCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}

@@ -533,9 +533,9 @@
         }
       }
     },
-    "/inds_getInscriptionsStats": {
+    "/inds_getInscriptions": {
       "post": {
-        "operationId": "inds_getInscriptionsStats",
+        "operationId": "inds_getInscriptions",
         "deprecated": false,
         "summary": "Get InscriptionsStats List Info",
         "description": "Get Transaction Info From UXUY Indexer",
@@ -562,7 +562,7 @@
                 "properties": {
                   "method": {
                     "type": "string",
-                    "default": "inds_getInscriptionsStats",
+                    "default": "inds_getInscriptions",
                     "description": "Method name"
                   },
                   "id": {

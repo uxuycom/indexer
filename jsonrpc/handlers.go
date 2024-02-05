@@ -286,10 +286,9 @@ func handleGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan st
 		if err != nil {
 			chains = []string{}
 		}
-
 		xylog.Logger.Infof("get last block from db chains:%v", chains)
 	}
-	for _, chain := range req.Chains {
+	for _, chain := range chains {
 		block, err := s.dbc.FindLastBlock(chain)
 		if err != nil {
 			return ErrRPCInternal, err

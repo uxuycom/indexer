@@ -38,8 +38,7 @@ type IndsGetTicksCmd struct {
 type IndsGetTxsCmd struct {
 	Limit    int    `json:"limit"`
 	Offset   int    `json:"offset"`
-	From     string `json:"from"`
-	To       string `json:"to"`
+	Address  string `json:"address"`
 	Chain    string `json:"chain"`
 	Protocol string `json:"protocol"`
 	Tick     string `json:"tick"`

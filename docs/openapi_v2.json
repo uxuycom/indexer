@@ -524,7 +524,7 @@
                         "description": "A param to include"
                       }
                     },
-                    "default":  [10, 0, "0x4273173187f1108007b1C1ABE5301eFa03f7fc8A", "0x4273173187f1108007b1C1ABE5301eFa03f7fc8A", "avalanche", "asc-20", "cczzc",1]
+                    "default":  [10, 0, "0x4273173187f1108007b1C1ABE5301eFa03f7fc8A", "avalanche", "asc-20", "cczzc",1]
                   }
                 }
               }

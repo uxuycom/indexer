@@ -271,8 +271,8 @@ func handleGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan st
 		chainsStr = fmt.Sprintf("%v", len(req.Chains))
 	}
 	xylog.Logger.Infof("get last block chainsStr:%v, chains len:%v", chainsStr, len(req.Chains))
-	cacheKey := fmt.Sprintf("block_number_%s", chainsStr)
 
+	cacheKey := fmt.Sprintf("block_number_%s", chainsStr)
 	if ins, ok := s.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.([]*BlockInfo); ok {
 			return allIns, nil

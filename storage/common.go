@@ -679,6 +679,16 @@ func (conn *DBClient) FindAddressTxByHash(chain, hash string) (*model.AddressTxs
 	return tx, nil
 }
 
+// GetAllChainFromBlock query all chains from block table
+func (conn *DBClient) GetAllChainFromBlock() ([]string, error) {
+	var chains []string
+	err := conn.SqlDB.Model(&model.Block{}).Distinct().Pluck("chain", &chains).Error
+	if err != nil {
+		return nil, err
+	}
+	return chains, nil
+}
+
 func (conn *DBClient) FindLastBlock(chain string) (*model.Block, error) {
 	data := &model.Block{}
 	err := conn.SqlDB.First(data, "chain = ? ", chain).Error

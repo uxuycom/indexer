@@ -279,9 +279,9 @@ func handleGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan st
 		}
 	}
 	result := make([]*BlockInfo, 0)
-	chains := req.Chains
 	var err error
-	if len(chains) == 0 {
+	var chains []string
+	if len(req.Chains) == 0 {
 		chains, err = s.dbc.GetAllChainFromBlock()
 		if err != nil {
 			chains = []string{}

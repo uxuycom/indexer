@@ -662,6 +662,71 @@
           }
         }
       }
+    },
+    "/index_getInscriptionByTick": {
+      "post": {
+        "operationId": "index_getInscriptionByTick",
+        "deprecated": false,
+        "summary": "Get Inscription by Tick",
+        "description": "Get Inscription Tick From UXUY Indexer",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "index_getInscriptionByTick",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": ["avalanche", "asc-20", "crazydog"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
 

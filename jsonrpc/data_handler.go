@@ -171,7 +171,7 @@ func findTransactions(s *RpcServer, address string, tick string, limit int, offs
 			BlockHeight:     v.BlockHeight,
 			PositionInBlock: v.PositionInBlock,
 			BlockTime:       v.BlockTime,
-			TxHash:          string(v.TxHash),
+			TxHash:          v.TxHash,
 			From:            v.From,
 			To:              v.To,
 			Tick:            v.Tick,

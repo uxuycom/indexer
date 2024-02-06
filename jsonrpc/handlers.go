@@ -280,7 +280,7 @@ func handleGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan st
 	}
 	result := make([]*BlockInfo, 0)
 	var err error
-	var chains []string
+	chains := req.Chains
 	if len(req.Chains) == 0 {
 		chains, err = s.dbc.GetAllChainFromBlock()
 		if err != nil {

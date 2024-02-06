@@ -35,7 +35,7 @@ type IndsGetTicksCmd struct {
 	SortMode int    `json:"sort_mode"`
 }
 
-type IndsGetTxsCmd struct {
+type IndsGetTransactionCmd struct {
 	Limit    int    `json:"limit"`
 	Offset   int    `json:"offset"`
 	Address  string `json:"address"`
@@ -295,6 +295,6 @@ func init() {
 	MustRegisterCmd("inds_getLastBlockNumberIndexed", (*LastBlockNumberCmd)(nil), flags)
 	MustRegisterCmd("inds_getTickByCallData", (*TxOperateCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactionByHash", (*GetTxByHashCmd)(nil), flags)
-	MustRegisterCmd("inds_getTxs", (*IndsGetTxsCmd)(nil), flags)
+	MustRegisterCmd("inds_getTransactions", (*IndsGetTransactionCmd)(nil), flags)
 	MustRegisterCmd("inds_getInscriptions", (*IndsGetInscriptionsCmd)(nil), flags)
 }

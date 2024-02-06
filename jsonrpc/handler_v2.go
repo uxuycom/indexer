@@ -32,7 +32,7 @@ func indsGetInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{
 
 func indsGetTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 
-	req, ok := cmd.(*IndsGetTxsCmd)
+	req, ok := cmd.(*IndsGetTransactionCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}

@@ -16,6 +16,7 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getLastBlockNumberIndexed": handleGetLastBlockNumber,
 	"inds_getTickByCallData":         handleGetTxOperate,
 	"inds_getTransactionByHash":      handleGetTxByHash,
+	"inds_getInscriptionTxOperate":   handleGetTxOperate,
 	//"inscription.Tick":          handleFindInscriptionTick,
 	//"address.Balance": handleFindAddressBalance,
 }

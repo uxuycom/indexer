@@ -321,4 +321,5 @@ func init() {
 	MustRegisterCmd("inds_getTransactionByHash", (*GetTxByHashCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactions", (*IndsGetTransactionCmd)(nil), flags)
 	MustRegisterCmd("inds_getInscriptions", (*IndsGetInscriptionsCmd)(nil), flags)
+	MustRegisterCmd("inds_getInscriptionTxOperate", (*TxOperateCmd)(nil), flags)
 }

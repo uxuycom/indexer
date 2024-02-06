@@ -161,9 +161,32 @@ func findTransactions(s *RpcServer, address string, tick string, limit int, offs
 	if err != nil {
 		return ErrRPCInternal, err
 	}
+	transactions := make([]*model.Transaction, 0)
+	for _, v := range txs {
+
+		trs := &model.Transaction{
+			ID:              v.ID,
+			Chain:           v.Chain,
+			Protocol:        v.Protocol,
+			BlockHeight:     v.BlockHeight,
+			PositionInBlock: v.PositionInBlock,
+			BlockTime:       v.BlockTime,
+			TxHash:          string(v.TxHash),
+			From:            v.From,
+			To:              v.To,
+			Tick:            v.Tick,
+			Amount:          v.Amount,
+			Gas:             v.Gas,
+			GasPrice:        v.GasPrice,
+			Status:          v.Status,
+			CreatedAt:       v.CreatedAt,
+			UpdatedAt:       v.UpdatedAt,
+		}
+		transactions = append(transactions, trs)
+	}
 
 	resp := &CommonResponse{
-		Data:   txs,
+		Data:   transactions,
 		Total:  total,
 		Limit:  limit,
 		Offset: offset,

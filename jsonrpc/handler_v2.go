@@ -9,6 +9,8 @@ import (
 var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getInscriptions":           indsGetInscriptions,
 	"inds_getTransactions":           indsGetTransactions,
+	"inds_search":                    indsSearch,
+	"inds_getAllChain":               indsGetAllChain,
 	"inds_getTicks":                  indsGetTicks, //handleFindAllInscriptions,
 	"inds_getTransactionByAddress":   handleFindAddressTransactions,
 	"inds_getBalanceByAddress":       indsGetBalanceByAddress,
@@ -18,6 +20,25 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getTransactionByHash":      handleGetTxByHash,
 	//"inscription.Tick":          handleFindInscriptionTick,
 	//"address.Balance": handleFindAddressBalance,
+}
+
+func indsGetAllChain(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*GetAllChainCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("find all chain cmd params:%v", req)
+	return getAllChain(s)
+}
+
+func indsSearch(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*IndsSearchCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("find all txs cmd params:%v", req)
+	return search(s, req.Keyword, req.Chain)
+
 }
 
 func indsGetInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {

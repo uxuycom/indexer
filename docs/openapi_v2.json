@@ -589,7 +589,15 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "", "", "", "",  3]
+                    "default": [
+                      10,
+                      0,
+                      "",
+                      "",
+                      "",
+                      "",
+                      3
+                    ]
                   }
                 }
               }
@@ -597,8 +605,66 @@
           }
         }
       }
-    }
-  },
+    },
+    "/inds_search": {
+      "post": {
+        "operationId": "inds_search",
+        "deprecated": false,
+        "summary": "Search address or transaction or tick",
+        "description": "Search address or transaction or tickr",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "keyword",
+                  "chain"
+                ],
+                "properties": {
+                  "keyword": {
+                    "type": "string",
+                    "default": "",
+                    "description": "query"
+                  },
+                  "chain": {
+                    "type": "string",
+                    "default": "",
+                    "description": "chain name"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }},
+    "/inds_getAllChain": {
+        "post": {
+          "operationId": "inds_getAllChain",
+          "deprecated": false,
+          "summary": "Get All Chain",
+          "description": "Get All Chain",
+          "tags": [
+            "JSONRPC"
+          ],
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Successful response"
+            }
+          }
+        }
+      }
+    },
   "x-headers": [],
   "x-explorer-enabled": true,
   "x-proxy-enabled": true,

@@ -7,7 +7,9 @@
 
 package jsonrpc
 
-import "github.com/uxuycom/indexer/model"
+import (
+	"github.com/uxuycom/indexer/model"
+)
 
 // EmptyCmd defines the empty JSON-RPC command.
 type EmptyCmd struct{}
@@ -22,6 +24,10 @@ type FindAllInscriptionsCmd struct {
 	DeployBy string `json:"deploy_by"`
 	Sort     int    `json:"sort"`
 	//SortMode int    `json:"sort_mode"`
+}
+type IndsSearchCmd struct {
+	Keyword string `json:"keyword"`
+	Chain   string `json:"chain"`
 }
 
 type IndsGetTicksCmd struct {
@@ -68,6 +74,12 @@ type CommonResponse struct {
 	Total  int64       `json:"total"`
 	Limit  int         `json:"limit"`
 	Offset int         `json:"offset"`
+	Code   int         `json:"code"`
+	Msg    int         `json:"msg"`
+}
+type SearchResult struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
 }
 
 type InscriptionInfo struct {
@@ -271,6 +283,9 @@ type GetTxByHashResponse struct {
 	IsInscription bool             `json:"is_inscription"`
 	Transaction   *TransactionInfo `json:"transaction,omitempty"`
 }
+type GetAllChainCmd struct {
+	Chains []string
+}
 
 func init() {
 	// No special flags for commands in this file.
@@ -297,4 +312,6 @@ func init() {
 	MustRegisterCmd("inds_getTransactionByHash", (*GetTxByHashCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactions", (*IndsGetTransactionCmd)(nil), flags)
 	MustRegisterCmd("inds_getInscriptions", (*IndsGetInscriptionsCmd)(nil), flags)
+	MustRegisterCmd("inds_getAllChain", (*GetAllChainCmd)(nil), flags)
+	MustRegisterCmd("inds_search", (*IndsSearchCmd)(nil), flags)
 }

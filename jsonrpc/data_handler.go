@@ -210,3 +210,39 @@ func findInscriptionsStats(s *RpcServer, limit int, offset int, sortMode int) (i
 	}
 	return resp, nil
 }
+
+func search(s *RpcServer, keyword string, chain string) (interface{},
+	error) {
+	resp := &CommonResponse{}
+
+	result := &SearchResult{}
+	// todo do some validate
+	if strings.HasPrefix(keyword, "0x") {
+		if len(keyword) == 42 {
+			// address
+			result.Data, _ = findAddressBalances(s, 1, 0, keyword, chain, "", "", 0)
+			result.Type = "address"
+		}
+		if len(keyword) == 66 {
+			// tx hash
+		}
+	} else {
+		if len(keyword) == 64 {
+			// tx hash
+			result.Data, _ = findTransactions(s, keyword, "", 1, 0, 0)
+			result.Type = "tx"
+		} else {
+			// address
+		}
+	}
+	resp.Data = result
+
+	return resp, nil
+}
+func getAllChain(s *RpcServer) (interface{}, error) {
+	chains, err := s.dbc.GetAllChainFromBlock()
+	if err != nil {
+		return ErrRPCInternal, err
+	}
+	return chains, nil
+}

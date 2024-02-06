@@ -317,6 +317,7 @@ func handleGetTxOperate(s *RpcServer, cmd interface{}, closeChan <-chan struct{}
 		}
 	}
 	operate := protocol.GetOperateByTxInput(req.Chain, req.InputData, s.dbc)
+	xylog.Logger.Infof("handleGetTxOperate operate =%v, inputdata=%v, chain=%v", operate, req.InputData, req.Chain)
 	if operate == nil {
 		return nil, errors.New("Record not found")
 	}

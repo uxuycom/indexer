@@ -161,10 +161,10 @@ func findTransactions(s *RpcServer, address string, tick string, limit int, offs
 	if err != nil {
 		return ErrRPCInternal, err
 	}
-	transactions := make([]*model.Transaction, 0)
+	transactions := make([]*TransactionResponse, 0)
 	for _, v := range txs {
 
-		trs := &model.Transaction{
+		trs := &TransactionResponse{
 			ID:              v.ID,
 			Chain:           v.Chain,
 			Protocol:        v.Protocol,

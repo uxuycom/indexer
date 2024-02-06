@@ -9,14 +9,14 @@ import (
 var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getInscriptions":           indsGetInscriptions,
 	"index_getInscriptionByTick":     indsGetInscriptionByTick,
-	"inds_getTransactions":           indsGetTransactions,
 	"inds_getTicks":                  indsGetTicks, //handleFindAllInscriptions,
+	"inds_getTransactions":           indsGetTransactions,
 	"inds_getTransactionByAddress":   handleFindAddressTransactions,
+	"inds_getTransactionByHash":      handleGetTxByHash,
 	"inds_getBalanceByAddress":       indsGetBalanceByAddress,
 	"inds_getHoldersByTick":          indsGetHoldersByTick,
 	"inds_getLastBlockNumberIndexed": handleGetLastBlockNumber,
 	"inds_getTickByCallData":         handleGetTxOperate,
-	"inds_getTransactionByHash":      handleGetTxByHash,
 }
 
 func indsGetInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {

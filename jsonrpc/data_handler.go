@@ -46,7 +46,8 @@ func findAddressBalances(s *RpcServer, limit, offset int, address, chain, protoc
 	return resp, nil
 }
 
-func findInsciptions(s *RpcServer, limit, offset int, chain, protocol, tick, deployBy string, sort, sortMode int) (interface{}, error) {
+func findInscriptions(s *RpcServer, limit, offset int, chain, protocol, tick, deployBy string, sort, 
+	sortMode int) (interface{}, error) {
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
 	cacheKey := fmt.Sprintf("all_ins_%d_%d_%s_%s_%s_%s_%d_%d", limit, offset, chain, protocol, tick, deployBy, sort, sortMode)

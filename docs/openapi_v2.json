@@ -468,9 +468,9 @@
         }
       }
     },
-    "/inds_getTxs": {
+    "/inds_getTransactions": {
       "post": {
-        "operationId": "inds_getTxs",
+        "operationId": "inds_getTransactions",
         "deprecated": false,
         "summary": "Get Transaction List Info",
         "description": "Get Transaction Info From UXUY Indexer",
@@ -497,7 +497,7 @@
                 "properties": {
                   "method": {
                     "type": "string",
-                    "default": "inds_getTxs",
+                    "default": "inds_getTransactions",
                     "description": "Method name"
                   },
                   "id": {

@@ -145,9 +145,9 @@ func findTickHolders(s *RpcServer, limit int, offset int, chain, protocol, tick 
 	return resp, nil
 }
 
-func findTxs(s *RpcServer, limit int, offset int, sortMode int) (interface{},
+func findTransactions(s *RpcServer, address string, tick string, limit int, offset int, sortMode int) (interface{},
 	error) {
-	txs, total, err := s.dbc.GetTxs(limit, offset, sortMode)
+	txs, total, err := s.dbc.GetTransactions(address, tick, limit, offset, sortMode)
 	if err != nil {
 		return ErrRPCInternal, err
 	}

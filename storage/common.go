@@ -529,7 +529,7 @@ func (conn *DBClient) GetTxsByHashes(chain string, hashes []string) ([]*model.Tr
 	return txs, nil
 }
 
-// GetTransactions find all txs
+// GetTransactions find all transaction
 func (conn *DBClient) GetTransactions(address string, tick string, limit int, offset int, sort int) ([]*model.Transaction, int64, error) {
 
 	txs := make([]*model.Transaction, 0)
@@ -537,10 +537,10 @@ func (conn *DBClient) GetTransactions(address string, tick string, limit int, of
 
 	var total int64
 	if len(address) > 0 {
-		query.Where("from = ? or to = ?", address, address)
+		query = query.Where("from = ? or to = ?", address, address)
 	}
 	if len(tick) > 0 {
-		query.Where("tick = ?", tick)
+		query = query.Where("tick = ?", tick)
 	}
 	orderBy := " id DESC"
 	if sort == OrderByModeAsc {

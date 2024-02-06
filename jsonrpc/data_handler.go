@@ -147,6 +147,16 @@ func findTickHolders(s *RpcServer, limit int, offset int, chain, protocol, tick 
 
 func findTransactions(s *RpcServer, address string, tick string, limit int, offset int, sortMode int) (interface{},
 	error) {
+
+	address = strings.ToLower(address)
+	tick = strings.ToLower(tick)
+
+	cacheKey := fmt.Sprintf("all_transactions_%d_%d_%s_%s_%d", limit, offset, address, tick, sortMode)
+	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+		if transactions, ok := ins.(*CommonResponse); ok {
+			return transactions, nil
+		}
+	}
 	txs, total, err := s.dbc.GetTransactions(address, tick, limit, offset, sortMode)
 	if err != nil {
 		return ErrRPCInternal, err
@@ -158,6 +168,7 @@ func findTransactions(s *RpcServer, address string, tick string, limit int, offs
 		Limit:  limit,
 		Offset: offset,
 	}
+	s.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 

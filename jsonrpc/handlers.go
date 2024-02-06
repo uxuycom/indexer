@@ -34,7 +34,7 @@ import (
 
 var rpcHandlersBeforeInit = map[string]commandHandler{
 	"inscription.All":           handleFindAllInscriptions,
-	"inscription.Tick":          handleFindInscriptionTick,
+	"inscription.Tick":          indsGetInscriptionByTick,
 	"address.Transactions":      handleFindAddressTransactions,
 	"address.Balances":          handleFindAddressBalances,
 	"address.Balance":           handleFindAddressBalance,
@@ -51,10 +51,10 @@ func handleFindAllInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan s
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("find all Inscriptions cmd params:%v", req)
-	return findInsciptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, storage.OrderByModeDesc)
+	return findInscriptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, storage.OrderByModeDesc)
 }
 
-func handleFindInscriptionTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+func indsGetInscriptionByTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	req, ok := cmd.(*FindInscriptionTickCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
@@ -317,6 +317,7 @@ func handleGetTxOperate(s *RpcServer, cmd interface{}, closeChan <-chan struct{}
 		}
 	}
 	operate := protocol.GetOperateByTxInput(req.Chain, req.InputData, s.dbc)
+	xylog.Logger.Infof("handleGetTxOperate operate =%v, inputdata=%v, chain=%v", operate, req.InputData, req.Chain)
 	if operate == nil {
 		return nil, errors.New("Record not found")
 	}

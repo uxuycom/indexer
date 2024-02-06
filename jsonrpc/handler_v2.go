@@ -8,18 +8,17 @@ import (
 
 var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getInscriptions":           indsGetInscriptions,
-	"inds_getTransactions":           indsGetTransactions,
+	"index_getInscriptionByTick":     indsGetInscriptionByTick,
 	"inds_search":                    indsSearch,
 	"inds_getAllChain":               indsGetAllChain,
 	"inds_getTicks":                  indsGetTicks, //handleFindAllInscriptions,
+	"inds_getTransactions":           indsGetTransactions,
 	"inds_getTransactionByAddress":   handleFindAddressTransactions,
+	"inds_getTransactionByHash":      handleGetTxByHash,
 	"inds_getBalanceByAddress":       indsGetBalanceByAddress,
 	"inds_getHoldersByTick":          indsGetHoldersByTick,
 	"inds_getLastBlockNumberIndexed": handleGetLastBlockNumber,
 	"inds_getTickByCallData":         handleGetTxOperate,
-	"inds_getTransactionByHash":      handleGetTxByHash,
-	//"inscription.Tick":          handleFindInscriptionTick,
-	//"address.Balance": handleFindAddressBalance,
 }
 
 func indsGetAllChain(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -48,7 +47,7 @@ func indsGetInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("find all txs cmd params:%v", req)
-	return findInsciptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, storage.OrderByModeDesc)
+	return findInscriptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, storage.OrderByModeDesc)
 }
 
 func indsGetTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -69,7 +68,8 @@ func indsGetTicks(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (int
 	}
 
 	xylog.Logger.Infof("find all Inscriptions cmd params:%v", req)
-	return findInsciptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, req.SortMode)
+	return findInscriptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort,
+		req.SortMode)
 }
 
 func indsGetBalanceByAddress(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {

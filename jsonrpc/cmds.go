@@ -8,7 +8,9 @@
 package jsonrpc
 
 import (
+	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
+	"time"
 )
 
 // EmptyCmd defines the empty JSON-RPC command.
@@ -279,6 +281,26 @@ type TransactionInfo struct {
 	Amount     string `json:"amount"`
 }
 
+type TransactionResponse struct {
+	ID              uint64          `json:"id"`
+	Chain           string          `json:"chain"`             // chain name
+	Protocol        string          `json:"protocol"`          // protocol name
+	BlockHeight     uint64          `json:"block_height"`      // block height
+	PositionInBlock uint64          `json:"position_in_block"` // Position in Block
+	BlockTime       time.Time       `json:"block_time"`        // block time
+	TxHash          string          `json:"tx_hash"`           // tx hash
+	From            string          `json:"from"`              // from address
+	To              string          `json:"to"`                // to address
+	Op              string          `json:"op"`                // op code
+	Tick            string          `json:"tick"`              // inscription code
+	Amount          decimal.Decimal `json:"amt"`               // balance
+	Gas             int64           `json:"gas" `              // gas
+	GasPrice        int64           `json:"gas_price"`         // gas price
+	Status          int8            `json:"status"`            // tx status
+	CreatedAt       time.Time       `json:"created_at" `
+	UpdatedAt       time.Time       `json:"updated_at"`
+}
+
 type GetTxByHashResponse struct {
 	IsInscription bool             `json:"is_inscription"`
 	Transaction   *TransactionInfo `json:"transaction,omitempty"`
@@ -312,6 +334,7 @@ func init() {
 	MustRegisterCmd("inds_getTransactionByHash", (*GetTxByHashCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactions", (*IndsGetTransactionCmd)(nil), flags)
 	MustRegisterCmd("inds_getInscriptions", (*IndsGetInscriptionsCmd)(nil), flags)
+	MustRegisterCmd("inds_getInscriptionTxOperate", (*TxOperateCmd)(nil), flags)
 	MustRegisterCmd("inds_getAllChain", (*GetAllChainCmd)(nil), flags)
 	MustRegisterCmd("inds_search", (*IndsSearchCmd)(nil), flags)
 }

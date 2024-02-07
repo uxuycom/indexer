@@ -594,7 +594,7 @@ func (conn *DBClient) GetBalancesChainByAddress(limit, offset int, address, chai
 	var balances []*model.BalanceChain
 	var total int64
 
-	query := conn.SqlDB.Model(&model.BalanceChain{}).Where("`address` = ?", address)
+	query := conn.SqlDB.Select("chain,address,SUM(balance)").Where("`address` = ?", address)
 	if chain != "" {
 		query = query.Where("`chain` = ?", chain)
 	}
@@ -606,7 +606,7 @@ func (conn *DBClient) GetBalancesChainByAddress(limit, offset int, address, chai
 	}
 	query = query.Count(&total)
 	orderBy := "balance DESC"
-	groupBy := "chain"
+	groupBy := "chain,balance"
 	err := query.Order(orderBy).Limit(limit).Offset(offset).Group(groupBy).Find(&balances).Error
 	if err != nil {
 		return nil, 0, err

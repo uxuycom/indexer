@@ -46,7 +46,7 @@ func findAddressBalances(s *RpcServer, limit, offset int, address, chain, protoc
 	return resp, nil
 }
 
-func findInscriptions(s *RpcServer, limit, offset int, chain, protocol, tick, deployBy string, sort, 
+func findInscriptions(s *RpcServer, limit, offset int, chain, protocol, tick, deployBy string, sort,
 	sortMode int) (interface{}, error) {
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
@@ -214,14 +214,14 @@ func findInscriptionsStats(s *RpcServer, limit int, offset int, sortMode int) (i
 
 func search(s *RpcServer, keyword string, chain string) (interface{},
 	error) {
-	resp := &CommonResponse{}
 
 	result := &SearchResult{}
 	// todo do some validate
 	if strings.HasPrefix(keyword, "0x") {
 		if len(keyword) == 42 {
 			// address
-			result.Data, _ = findAddressBalances(s, 1, 0, keyword, chain, "", "", 0)
+			address, _, _ := s.dbc.GetBalancesByAddress(10, 0, keyword, chain, "", "")
+			result.Data = address
 			result.Type = "address"
 		}
 		if len(keyword) == 66 {
@@ -236,9 +236,7 @@ func search(s *RpcServer, keyword string, chain string) (interface{},
 			// address
 		}
 	}
-	resp.Data = result
-
-	return resp, nil
+	return result, nil
 }
 func getAllChain(s *RpcServer) (interface{}, error) {
 	chains, err := s.dbc.GetAllChainFromBlock()

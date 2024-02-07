@@ -605,7 +605,8 @@ func (conn *DBClient) GetBalancesByAddress(limit, offset int, address, chain, pr
 		query = query.Where("`tick` = ?", tick)
 	}
 	query = query.Count(&total)
-	err := query.Limit(limit).Offset(offset).Find(&balances).Error
+	orderBy := "balance DESC"
+	err := query.Order(orderBy).Limit(limit).Offset(offset).Find(&balances).Error
 	if err != nil {
 		return nil, 0, err
 	}

@@ -212,35 +212,38 @@ func findInscriptionsStats(s *RpcServer, limit int, offset int, sortMode int) (i
 	return resp, nil
 }
 
-func search(s *RpcServer, keyword string, chain string) (interface{},
+func search(s *RpcServer, keyword, chain string) (interface{},
 	error) {
 
 	result := &SearchResult{}
 	if len(keyword) <= 10 {
-		// tick
-
+		// Inscription
+		inscriptions, _ := findInscriptions(s, 10, 0, chain, "", keyword, "", 2, 0)
+		result.Data = inscriptions
+		result.Type = "Inscription"
 	}
 	if strings.HasPrefix(keyword, "0x") {
 		if len(keyword) == 42 {
 			// address
 			address, _, _ := s.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
 			result.Data = address
-			result.Type = "address"
+			result.Type = "Address"
 		}
 		if len(keyword) == 66 {
 			// tx hash
-
+			result.Data, _ = s.dbc.FindBalanceByTxHash(keyword)
+			result.Type = "TxHash"
 		}
 	} else {
 		if len(keyword) == 64 {
 			// tx hash
-			result.Data, _ = findTransactions(s, keyword, "", 1, 0, 0)
+			result.Data, _ = s.dbc.FindBalanceByTxHash(keyword)
 			result.Type = "tx"
 		} else {
 			// address
 			address, _, _ := s.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
 			result.Data = address
-			result.Type = "address"
+			result.Type = "Address"
 		}
 	}
 	return result, nil

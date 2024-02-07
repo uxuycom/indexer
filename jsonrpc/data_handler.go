@@ -216,7 +216,10 @@ func search(s *RpcServer, keyword string, chain string) (interface{},
 	error) {
 
 	result := &SearchResult{}
-	// todo do some validate
+	if len(keyword) <= 10 {
+		// tick
+
+	}
 	if strings.HasPrefix(keyword, "0x") {
 		if len(keyword) == 42 {
 			// address
@@ -226,6 +229,7 @@ func search(s *RpcServer, keyword string, chain string) (interface{},
 		}
 		if len(keyword) == 66 {
 			// tx hash
+
 		}
 	} else {
 		if len(keyword) == 64 {
@@ -234,6 +238,9 @@ func search(s *RpcServer, keyword string, chain string) (interface{},
 			result.Type = "tx"
 		} else {
 			// address
+			address, _, _ := s.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
+			result.Data = address
+			result.Type = "address"
 		}
 	}
 	return result, nil

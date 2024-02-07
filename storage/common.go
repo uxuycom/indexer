@@ -594,7 +594,7 @@ func (conn *DBClient) GetBalancesChainByAddress(limit, offset int, address, chai
 	var balances []*model.BalanceChain
 	var total int64
 
-	query := conn.SqlDB.Select("chain,address,SUM(balance)").Where("`address` = ?", address)
+	query := conn.SqlDB.Select("chain,address,SUM(balance)").Table("balance").Where("`address` = ?", address)
 	if chain != "" {
 		query = query.Where("`chain` = ?", chain)
 	}

@@ -589,9 +589,9 @@ func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, 
 }
 
 func (conn *DBClient) GetBalancesChainByAddress(limit, offset int, address, chain, protocol, tick string) (
-	[]*model.Balances, int64, error) {
+	[]*model.BalanceChain, int64, error) {
 
-	var balances []*model.Balances
+	var balances []*model.BalanceChain
 	var total int64
 
 	query := conn.SqlDB.Model(&model.BalanceChain{}).Where("`address` = ?", address)

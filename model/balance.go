@@ -84,3 +84,7 @@ type BalanceChain struct {
 	Address string          `json:"address"`
 	Balance decimal.Decimal `json:"balance"`
 }
+
+func (BalanceChain) TableName() string {
+	return "balances"
+}

@@ -606,7 +606,7 @@ func (conn *DBClient) GetBalancesChainByAddress(limit, offset int, address, chai
 	}
 	query = query.Count(&total)
 	orderBy := "balance DESC"
-	groupBy := "chain,balance"
+	groupBy := "chain,address"
 	err := query.Order(orderBy).Limit(limit).Offset(offset).Group(groupBy).Find(&balances).Error
 	if err != nil {
 		return nil, 0, err

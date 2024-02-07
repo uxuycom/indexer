@@ -220,7 +220,7 @@ func search(s *RpcServer, keyword string, chain string) (interface{},
 	if strings.HasPrefix(keyword, "0x") {
 		if len(keyword) == 42 {
 			// address
-			address, _, _ := s.dbc.GetBalancesByAddress(10, 0, keyword, chain, "", "")
+			address, _, _ := s.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
 			result.Data = address
 			result.Type = "address"
 		}

@@ -588,13 +588,13 @@ func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, 
 	return data, total, nil
 }
 
-func (conn *DBClient) GetBalancesByAddress(limit, offset int, address, chain, protocol, tick string) (
+func (conn *DBClient) GetBalancesChainByAddress(limit, offset int, address, chain, protocol, tick string) (
 	[]*model.Balances, int64, error) {
 
 	var balances []*model.Balances
 	var total int64
 
-	query := conn.SqlDB.Model(&model.Balances{}).Where("`address` = ?", address)
+	query := conn.SqlDB.Model(&model.BalanceChain{}).Where("`address` = ?", address)
 	if chain != "" {
 		query = query.Where("`chain` = ?", chain)
 	}
@@ -606,7 +606,8 @@ func (conn *DBClient) GetBalancesByAddress(limit, offset int, address, chain, pr
 	}
 	query = query.Count(&total)
 	orderBy := "balance DESC"
-	err := query.Order(orderBy).Limit(limit).Offset(offset).Find(&balances).Error
+	groupBy := "chain"
+	err := query.Order(orderBy).Limit(limit).Offset(offset).Group(groupBy).Find(&balances).Error
 	if err != nil {
 		return nil, 0, err
 	}

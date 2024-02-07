@@ -33,6 +33,7 @@ import (
 
 type Event struct {
 	Chain     string
+	ChainId   int64
 	BlockNum  uint64
 	BlockTime uint64
 	BlockHash string

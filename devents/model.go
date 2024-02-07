@@ -23,6 +23,7 @@
 package devents
 
 import (
+	"encoding/json"
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
 	"github.com/uxuycom/indexer/xylog"
@@ -309,6 +310,7 @@ func (tc *TxResultHandler) BuildTx(e *TxResult) *model.Transaction {
 		Tick:            e.MD.Tick,
 		Gas:             e.Tx.Gas.Int64(),
 		GasPrice:        e.Tx.GasPrice.Int64(),
+		ChainId:         e.Tx.ChainID.Int64(),
 	}
 }
 
@@ -350,6 +352,10 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 		BalanceTxs: make([]*model.BalanceTxn, 0, len(blocksEvents)*2),
 	}
 	for _, blockEvent := range blocksEvents {
+
+		data, _ := json.Marshal(blockEvent)
+		xylog.Logger.Debugf("BuildDBUpdateModel blockEvent = %v", string(data))
+
 		for _, event := range blockEvent.Items {
 			for action, item := range event.Inscriptions {
 				if _, ok := dm.Inscriptions[action][item.SID]; ok {
@@ -407,6 +413,7 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 		BlockHash:   lastBlockEvent.BlockHash,
 		BlockNumber: lastBlockEvent.BlockNum,
 		BlockTime:   time.Unix(int64(lastBlockEvent.BlockTime), 0),
+		ChainId:     lastBlockEvent.ChainId,
 	}
 
 	dmf = &DBModelsFattened{

@@ -106,6 +106,7 @@ func (BalanceTxn) TableName() string {
 
 type Transaction struct {
 	ID              uint64          `gorm:"primaryKey" json:"id"`
+	ChainId         int64           `json:"chain_id" gorm:"column:chain_id"`
 	Chain           string          `json:"chain" gorm:"column:chain"`                         // chain name
 	Protocol        string          `json:"protocol" gorm:"column:protocol"`                   // protocol name
 	BlockHeight     uint64          `json:"block_height" gorm:"column:block_height"`           // block height

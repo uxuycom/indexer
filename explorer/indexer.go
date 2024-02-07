@@ -23,6 +23,7 @@
 package explorer
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/alitto/pond"
@@ -158,6 +159,9 @@ func (e *Explorer) handleTxs(block *xycommon.RpcBlock, txs []*xycommon.RpcTransa
 	defer func() {
 		xylog.Logger.Infof("handle txs, parse & async sink cost[%v], txs[%d]", time.Since(startTs), len(txs))
 	}()
+
+	b, _ := json.Marshal(block)
+	xylog.Logger.Debugf("handleTxs rpc block =%v", string(b))
 
 	blockTxResults := make([]*devents.DBModelEvent, 0, len(txs))
 	for _, tx := range txs {
@@ -299,6 +303,7 @@ func (e *Explorer) writeDBAsync(block *xycommon.RpcBlock, txResults []*devents.D
 	//write db async
 	event := &devents.Event{
 		Chain:     e.config.Chain.ChainName,
+		ChainId:   txResults[0].Tx.ChainId,
 		BlockNum:  block.Number.Uint64(),
 		BlockTime: block.Time,
 		BlockHash: block.Hash,

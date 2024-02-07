@@ -25,6 +25,7 @@ package storage
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/model"
 	"gorm.io/gorm"
@@ -609,6 +610,7 @@ func (conn *DBClient) GetBalancesChainByAddress(limit, offset int, address, chai
 	groupBy := "chain"
 	err := query.Group(groupBy).Order(orderBy).Limit(limit).Offset(offset).Find(&balances).Error
 	if err != nil {
+		log.Error("GetBalancesChainByAddress", "err", err)
 		return nil, 0, err
 	}
 	return balances, total, nil

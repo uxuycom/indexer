@@ -685,6 +685,15 @@ func (conn *DBClient) FindAddressTxByHash(chain, hash string) (*model.AddressTxs
 	return tx, nil
 }
 
+func (conn *DBClient) FindBalanceByTxHash(hash string) ([]*model.BalanceTxn, error) {
+	balances := make([]*model.BalanceTxn, 0)
+	err := conn.SqlDB.Model(&model.BalanceTxn{}).Where("tx_hash = ? ", hash).Find(balances).Error
+	if err != nil {
+		return nil, err
+	}
+	return balances, nil
+}
+
 // GetAllChainFromBlock query all chains from block table
 func (conn *DBClient) GetAllChainFromBlock() ([]string, error) {
 	var chains []string

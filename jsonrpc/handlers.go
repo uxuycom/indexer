@@ -25,6 +25,7 @@ package jsonrpc
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/uxuycom/indexer/model"
 	"github.com/uxuycom/indexer/protocol"
 	"github.com/uxuycom/indexer/storage"
@@ -122,7 +123,7 @@ func handleFindAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-ch
 
 	txsHashes := make(map[string][]string)
 	for _, v := range transactions {
-		txsHashes[v.Chain] = append(txsHashes[v.Chain], v.TxHash)
+		txsHashes[v.Chain] = append(txsHashes[v.Chain], common.Bytes2Hex(v.TxHash))
 	}
 
 	txMap := make(map[string]*model.Transaction)
@@ -152,7 +153,7 @@ func handleFindAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-ch
 
 		trans := &AddressTransaction{
 			Event:     t.Event,
-			TxHash:    t.TxHash,
+			TxHash:    common.Bytes2Hex(t.TxHash),
 			Address:   t.Address,
 			From:      from,
 			To:        to,
@@ -185,7 +186,8 @@ func handleFindAddressBalances(s *RpcServer, cmd interface{}, closeChan <-chan s
 	}
 	xylog.Logger.Infof("find user balances cmd params:%v", req)
 
-	return findAddressBalances(s, req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, storage.OrderByModeDesc)
+	return findAddressBalances(s, req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key,
+		storage.OrderByModeDesc)
 }
 
 func handleFindAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -373,13 +375,13 @@ func handleGetTxByHash(s *RpcServer, cmd interface{}, closeChan <-chan struct{})
 	}
 
 	transInfo := &TransactionInfo{
-		Protocol: tx.Protocol,
-		Tick:     tx.Tick,
+		Protocol: "",
+		Tick:     "",
 		From:     tx.From,
 		To:       tx.To,
 	}
 
-	inscription, err := s.dbc.FindInscriptionByTick(tx.Chain, tx.Protocol, tx.Tick)
+	inscription, err := s.dbc.FindInscriptionByTick(tx.Chain, "", "")
 	if err != nil {
 		return ErrRPCInternal, err
 	}

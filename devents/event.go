@@ -90,6 +90,11 @@ func (h *DEvent) Flush() {
 
 // getDBLockTillSuccess get db lock until success,
 func (h *DEvent) getDBLockTillSuccess(db *storage.DBClient) {
+	startTs := time.Now()
+	defer func() {
+		xylog.Logger.Infof("get db lock success, cost:%v", time.Since(startTs))
+	}()
+
 	for {
 		ok, err := db.GetLock()
 		if err != nil {

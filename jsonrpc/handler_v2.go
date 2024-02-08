@@ -79,7 +79,8 @@ func indsGetBalanceByAddress(s *RpcServer, cmd interface{}, closeChan <-chan str
 	}
 	xylog.Logger.Infof("find user balances cmd params:%v", req)
 
-	return findAddressBalances(s, req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Sort)
+	return findAddressBalances(s, req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key,
+		req.Sort)
 }
 
 func indsGetHoldersByTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {

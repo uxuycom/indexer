@@ -2,12 +2,14 @@ package jsonrpc
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
 	"strings"
 )
 
-func findAddressBalances(s *RpcServer, limit, offset int, address, chain, protocol, tick string, sort int) (interface{}, error) {
+func findAddressBalances(s *RpcServer, limit, offset int, address, chain, protocol, tick string, key string,
+	sort int) (interface{}, error) {
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
 	cacheKey := fmt.Sprintf("addr_balances_%d_%d_%s_%s_%s_%s_%d", limit, offset, address, chain, protocol, tick, sort)
@@ -17,7 +19,7 @@ func findAddressBalances(s *RpcServer, limit, offset int, address, chain, protoc
 		}
 	}
 
-	balances, total, err := s.dbc.GetAddressInscriptions(limit, offset, address, chain, protocol, tick, sort)
+	balances, total, err := s.dbc.GetAddressInscriptions(limit, offset, address, chain, protocol, tick, key, sort)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -172,11 +174,9 @@ func findTransactions(s *RpcServer, address string, tick string, limit int, offs
 			BlockHeight:     v.BlockHeight,
 			PositionInBlock: v.PositionInBlock,
 			BlockTime:       v.BlockTime,
-			TxHash:          v.TxHash,
+			TxHash:          common.Bytes2Hex(v.TxHash),
 			From:            v.From,
 			To:              v.To,
-			Tick:            v.Tick,
-			Amount:          v.Amount,
 			Gas:             v.Gas,
 			GasPrice:        v.GasPrice,
 			Status:          v.Status,

@@ -237,28 +237,28 @@ func (conn *DBClient) BatchAddTransaction(dbTx *gorm.DB, items []*model.Transact
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 1000)
+	return conn.CreateInBatches(dbTx, items, 5000)
 }
 
 func (conn *DBClient) BatchAddBalanceTx(dbTx *gorm.DB, items []*model.BalanceTxn) error {
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 1000)
+	return conn.CreateInBatches(dbTx, items, 5000)
 }
 
 func (conn *DBClient) BatchAddAddressTx(dbTx *gorm.DB, items []*model.AddressTxs) error {
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 1000)
+	return conn.CreateInBatches(dbTx, items, 5000)
 }
 
 func (conn *DBClient) BatchAddBalances(dbTx *gorm.DB, items []*model.Balances) error {
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 1000)
+	return conn.CreateInBatches(dbTx, items, 2000)
 }
 
 func (conn *DBClient) BatchUpdateBalances(dbTx *gorm.DB, chain string, items []*model.Balances) error {
@@ -553,7 +553,8 @@ func (conn *DBClient) GetTransactions(address string, tick string, limit int, of
 	return txs, total, nil
 }
 
-func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, protocol, tick string, sort int) (
+func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, protocol, tick string,
+	key string, sort int) (
 	[]*model.BalanceInscription, int64, error) {
 
 	var data []*model.BalanceInscription
@@ -571,7 +572,10 @@ func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, 
 		query = query.Where("`b`.protocol = ?", protocol)
 	}
 	if tick != "" {
-		query = query.Where("`b`.tick like ?", "%"+tick+"%")
+		query = query.Where("`b`.tick = ?", tick)
+	}
+	if key != "" {
+		query = query.Where("`b`.tick like ?", "%"+key+"%")
 	}
 
 	query = query.Count(&total)

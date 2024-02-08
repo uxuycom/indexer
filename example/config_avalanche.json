@@ -1,6 +1,6 @@
 {
   "scan": {
-    "start_block": 17560760,
+    "start_block": 39205395,
     "block_batch_workers": 1,
     "tx_batch_workers": 1,
     "delayed_block_num": 10
@@ -11,8 +11,8 @@
     "enable_log": false
   },
   "chain": {
-    "chain_name": "eth",
-    "rpc": "https://1rpc.io/eth",
+    "chain_name": "avalanche",
+    "rpc": "https://1rpc.io/avax/c",
     "username": "",
     "password": ""
   },
@@ -22,6 +22,19 @@
     ":6583"
   ],
   "rpcmaxclients": 10000,
+  "filters": {
+    "event_topics": [
+      "0xe2750d6418e3719830794d3db788aa72febcd657bcd18ed8f1facdbf61a69a9a",
+      "0x3efe873bf4d1c1061b9980e7aed9b564e024844522ec8c80aec160809948ef77",
+      "0x8cdf9e10a7b20e7a9c4e778fc3eb28f2766e438a9856a62eac39fbd2be98cbc2"
+    ],
+    "whitelist": {
+      "ticks": [
+        "cczzc"
+      ]
+    }
+  },
+
   "profile": {
     "enabled": false,
     "listen": ":6060"

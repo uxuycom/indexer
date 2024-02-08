@@ -20,22 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //SOFTWARE
 
-package types
+package erc20
 
 import (
-	"github.com/uxuycom/indexer/client/xycommon"
-	"github.com/uxuycom/indexer/devents"
-	"github.com/uxuycom/indexer/xyerrors"
+	"github.com/uxuycom/indexer/dcache"
+	"github.com/uxuycom/indexer/protocol/common"
 )
 
-type IProtocol interface {
-	Parse(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, md *devents.MetaData) ([]*devents.TxResult, *xyerrors.InsError)
+type Protocol struct {
+	*common.Protocol
 }
 
-const (
-	BRC20Protocol = "brc-20"
-	ASC20Protocol = "asc-20"
-	BSC20Protocol = "bsc-20"
-	PRC20Protocol = "prc-20"
-	ERC20Protocol = "erc-20"
-)
+func NewProtocol(cache *dcache.Manager) *Protocol {
+	return &Protocol{
+		Protocol: common.NewProtocol(cache),
+	}
+}

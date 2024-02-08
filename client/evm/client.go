@@ -57,7 +57,7 @@ func (ec *RawClient) Client() *rpc.Client {
 }
 
 func (ec *RawClient) doCallContext(retry int, result interface{}, method string, args ...interface{}) (err error) {
-	timeCtx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	timeCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	t1 := time.Now()

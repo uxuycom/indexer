@@ -342,5 +342,6 @@ func init() {
 	MustRegisterCmd("inds_search", (*IndsSearchCmd)(nil), flags)
 	MustRegisterCmd("inds_getAddressBalance", (*FindUserBalanceCmd)(nil), flags)
 	MustRegisterCmd("inds_getTickBriefs", (*GetTickBriefsCmd)(nil), flags)
+	MustRegisterCmd("index_getInscriptionByTick", (*IndsGetInscriptionTickCmd)(nil), flags)
 
 }

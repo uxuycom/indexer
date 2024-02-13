@@ -33,7 +33,8 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getBalancesByAddress":      indsGetBalancesByAddress,
 	"inds_getHoldersByTick":          indsGetHoldersByTick,
 	"inds_getLastBlockNumberIndexed": indsGetLastBlockNumber,
-	"inds_getTickByCallData":         indsGetTxOperate,
+	"inds_getTickByCallData":         indsGetTxOperate, //
+	"inds_getInscriptionTxOperate":   indsGetTxOperate, //
 	"inds_getAddressBalance":         indsGetAddressBalance,
 	"inds_getTickBriefs":             indsGetTickBriefs,
 }

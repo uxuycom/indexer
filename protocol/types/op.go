@@ -40,10 +40,11 @@ const (
 	PRC20Protocol = "prc-20"
 	ERC20Protocol = "erc-20"
 
-	MaxDataLengthCommon        = 256
-	MaxDataLengthBRC20Protocol = 256
-	MaxDataLengthASC20Protocol = 256
-	MaxDataLengthBSC20Protocol = 256
-	MaxDataLengthPRC20Protocol = 256
-	MaxDataLengthERC20Protocol = 256
+	MaxDataLengthCommon         = 256
+	MaxDataLengthBRC20Protocol  = 256
+	MaxDataLengthASC20Protocol  = 256
+	MaxDataLengthBSC20Protocol  = 256
+	MaxDataLengthPRC20Protocol  = 256
+	MaxDataLengthERC20Protocol  = 256
+	MaxDataLengthIERC20Protocol = 512
 )

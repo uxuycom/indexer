@@ -112,7 +112,7 @@ func indsGetHoldersByTick(s *RpcServer, cmd interface{}, closeChan <-chan struct
 }
 
 func indsGetInscriptionByTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	req, ok := cmd.(*FindInscriptionTickCmd)
+	req, ok := cmd.(*IndsGetInscriptionTickCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
@@ -122,7 +122,7 @@ func indsGetInscriptionByTick(s *RpcServer, cmd interface{}, closeChan <-chan st
 }
 
 func indsGetAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	req, ok := cmd.(*FindUserTransactionsCmd)
+	req, ok := cmd.(*IndsGetUserTransactionsCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}

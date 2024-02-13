@@ -16,8 +16,8 @@ import (
 // EmptyCmd defines the empty JSON-RPC command.
 type EmptyCmd struct{}
 
-// FindAllInscriptionsCmd defines the inscription JSON-RPC command.
-type FindAllInscriptionsCmd struct {
+// IndsGetAllInscriptionsCmd defines the inscription JSON-RPC command.
+type IndsGetAllInscriptionsCmd struct {
 	Limit    int    `json:"limit"`
 	Offset   int    `json:"offset"`
 	Chain    string `json:"chain"`
@@ -64,7 +64,7 @@ type IndsGetInscriptionsCmd struct {
 	//SortMode int    `json:"sort_mode"`
 }
 
-type FindAllInscriptionsResponse struct {
+type IndsGetAllInscriptionsResponse struct {
 	Inscriptions interface{} `json:"inscriptions"`
 	Total        int64       `json:"total"`
 	Limit        int         `json:"limit"`
@@ -100,8 +100,8 @@ type InscriptionInfo struct {
 	Decimals     int8   `json:"decimals"`
 }
 
-// FindInscriptionTickCmd defines the inscription JSON-RPC command.
-type FindInscriptionTickCmd struct {
+// IndsGetInscriptionTickCmd defines the inscription JSON-RPC command.
+type IndsGetInscriptionTickCmd struct {
 	Chain    string
 	Protocol string
 	Tick     string
@@ -111,8 +111,8 @@ type FindInscriptionTickResponse struct {
 	Tick interface{} `json:"tick"`
 }
 
-// FindUserTransactionsCmd defines the inscription JSON-RPC command.
-type FindUserTransactionsCmd struct {
+// IndsGetUserTransactionsCmd defines the inscription JSON-RPC command.
+type IndsGetUserTransactionsCmd struct {
 	Limit    int
 	Offset   int
 	Address  string
@@ -316,9 +316,9 @@ func init() {
 	// No special flags for commands in this file.
 	flags := UsageFlag(0)
 
-	MustRegisterCmd("inscription.All", (*FindAllInscriptionsCmd)(nil), flags)
-	MustRegisterCmd("inscription.Tick", (*FindInscriptionTickCmd)(nil), flags)
-	MustRegisterCmd("address.Transactions", (*FindUserTransactionsCmd)(nil), flags)
+	MustRegisterCmd("inscription.All", (*IndsGetAllInscriptionsCmd)(nil), flags)
+	MustRegisterCmd("inscription.Tick", (*IndsGetInscriptionTickCmd)(nil), flags)
+	MustRegisterCmd("address.Transactions", (*IndsGetUserTransactionsCmd)(nil), flags)
 	MustRegisterCmd("address.Balances", (*FindUserBalancesCmd)(nil), flags)
 	MustRegisterCmd("address.Balance", (*FindUserBalanceCmd)(nil), flags)
 	MustRegisterCmd("tick.Holders", (*FindTickHoldersCmd)(nil), flags)
@@ -329,7 +329,7 @@ func init() {
 
 	// v2
 	MustRegisterCmd("inds_getTicks", (*IndsGetTicksCmd)(nil), flags)
-	MustRegisterCmd("inds_getTransactionByAddress", (*FindUserTransactionsCmd)(nil), flags)
+	MustRegisterCmd("inds_getTransactionByAddress", (*IndsGetUserTransactionsCmd)(nil), flags)
 	MustRegisterCmd("inds_getBalanceByAddress", (*IndsGetBalanceByAddressCmd)(nil), flags)
 	MustRegisterCmd("inds_getHoldersByTick", (*IndsGetHoldersByTickCmd)(nil), flags)
 	MustRegisterCmd("inds_getLastBlockNumberIndexed", (*LastBlockNumberCmd)(nil), flags)

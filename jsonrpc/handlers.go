@@ -25,7 +25,7 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getInscriptions":           indsGetInscriptions,
 	"index_getInscriptionByTick":     indsGetInscriptionByTick,
 	"inds_search":                    indsSearch,
-	"inds_getAllChain":               indsGetAllChain,
+	"inds_getAllChains":              indsGetAllChains,
 	"inds_getTicks":                  indsGetTicks,
 	"inds_getTransactions":           indsGetTransactions,
 	"inds_getTransactionByAddress":   indsGetAddressTransactions,
@@ -38,7 +38,7 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getTickBriefs":             indsGetTickBriefs,
 }
 
-func indsGetAllChain(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+func indsGetAllChains(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	req, ok := cmd.(*GetAllChainCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")

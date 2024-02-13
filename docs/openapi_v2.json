@@ -843,9 +843,9 @@
         }
       }
     },
-    "/inds_getAllChain": {
+    "/inds_getAllChains": {
         "post": {
-          "operationId": "inds_getAllChain",
+          "operationId": "inds_getAllChains",
           "deprecated": false,
           "summary": "Get All Chain",
           "description": "Get All Chain",

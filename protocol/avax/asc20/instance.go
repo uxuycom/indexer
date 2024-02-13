@@ -61,6 +61,9 @@ func (p *Protocol) Parse(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, 
 	}
 	return p.common.Parse(block, tx, md)
 }
+func (p *Protocol) MaxDateLength() int {
+	return types.MaxDataLengthASC20Protocol
+}
 
 func ParseMetaDataByEventLogs(chain string, tx *xycommon.RpcTransaction) (*devents.MetaData, error) {
 	for _, event := range tx.Events {

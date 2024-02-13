@@ -61,6 +61,7 @@ func (p *Protocol) Parse(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, 
 	}
 	return p.common.Parse(block, tx, md)
 }
+
 func (p *Protocol) MaxDateLength() int {
 	return types.MaxDataLengthASC20Protocol
 }

@@ -6,12 +6,27 @@ import (
 	"github.com/uxuycom/indexer/xylog"
 )
 
+// v1 version
+var rpcHandlersBeforeInit = map[string]commandHandler{
+	"inscription.All":           indsGetInscriptions,
+	"inscription.Tick":          indsGetInscriptionByTick,
+	"address.Transactions":      indsGetAddressTransactions,
+	"address.Balances":          indsGetBalancesByAddress,
+	"address.Balance":           indsGetAddressBalance,
+	"tick.Holders":              indsGetHoldersByTick,
+	"block.LastNumber":          indsGetLastBlockNumber,
+	"tool.InscriptionTxOperate": indsGetTxOperate,
+	"transaction.Info":          indsGetTxByHash,
+	"tick.GetBriefs":            indsGetTickBriefs,
+}
+
+// v2 version
 var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getInscriptions":           indsGetInscriptions,
 	"index_getInscriptionByTick":     indsGetInscriptionByTick,
 	"inds_search":                    indsSearch,
 	"inds_getAllChain":               indsGetAllChain,
-	"inds_getTicks":                  indsGetTicks, //handleFindAllInscriptions,
+	"inds_getTicks":                  indsGetTicks,
 	"inds_getTransactions":           indsGetTransactions,
 	"inds_getTransactionByAddress":   indsGetAddressTransactions,
 	"inds_getTransactionByHash":      indsGetTxByHash,

@@ -30,6 +30,7 @@ import (
 
 type IProtocol interface {
 	Parse(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, md *devents.MetaData) ([]*devents.TxResult, *xyerrors.InsError)
+	MaxDateLength() int
 }
 
 const (
@@ -38,4 +39,11 @@ const (
 	BSC20Protocol = "bsc-20"
 	PRC20Protocol = "prc-20"
 	ERC20Protocol = "erc-20"
+
+	MaxDataLengthCommon        = 256
+	MaxDataLengthBRC20Protocol = 256
+	MaxDataLengthASC20Protocol = 256
+	MaxDataLengthBSC20Protocol = 256
+	MaxDataLengthPRC20Protocol = 256
+	MaxDataLengthERC20Protocol = 256
 )

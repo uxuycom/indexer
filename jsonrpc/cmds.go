@@ -327,7 +327,7 @@ func init() {
 	MustRegisterCmd("transaction.Info", (*GetTxByHashCmd)(nil), flags)
 	MustRegisterCmd("tick.GetBriefs", (*GetTickBriefsCmd)(nil), flags)
 
-	//v2
+	// v2
 	MustRegisterCmd("inds_getTicks", (*IndsGetTicksCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactionByAddress", (*FindUserTransactionsCmd)(nil), flags)
 	MustRegisterCmd("inds_getBalanceByAddress", (*IndsGetBalanceByAddressCmd)(nil), flags)

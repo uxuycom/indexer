@@ -57,7 +57,7 @@ func getInscriptions(s *RpcServer, limit, offset int, chain, protocol, tick, dep
 	tick = strings.ToLower(tick)
 	cacheKey := fmt.Sprintf("all_ins_%d_%d_%s_%s_%s_%s_%d_%d", limit, offset, chain, protocol, tick, deployBy, sort, sortMode)
 	if ins, ok := s.cacheStore.Get(cacheKey); ok {
-		if allIns, ok := ins.(*FindAllInscriptionsResponse); ok {
+		if allIns, ok := ins.(*IndsGetAllInscriptionsResponse); ok {
 			return allIns, nil
 		}
 	}
@@ -103,7 +103,7 @@ func getInscriptions(s *RpcServer, limit, offset int, chain, protocol, tick, dep
 		result = append(result, brief)
 	}
 
-	resp := &FindAllInscriptionsResponse{
+	resp := &IndsGetAllInscriptionsResponse{
 		Inscriptions: result,
 		Total:        total,
 		Limit:        limit,

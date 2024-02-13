@@ -64,7 +64,8 @@ func indsGetInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("find all txs cmd params:%v", req)
-	return findInscriptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, storage.OrderByModeDesc)
+	return getInscriptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort,
+		storage.OrderByModeDesc)
 }
 
 func indsGetTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -74,7 +75,7 @@ func indsGetTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("find all txs cmd params:%v", req)
-	return findTransactions(s, req.Address, req.Tick, req.Limit, req.Offset, req.SortMode)
+	return getTransactions(s, req.Address, req.Tick, req.Limit, req.Offset, req.SortMode)
 
 }
 
@@ -85,7 +86,7 @@ func indsGetTicks(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (int
 	}
 
 	xylog.Logger.Infof("find all Inscriptions cmd params:%v", req)
-	return findInscriptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort,
+	return getInscriptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort,
 		req.SortMode)
 }
 
@@ -107,7 +108,7 @@ func indsGetHoldersByTick(s *RpcServer, cmd interface{}, closeChan <-chan struct
 	}
 	xylog.Logger.Infof("find user balances cmd params:%v", req)
 
-	return findTickHolders(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.SortMode)
+	return getTickHolders(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.SortMode)
 }
 
 func indsGetInscriptionByTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {

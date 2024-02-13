@@ -51,7 +51,7 @@ func getAddressBalances(s *RpcServer, limit, offset int, address, chain, protoco
 	return resp, nil
 }
 
-func findInscriptions(s *RpcServer, limit, offset int, chain, protocol, tick, deployBy string, sort,
+func getInscriptions(s *RpcServer, limit, offset int, chain, protocol, tick, deployBy string, sort,
 	sortMode int) (interface{}, error) {
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
@@ -113,7 +113,8 @@ func findInscriptions(s *RpcServer, limit, offset int, chain, protocol, tick, de
 	return resp, nil
 }
 
-func findTickHolders(s *RpcServer, limit int, offset int, chain, protocol, tick string, sortMode int) (interface{}, error) {
+func getTickHolders(s *RpcServer, limit int, offset int, chain, protocol, tick string, sortMode int) (interface{},
+	error) {
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
 	cacheKey := fmt.Sprintf("all_ins_%d_%d_%s_%s_%s_%d", limit, offset, chain, protocol, tick, sortMode)
@@ -151,7 +152,7 @@ func findTickHolders(s *RpcServer, limit int, offset int, chain, protocol, tick 
 	return resp, nil
 }
 
-func findTransactions(s *RpcServer, address string, tick string, limit int, offset int, sortMode int) (interface{},
+func getTransactions(s *RpcServer, address string, tick string, limit int, offset int, sortMode int) (interface{},
 	error) {
 
 	address = strings.ToLower(address)
@@ -199,7 +200,7 @@ func findTransactions(s *RpcServer, address string, tick string, limit int, offs
 	return resp, nil
 }
 
-func findInscriptionsStats(s *RpcServer, limit int, offset int, sortMode int) (interface{},
+func getInscriptionsStats(s *RpcServer, limit int, offset int, sortMode int) (interface{},
 	error) {
 	txs, total, err := s.dbc.GetInscriptionStatsList(limit, offset, sortMode)
 	if err != nil {
@@ -220,7 +221,7 @@ func search(s *RpcServer, keyword, chain string) (interface{}, error) {
 	result := &SearchResult{}
 	if len(keyword) <= 10 {
 		// Inscription
-		inscriptions, _ := findInscriptions(s, 10, 0, chain, "", keyword, "", 2, 0)
+		inscriptions, _ := getInscriptions(s, 10, 0, chain, "", keyword, "", 2, 0)
 		result.Data = inscriptions
 		result.Type = "Inscription"
 	}

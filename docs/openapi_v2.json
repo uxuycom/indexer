@@ -143,9 +143,9 @@
         }
       }
     },
-    "/inds_getBalanceByAddress": {
+    "/inds_getBalancesByAddress": {
       "post": {
-        "operationId": "inds_getBalanceByAddress",
+        "operationId": "inds_getBalancesByAddress",
         "deprecated": false,
         "summary": "Get Address Balances",
         "description": "Get Address Balances From UXUY Indexer",
@@ -172,7 +172,7 @@
                 "properties": {
                   "method": {
                     "type": "string",
-                    "default": "inds_getBalanceByAddress",
+                    "default": "inds_getBalancesByAddress",
                     "description": "Method name"
                   },
                   "id": {
@@ -736,6 +736,71 @@
         }
       }
     },
+    "/inds_getAddressBalance": {
+      "post": {
+        "operationId": "inds_getAddressBalance",
+        "deprecated": false,
+        "summary": "Get Address Balance",
+        "description": "Get Address Balance From UXUY Indexer",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "inds_getAddressBalance",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": ["0xF2f9D2575023D320475ed7875FCDCB9b52787E59", "avalanche", "asc-20", "crazydog"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/inds_search": {
       "post": {
         "operationId": "inds_search",
@@ -776,7 +841,8 @@
             }
           }
         }
-      }},
+      }
+    },
     "/inds_getAllChain": {
         "post": {
           "operationId": "inds_getAllChain",

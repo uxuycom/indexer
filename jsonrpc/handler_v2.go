@@ -13,12 +13,14 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getAllChain":               indsGetAllChain,
 	"inds_getTicks":                  indsGetTicks, //handleFindAllInscriptions,
 	"inds_getTransactions":           indsGetTransactions,
-	"inds_getTransactionByAddress":   handleFindAddressTransactions,
-	"inds_getTransactionByHash":      handleGetTxByHash,
-	"inds_getBalanceByAddress":       indsGetBalanceByAddress,
+	"inds_getTransactionByAddress":   indsGetAddressTransactions,
+	"inds_getTransactionByHash":      indsGetTxByHash,
+	"inds_getBalancesByAddress":      indsGetBalancesByAddress,
 	"inds_getHoldersByTick":          indsGetHoldersByTick,
-	"inds_getLastBlockNumberIndexed": handleGetLastBlockNumber,
-	"inds_getTickByCallData":         handleGetTxOperate,
+	"inds_getLastBlockNumberIndexed": indsGetLastBlockNumber,
+	"inds_getTickByCallData":         indsGetTxOperate,
+	"inds_getAddressBalance":         indsGetAddressBalance,
+	"inds_getTickBriefs":             indsGetTickBriefs,
 }
 
 func indsGetAllChain(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -72,14 +74,14 @@ func indsGetTicks(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (int
 		req.SortMode)
 }
 
-func indsGetBalanceByAddress(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+func indsGetBalancesByAddress(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	req, ok := cmd.(*IndsGetBalanceByAddressCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("find user balances cmd params:%v", req)
 
-	return findAddressBalances(s, req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key,
+	return getAddressBalances(s, req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key,
 		req.Sort)
 }
 
@@ -91,4 +93,68 @@ func indsGetHoldersByTick(s *RpcServer, cmd interface{}, closeChan <-chan struct
 	xylog.Logger.Infof("find user balances cmd params:%v", req)
 
 	return findTickHolders(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.SortMode)
+}
+
+func indsGetInscriptionByTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*FindInscriptionTickCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("find inscriptions tick cmd params:%v", req)
+
+	return getInscriptionByTick(s, req.Protocol, req.Tick, req.Chain)
+}
+
+func indsGetAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*FindUserTransactionsCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("find user transactions cmd params:%v", req)
+
+	return getAddressTransactions(s, req.Protocol, req.Tick, req.Chain, req.Limit, req.Offset, req.Address, req.Event)
+}
+
+func indsGetTxByHash(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*GetTxByHashCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("get tx by hash cmd params:%v", req)
+	return getTxByHash(s, req.TxHash, req.Chain)
+}
+
+func indsGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*LastBlockNumberCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("get last block number cmd params:%v", req)
+	return getLastBlockNumber(s, req.Chains)
+}
+
+func indsGetTxOperate(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*TxOperateCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	return getTxOperate(s, req.Chain, req.InputData)
+}
+
+func indsGetAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*FindUserBalanceCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("find user balance cmd params:%v", req)
+	return getAddressBalance(s, req.Protocol, req.Chain, req.Tick, req.Address)
+}
+
+func indsGetTickBriefs(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*GetTickBriefsCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("get tick briefs cmd params:%v", req)
+	return getTickBriefs(s, req.Addresses)
 }

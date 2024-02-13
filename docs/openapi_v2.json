@@ -857,7 +857,7 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [["avalanche",""]]
+                    "default": [ [{"chain":"avalanche","deploy_hash":""}]]
                   }
                 }
               }

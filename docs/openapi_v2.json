@@ -1045,6 +1045,21 @@
                     "type": "string",
                     "default": "2.0",
                     "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "string",
+                        "default": "",
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": [[]]
                   }
                 }
               }

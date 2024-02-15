@@ -338,7 +338,7 @@ func init() {
 	MustRegisterCmd("inds_getTransactions", (*IndsGetTransactionCmd)(nil), flags)
 	MustRegisterCmd("inds_getInscriptions", (*IndsGetInscriptionsCmd)(nil), flags)
 	MustRegisterCmd("inds_getInscriptionTxOperate", (*TxOperateCmd)(nil), flags)
-	MustRegisterCmd("inds_getAllChain", (*GetAllChainCmd)(nil), flags)
+	MustRegisterCmd("inds_getAllChains", (*GetAllChainCmd)(nil), flags)
 	MustRegisterCmd("inds_search", (*IndsSearchCmd)(nil), flags)
 	MustRegisterCmd("inds_getAddressBalance", (*FindUserBalanceCmd)(nil), flags)
 	MustRegisterCmd("inds_getTickBriefs", (*GetTickBriefsCmd)(nil), flags)

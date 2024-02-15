@@ -69,7 +69,16 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "", "", "", "",  3, 1]
+                    "default": [
+                      10,
+                      0,
+                      "",
+                      "",
+                      "",
+                      "",
+                      3,
+                      1
+                    ]
                   }
                 }
               }
@@ -134,7 +143,15 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "0x6Ac6f9231c86ba4Ea4C40D196DA930C1d66439f5", "", "", "", 0]
+                    "default": [
+                      10,
+                      0,
+                      "0x6Ac6f9231c86ba4Ea4C40D196DA930C1d66439f5",
+                      "",
+                      "",
+                      "",
+                      0
+                    ]
                   }
                 }
               }
@@ -199,7 +216,15 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "0xF2f9D2575023D320475ed7875FCDCB9b52787E59", "", "", "", 1]
+                    "default": [
+                      10,
+                      0,
+                      "0xF2f9D2575023D320475ed7875FCDCB9b52787E59",
+                      "",
+                      "",
+                      "",
+                      1
+                    ]
                   }
                 }
               }
@@ -264,7 +289,14 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "avalanche", "asc-20", "crazydog", 1]
+                    "default": [
+                      10,
+                      0,
+                      "avalanche",
+                      "asc-20",
+                      "crazydog",
+                      1
+                    ]
                   }
                 }
               }
@@ -329,7 +361,11 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [["avalanche"]]
+                    "default": [
+                      [
+                        "avalanche"
+                      ]
+                    ]
                   }
                 }
               }
@@ -394,7 +430,10 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": ["avalanche", "0x646174613a2c7b2270223a226173632d3230222c226f70223a226d696e74222c227469636b223a22746f6d726179222c22616d74223a2231227d"]
+                    "default": [
+                      "avalanche",
+                      "0x646174613a2c7b2270223a226173632d3230222c226f70223a226d696e74222c227469636b223a22746f6d726179222c22616d74223a2231227d"
+                    ]
                   }
                 }
               }
@@ -459,7 +498,10 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": ["avalanche", "0x2f88df8669337ec739d8414df0f3ef32bf166cb73233c965e805b7fa54eef1f2"]
+                    "default": [
+                      "avalanche",
+                      "0x2f88df8669337ec739d8414df0f3ef32bf166cb73233c965e805b7fa54eef1f2"
+                    ]
                   }
                 }
               }
@@ -524,7 +566,15 @@
                         "description": "A param to include"
                       }
                     },
-                    "default":  [10, 0, "", "", "", "",1]
+                    "default": [
+                      10,
+                      0,
+                      "",
+                      "",
+                      "",
+                      "",
+                      1
+                    ]
                   }
                 }
               }
@@ -662,7 +712,10 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": ["avalanche", "0x646174613a2c7b2270223a226173632d3230222c226f70223a226d696e74222c227469636b223a22746f6d726179222c22616d74223a2231227d"]
+                    "default": [
+                      "avalanche",
+                      "0x646174613a2c7b2270223a226173632d3230222c226f70223a226d696e74222c227469636b223a22746f6d726179222c22616d74223a2231227d"
+                    ]
                   }
                 }
               }
@@ -727,7 +780,11 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": ["avalanche", "asc-20", "crazydog"]
+                    "default": [
+                      "avalanche",
+                      "asc-20",
+                      "crazydog"
+                    ]
                   }
                 }
               }
@@ -792,7 +849,12 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": ["0xF2f9D2575023D320475ed7875FCDCB9b52787E59", "avalanche", "asc-20", "crazydog"]
+                    "default": [
+                      "0xF2f9D2575023D320475ed7875FCDCB9b52787E59",
+                      "avalanche",
+                      "asc-20",
+                      "crazydog"
+                    ]
                   }
                 }
               }
@@ -857,7 +919,14 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [ [{"chain":"avalanche","deploy_hash":"0x7ffc56b2bf20f4f3474c1fd503fc3f1fb9066c8b0665d6da11185cac892108a5"}]]
+                    "default": [
+                      [
+                        {
+                          "chain": "avalanche",
+                          "deploy_hash": "0x7ffc56b2bf20f4f3474c1fd503fc3f1fb9066c8b0665d6da11185cac892108a5"
+                        }
+                      ]
+                    ]
                   }
                 }
               }
@@ -871,7 +940,7 @@
         "operationId": "inds_search",
         "deprecated": false,
         "summary": "Search address or transaction or tick",
-        "description": "Search address or transaction or tickr",
+        "description": "Search address or transaction or tick",
         "tags": [
           "JSONRPC"
         ],
@@ -887,19 +956,45 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "keyword",
-                  "chain"
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
                 ],
                 "properties": {
-                  "keyword": {
+                  "method": {
                     "type": "string",
-                    "default": "",
-                    "description": "query"
+                    "default": "inds_getTickBriefs",
+                    "description": "Method name"
                   },
-                  "chain": {
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
                     "type": "string",
-                    "default": "",
-                    "description": "chain name"
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "string",
+                        "default": "",
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": [
+                      "0x4273173187f1108007b1C1ABE5301eFa03f7fc8A",
+                      ""
+                    ]
                   }
                 }
               }
@@ -909,23 +1004,56 @@
       }
     },
     "/inds_getAllChains": {
-        "post": {
-          "operationId": "inds_getAllChains",
-          "deprecated": false,
-          "summary": "Get All Chain",
-          "description": "Get All Chain",
-          "tags": [
-            "JSONRPC"
-          ],
-          "parameters": [],
-          "responses": {
-            "200": {
-              "description": "Successful response"
+      "post": {
+        "operationId": "inds_getAllChains",
+        "deprecated": false,
+        "summary": "Get All Chain",
+        "description": "Get All Chain",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "inds_getTickBriefs",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  }
+                }
+              }
             }
           }
         }
       }
-    },
+    }
+  },
   "x-headers": [],
   "x-explorer-enabled": true,
   "x-proxy-enabled": true,

@@ -44,7 +44,7 @@ func NewChainStatsTask(rpcServer *jsonrpc.RpcServer, dbc *storage.DBClient) *Cha
 }
 
 func (t *ChainStatsTask) Exec() {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(time.Hour)
 	defer ticker.Stop()
 	xylog.Logger.Infof("task starting...")
 	for {

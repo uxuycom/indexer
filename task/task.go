@@ -46,8 +46,8 @@ func InitTask(dbc *storage.DBClient) *Task {
 
 	for k, v := range task.tasks {
 		xylog.Logger.Infof("tasks %v start!", k)
-		tt := v.(ITask)
-		go tt.Exec()
+		t := v.(ITask)
+		go t.Exec()
 	}
 	return task
 }

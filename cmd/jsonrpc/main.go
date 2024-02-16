@@ -29,7 +29,6 @@ import (
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/jsonrpc"
 	"github.com/uxuycom/indexer/storage"
-	"github.com/uxuycom/indexer/task"
 	"github.com/uxuycom/indexer/xylog"
 	"log"
 	"os"
@@ -69,9 +68,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("server init err[%v]", err)
 	}
-
-	// init task
-	task.InitTask(server, dbc)
 
 	//start server
 	server.Start()

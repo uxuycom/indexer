@@ -23,26 +23,24 @@
 package task
 
 import (
-	"github.com/uxuycom/indexer/jsonrpc"
 	"github.com/uxuycom/indexer/storage"
 	"github.com/uxuycom/indexer/xylog"
 )
 
 type Task struct {
-	service *jsonrpc.Service
-	dbc     *storage.DBClient
-	tasks   map[string]interface{}
+	dbc   *storage.DBClient
+	tasks map[string]interface{}
 }
 
 type ITask interface {
 	Exec()
 }
 
-func InitTask(rpcServer *jsonrpc.RpcServer, dbc *storage.DBClient) *Task {
+func InitTask(dbc *storage.DBClient) *Task {
 
 	task := &Task{
 		tasks: map[string]interface{}{
-			"chain_stats_tak": NewChainStatsTask(rpcServer, dbc), // add new task here
+			"chain_stats_tak": NewChainStatsTask(dbc), // add new task here
 		},
 	}
 

@@ -23,7 +23,6 @@
 package task
 
 import (
-	"github.com/uxuycom/indexer/jsonrpc"
 	"github.com/uxuycom/indexer/storage"
 	"github.com/uxuycom/indexer/xylog"
 	"time"
@@ -33,11 +32,10 @@ type ChainStatsTask struct {
 	Task
 }
 
-func NewChainStatsTask(rpcServer *jsonrpc.RpcServer, dbc *storage.DBClient) *ChainStatsTask {
+func NewChainStatsTask(dbc *storage.DBClient) *ChainStatsTask {
 	task := &ChainStatsTask{
 		Task{
-			dbc:     dbc,
-			service: jsonrpc.NewService(rpcServer),
+			dbc: dbc,
 		},
 	}
 	return task
@@ -56,9 +54,6 @@ func (t *ChainStatsTask) Exec() {
 				xylog.Logger.Errorf("error =%v", err)
 			}
 			xylog.Logger.Infof("db chains = %v", chains)
-
-			cc, _ := t.service.GetAllChain()
-			xylog.Logger.Infof("service chains = %v", cc)
 
 		}
 	}

@@ -29,6 +29,7 @@ import (
 	"github.com/uxuycom/indexer/client"
 	"github.com/uxuycom/indexer/devents"
 	"github.com/uxuycom/indexer/protocol"
+	"github.com/uxuycom/indexer/task"
 	"github.com/uxuycom/indexer/xylog"
 
 	"github.com/uxuycom/indexer/config"
@@ -86,6 +87,9 @@ func main() {
 	}
 
 	dCache := dcache.NewManager(dbClient, cfg.Chain.ChainName)
+
+	// init task
+	task.InitTask(dbClient)
 
 	// init protocols
 	protocol.InitProtocols(dCache)

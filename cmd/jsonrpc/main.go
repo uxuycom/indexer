@@ -70,9 +70,6 @@ func main() {
 		log.Fatalf("server init err[%v]", err)
 	}
 
-	// init service
-	jsonrpc.NewService(server)
-
 	// init task
 	task.InitTask(server, dbc)
 

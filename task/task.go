@@ -29,8 +29,8 @@ import (
 )
 
 type Task struct {
-	dbc     *storage.DBClient
 	service *jsonrpc.Service
+	dbc     *storage.DBClient
 	tasks   map[string]interface{}
 }
 
@@ -38,15 +38,11 @@ type ITask interface {
 	Exec()
 }
 
-func InitTask(dbc *storage.DBClient) *Task {
+func InitTask(rpcServer *jsonrpc.RpcServer, dbc *storage.DBClient) *Task {
 
-	var i ITask = NewChainStatsTask(dbc)
-	i.Exec()
 	task := &Task{
-		dbc:     dbc,
-		service: jsonrpc.GetService(),
 		tasks: map[string]interface{}{
-			"chain_stats_tak": NewChainStatsTask(dbc), // add new task here
+			"chain_stats_tak": NewChainStatsTask(rpcServer, dbc), // add new task here
 		},
 	}
 

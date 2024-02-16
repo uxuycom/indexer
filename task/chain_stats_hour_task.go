@@ -33,11 +33,11 @@ type ChainStatsTask struct {
 	Task
 }
 
-func NewChainStatsTask(dbc *storage.DBClient) *ChainStatsTask {
+func NewChainStatsTask(rpcServer *jsonrpc.RpcServer, dbc *storage.DBClient) *ChainStatsTask {
 	task := &ChainStatsTask{
 		Task{
-			service: jsonrpc.GetService(),
 			dbc:     dbc,
+			service: jsonrpc.NewService(rpcServer),
 		},
 	}
 	return task
@@ -57,7 +57,9 @@ func (t *ChainStatsTask) Exec() {
 			}
 			xylog.Logger.Infof("db chains = %v", chains)
 
-			t.service.GetAllChain()
+			cc, _ := t.service.GetAllChain()
+			xylog.Logger.Infof("service chains = %v", cc)
+
 		}
 	}
 }

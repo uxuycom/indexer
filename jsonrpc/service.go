@@ -25,9 +25,6 @@ func NewService(rpcServer *RpcServer) *Service {
 		rpcServer: rpcServer,
 	}
 }
-func GetService() *Service {
-	return service
-}
 
 func (s *Service) GetAddressBalances(limit, offset int, address, chain, protocol, tick string, key string,
 	sort int) (interface{}, error) {

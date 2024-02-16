@@ -74,7 +74,7 @@ func main() {
 	jsonrpc.NewService(server)
 
 	// init task
-	task.InitTask(dbc)
+	task.InitTask(server, dbc)
 
 	//start server
 	server.Start()

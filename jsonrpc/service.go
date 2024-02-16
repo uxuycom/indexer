@@ -11,18 +11,36 @@ import (
 	"strings"
 )
 
-func getAddressBalances(s *RpcServer, limit, offset int, address, chain, protocol, tick string, key string,
+type Service struct {
+	rpcServer *RpcServer
+}
+
+var service *Service
+
+func NewService(rpcServer *RpcServer) *Service {
+	if service != nil {
+		return service
+	}
+	return &Service{
+		rpcServer: rpcServer,
+	}
+}
+func GetService() *Service {
+	return service
+}
+
+func (s *Service) GetAddressBalances(limit, offset int, address, chain, protocol, tick string, key string,
 	sort int) (interface{}, error) {
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
 	cacheKey := fmt.Sprintf("addr_balances_%d_%d_%s_%s_%s_%s_%d", limit, offset, address, chain, protocol, tick, sort)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*FindUserBalancesResponse); ok {
 			return allIns, nil
 		}
 	}
 
-	balances, total, err := s.dbc.GetAddressInscriptions(limit, offset, address, chain, protocol, tick, key, sort)
+	balances, total, err := s.rpcServer.dbc.GetAddressInscriptions(limit, offset, address, chain, protocol, tick, key, sort)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -47,21 +65,21 @@ func getAddressBalances(s *RpcServer, limit, offset int, address, chain, protoco
 		Limit:        limit,
 		Offset:       offset,
 	}
-	s.cacheStore.Set(cacheKey, resp)
+	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
-func getInscriptions(s *RpcServer, limit, offset int, chain, protocol, tick, deployBy string, sort,
+func (s *Service) GetInscriptions(limit, offset int, chain, protocol, tick, deployBy string, sort,
 	sortMode int) (interface{}, error) {
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
 	cacheKey := fmt.Sprintf("all_ins_%d_%d_%s_%s_%s_%s_%d_%d", limit, offset, chain, protocol, tick, deployBy, sort, sortMode)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*IndsGetAllInscriptionsResponse); ok {
 			return allIns, nil
 		}
 	}
-	inscriptions, total, err := s.dbc.GetInscriptions(limit, offset, chain, protocol, tick, deployBy, sort, sortMode)
+	inscriptions, total, err := s.rpcServer.dbc.GetInscriptions(limit, offset, chain, protocol, tick, deployBy, sort, sortMode)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -109,22 +127,23 @@ func getInscriptions(s *RpcServer, limit, offset int, chain, protocol, tick, dep
 		Limit:        limit,
 		Offset:       offset,
 	}
-	s.cacheStore.Set(cacheKey, resp)
+	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
-func getTickHolders(s *RpcServer, limit int, offset int, chain, protocol, tick string, sortMode int) (interface{},
+func (s *Service) GetTickHolders(limit int, offset int, chain, protocol, tick string,
+	sortMode int) (interface{},
 	error) {
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
 	cacheKey := fmt.Sprintf("all_ins_%d_%d_%s_%s_%s_%d", limit, offset, chain, protocol, tick, sortMode)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*FindTickHoldersResponse); ok {
 			return allIns, nil
 		}
 	}
 
-	holders, total, err := s.dbc.GetHoldersByTick(limit, offset, chain, protocol, tick, sortMode)
+	holders, total, err := s.rpcServer.dbc.GetHoldersByTick(limit, offset, chain, protocol, tick, sortMode)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -148,23 +167,24 @@ func getTickHolders(s *RpcServer, limit int, offset int, chain, protocol, tick s
 		Offset:  offset,
 	}
 
-	s.cacheStore.Set(cacheKey, resp)
+	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
-func getTransactions(s *RpcServer, address string, tick string, limit int, offset int, sortMode int) (interface{},
+func (s *Service) GetTransactions(address string, tick string, limit int, offset int,
+	sortMode int) (interface{},
 	error) {
 
 	address = strings.ToLower(address)
 	tick = strings.ToLower(tick)
 
 	cacheKey := fmt.Sprintf("all_transactions_%d_%d_%s_%s_%d", limit, offset, address, tick, sortMode)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if transactions, ok := ins.(*CommonResponse); ok {
 			return transactions, nil
 		}
 	}
-	txs, total, err := s.dbc.GetTransactions(address, tick, limit, offset, sortMode)
+	txs, total, err := s.rpcServer.dbc.GetTransactions(address, tick, limit, offset, sortMode)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -196,13 +216,13 @@ func getTransactions(s *RpcServer, address string, tick string, limit int, offse
 		Limit:  limit,
 		Offset: offset,
 	}
-	s.cacheStore.Set(cacheKey, resp)
+	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
-func getInscriptionsStats(s *RpcServer, limit int, offset int, sortMode int) (interface{},
+func (s *Service) GetInscriptionsStats(limit int, offset int, sortMode int) (interface{},
 	error) {
-	txs, total, err := s.dbc.GetInscriptionStatsList(limit, offset, sortMode)
+	txs, total, err := s.rpcServer.dbc.GetInscriptionStatsList(limit, offset, sortMode)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -216,62 +236,62 @@ func getInscriptionsStats(s *RpcServer, limit int, offset int, sortMode int) (in
 	return resp, nil
 }
 
-func search(s *RpcServer, keyword, chain string) (interface{}, error) {
+func (s *Service) Search(keyword, chain string) (interface{}, error) {
 
 	result := &SearchResult{}
 	if len(keyword) <= 10 {
 		// Inscription
-		inscriptions, _ := getInscriptions(s, 10, 0, chain, "", keyword, "", 2, 0)
+		inscriptions, _ := s.GetInscriptions(10, 0, chain, "", keyword, "", 2, 0)
 		result.Data = inscriptions
 		result.Type = "Inscription"
 	}
 	if strings.HasPrefix(keyword, "0x") {
 		if len(keyword) == 42 {
 			// address
-			address, _, _ := s.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
+			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
 			result.Data = address
 			result.Type = "Address"
 		}
 		if len(keyword) == 66 {
 			// tx hash
-			result.Data, _ = s.dbc.FindBalanceByTxHash(keyword)
+			result.Data, _ = s.rpcServer.dbc.FindBalanceByTxHash(keyword)
 			result.Type = "TxHash"
 		}
 	} else {
 		if len(keyword) == 64 {
 			// tx hash
-			result.Data, _ = s.dbc.FindBalanceByTxHash(keyword)
+			result.Data, _ = s.rpcServer.dbc.FindBalanceByTxHash(keyword)
 			result.Type = "tx"
 		} else {
 			// address
-			address, _, _ := s.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
+			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
 			result.Data = address
 			result.Type = "Address"
 		}
 	}
 	return result, nil
 }
-func getAllChain(s *RpcServer) (interface{}, error) {
-	chains, err := s.dbc.GetAllChainFromBlock()
+func (s *Service) GetAllChain() (interface{}, error) {
+	chains, err := s.rpcServer.dbc.GetAllChainFromBlock()
 	if err != nil {
 		return ErrRPCInternal, err
 	}
 	return chains, nil
 }
 
-func getInscriptionByTick(s *RpcServer, protocol string, tick string, chain string) (interface{}, error) {
+func (s *Service) GetInscriptionByTick(protocol string, tick string, chain string) (interface{}, error) {
 
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
 
 	cacheKey := fmt.Sprintf("tick_%s_%s_%s", chain, protocol, tick)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if ticks, ok := ins.(*InscriptionInfo); ok {
 			return ticks, nil
 		}
 	}
 
-	data, err := s.dbc.FindInscriptionByTick(chain, protocol, tick)
+	data, err := s.rpcServer.dbc.FindInscriptionByTick(chain, protocol, tick)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -294,11 +314,12 @@ func getInscriptionByTick(s *RpcServer, protocol string, tick string, chain stri
 		UpdatedAt:    uint32(data.UpdatedAt.Unix()),
 		Decimals:     data.Decimals,
 	}
-	s.cacheStore.Set(cacheKey, resp)
+	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
-func getAddressTransactions(s *RpcServer, protocol string, tick string, chain string, limit int, offset int,
+func (s *Service) GetAddressTransactions(protocol string, tick string, chain string, limit int,
+	offset int,
 	address string, event int8) (interface{}, error) {
 
 	protocol = strings.ToLower(protocol)
@@ -306,13 +327,13 @@ func getAddressTransactions(s *RpcServer, protocol string, tick string, chain st
 
 	cacheKey := fmt.Sprintf("addr_txs_%d_%d_%s_%s_%s_%s_%d", limit, offset, address, chain, tick,
 		tick, event)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*FindUserTransactionsResponse); ok {
 			return allIns, nil
 		}
 	}
 
-	transactions, total, err := s.dbc.GetAddressTxs(limit, offset, address, chain, protocol, tick, event)
+	transactions, total, err := s.rpcServer.dbc.GetAddressTxs(limit, offset, address, chain, protocol, tick, event)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -324,7 +345,7 @@ func getAddressTransactions(s *RpcServer, protocol string, tick string, chain st
 
 	txMap := make(map[string]*model.Transaction)
 	for chain, hashes := range txsHashes {
-		txs, err := s.dbc.GetTxsByHashes(chain, hashes)
+		txs, err := s.rpcServer.dbc.GetTxsByHashes(chain, hashes)
 		if err != nil {
 			xylog.Logger.Error(err)
 			continue
@@ -370,20 +391,20 @@ func getAddressTransactions(s *RpcServer, protocol string, tick string, chain st
 		Limit:        limit,
 		Offset:       offset,
 	}
-	s.cacheStore.Set(cacheKey, resp)
+	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
-func getTxByHash(s *RpcServer, txHash string, chain string) (interface{}, error) {
+func (s *Service) GetTxByHash(txHash string, chain string) (interface{}, error) {
 
 	txHash = strings.ToLower(txHash)
 	cacheKey := fmt.Sprintf("tx_info_%s_%s", chain, txHash)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*GetTxByHashResponse); ok {
 			return allIns, nil
 		}
 	}
-	tx, err := s.dbc.FindTransaction(chain, txHash)
+	tx, err := s.rpcServer.dbc.FindTransaction(chain, txHash)
 	if err != nil {
 		return nil, err
 	}
@@ -406,7 +427,7 @@ func getTxByHash(s *RpcServer, txHash string, chain string) (interface{}, error)
 		To:       tx.To,
 	}
 
-	inscription, err := s.dbc.FindInscriptionByTick(tx.Chain, "", "")
+	inscription, err := s.rpcServer.dbc.FindInscriptionByTick(tx.Chain, "", "")
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -416,7 +437,7 @@ func getTxByHash(s *RpcServer, txHash string, chain string) (interface{}, error)
 	transInfo.DeployHash = inscription.DeployHash
 
 	// get amount from address tx tab
-	addressTx, err := s.dbc.FindAddressTxByHash(chain, txHash)
+	addressTx, err := s.rpcServer.dbc.FindAddressTxByHash(chain, txHash)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -427,11 +448,11 @@ func getTxByHash(s *RpcServer, txHash string, chain string) (interface{}, error)
 
 	resp.IsInscription = true
 	resp.Transaction = transInfo
-	s.cacheStore.Set(cacheKey, resp)
+	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
-func getLastBlockNumber(s *RpcServer, chains []string) (interface{}, error) {
+func (s *Service) GetLastBlockNumber(chains []string) (interface{}, error) {
 
 	var chainsStr string
 	if len(chains) > 0 {
@@ -442,7 +463,7 @@ func getLastBlockNumber(s *RpcServer, chains []string) (interface{}, error) {
 	xylog.Logger.Infof("get last block chainsStr:%v, chains len:%v", chainsStr, len(chains))
 
 	cacheKey := fmt.Sprintf("block_number_%s", chainsStr)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.([]*BlockInfo); ok {
 			return allIns, nil
 		}
@@ -451,14 +472,14 @@ func getLastBlockNumber(s *RpcServer, chains []string) (interface{}, error) {
 	var err error
 	chs := chains
 	if len(chains) == 0 {
-		chs, err = s.dbc.GetAllChainFromBlock()
+		chs, err = s.rpcServer.dbc.GetAllChainFromBlock()
 		if err != nil {
 			chs = []string{}
 		}
 		xylog.Logger.Infof("get last block from db chains:%v", chs)
 	}
 	for _, chain := range chs {
-		block, err := s.dbc.FindLastBlock(chain)
+		block, err := s.rpcServer.dbc.FindLastBlock(chain)
 		if err != nil {
 			return ErrRPCInternal, err
 		}
@@ -470,25 +491,25 @@ func getLastBlockNumber(s *RpcServer, chains []string) (interface{}, error) {
 		}
 		result = append(result, blockInfo)
 	}
-	s.cacheStore.Set(cacheKey, result)
+	s.rpcServer.cacheStore.Set(cacheKey, result)
 	return result, nil
 }
 
-func getTxOperate(s *RpcServer, chain string, inputData string) (interface{}, error) {
+func (s *Service) GetTxOperate(chain string, inputData string) (interface{}, error) {
 	cacheKey := fmt.Sprintf("tx_operate_%s_%s", chain, inputData)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*TxOperateResponse); ok {
 			return allIns, nil
 		}
 	}
-	operate := protocol.GetOperateByTxInput(chain, inputData, s.dbc)
+	operate := protocol.GetOperateByTxInput(chain, inputData, s.rpcServer.dbc)
 	xylog.Logger.Infof("handleGetTxOperate operate =%v, inputdata=%v, chain=%v", operate, inputData, chain)
 	if operate == nil {
 		return nil, errors.New("Record not found")
 	}
 	var deployHash string
 	if operate.Protocol != "" && operate.Tick != "" {
-		inscription, err := s.dbc.FindInscriptionByTick(strings.ToLower(chain),
+		inscription, err := s.rpcServer.dbc.FindInscriptionByTick(strings.ToLower(chain),
 			strings.ToLower(string(operate.Protocol)), strings.ToLower(operate.Tick))
 		if err != nil {
 			xylog.Logger.Errorf("the query for the inscription failed. chain:%s protocol:%s tick:%s err=%s", chain,
@@ -505,21 +526,22 @@ func getTxOperate(s *RpcServer, chain string, inputData string) (interface{}, er
 		Tick:       operate.Tick,
 		DeployHash: deployHash,
 	}
-	s.cacheStore.Set(cacheKey, resp)
+	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
-func getAddressBalance(s *RpcServer, protocol string, chain string, tick string, address string) (interface{}, error) {
+func (s *Service) GetAddressBalance(protocol string, chain string, tick string,
+	address string) (interface{}, error) {
 
 	protocol = strings.ToLower(protocol)
 	tick = strings.ToLower(tick)
 	cacheKey := fmt.Sprintf("addr_balance_%s_%s_%s", chain, protocol, tick)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*BalanceBrief); ok {
 			return allIns, nil
 		}
 	}
-	inscription, err := s.dbc.FindInscriptionByTick(chain, protocol, tick)
+	inscription, err := s.rpcServer.dbc.FindInscriptionByTick(chain, protocol, tick)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -534,7 +556,7 @@ func getAddressBalance(s *RpcServer, protocol string, chain string, tick string,
 	}
 
 	// balance
-	balance, err := s.dbc.FindUserBalanceByTick(chain, protocol, tick, address)
+	balance, err := s.rpcServer.dbc.FindUserBalanceByTick(chain, protocol, tick, address)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -546,7 +568,7 @@ func getAddressBalance(s *RpcServer, protocol string, chain string, tick string,
 	switch inscription.TransferType {
 	case model.TransferTypeHash:
 		// transfer with hash
-		result, err := s.dbc.GetUtxosByAddress(address, chain, protocol, tick)
+		result, err := s.rpcServer.dbc.GetUtxosByAddress(address, chain, protocol, tick)
 		if err != nil {
 			return ErrRPCInternal, err
 		}
@@ -560,11 +582,11 @@ func getAddressBalance(s *RpcServer, protocol string, chain string, tick string,
 		}
 		resp.Utxos = utxos
 	}
-	s.cacheStore.Set(cacheKey, resp)
+	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
 
-func getTickBriefs(s *RpcServer, addresses []*TickAddress) (interface{}, error) {
+func (s *Service) GetTickBriefs(addresses []*TickAddress) (interface{}, error) {
 
 	deployHashGroups := make(map[string][]string)
 	key := ""
@@ -574,7 +596,7 @@ func getTickBriefs(s *RpcServer, addresses []*TickAddress) (interface{}, error) 
 	}
 
 	cacheKey := fmt.Sprintf("tick_briefs_%s", key)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*GetTickBriefsResp); ok {
 			return allIns, nil
 		}
@@ -582,7 +604,7 @@ func getTickBriefs(s *RpcServer, addresses []*TickAddress) (interface{}, error) 
 
 	result := make([]*model.InscriptionOverView, 0, len(addresses))
 	for chain, groups := range deployHashGroups {
-		dbTicks, err := s.dbc.GetInscriptionsByChain(chain, groups)
+		dbTicks, err := s.rpcServer.dbc.GetInscriptionsByChain(chain, groups)
 		if err != nil {
 			continue
 		}
@@ -601,7 +623,7 @@ func getTickBriefs(s *RpcServer, addresses []*TickAddress) (interface{}, error) 
 				Decimals:     dbTick.Decimals,
 				CreatedAt:    dbTick.CreatedAt,
 			}
-			stat, _ := s.dbc.FindInscriptionsStatsByTick(dbTick.Chain, dbTick.Protocol, dbTick.Tick)
+			stat, _ := s.rpcServer.dbc.FindInscriptionsStatsByTick(dbTick.Chain, dbTick.Protocol, dbTick.Tick)
 			if stat != nil {
 				overview.Holders = stat.Holders
 				overview.Minted = stat.Minted
@@ -613,7 +635,7 @@ func getTickBriefs(s *RpcServer, addresses []*TickAddress) (interface{}, error) 
 
 	resp := &GetTickBriefsResp{}
 	resp.Inscriptions = result
-	s.cacheStore.Set(cacheKey, resp)
+	s.rpcServer.cacheStore.Set(cacheKey, resp)
 
 	return resp, nil
 }

@@ -50,7 +50,7 @@ func (t *ChainStatsTask) Exec() {
 	for {
 		select {
 		case <-ticker.C:
-			xylog.Logger.Infof("exec task!")
+			xylog.Logger.Infof("Exec ChainStatsTask  task!")
 			chains, err := t.dbc.GetAllChainFromBlock()
 			if err != nil {
 				xylog.Logger.Errorf("error =%v", err)

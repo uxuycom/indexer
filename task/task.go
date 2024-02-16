@@ -47,7 +47,7 @@ func InitTask(rpcServer *jsonrpc.RpcServer, dbc *storage.DBClient) *Task {
 	}
 
 	for k, v := range task.tasks {
-		xylog.Logger.Infof("task %v start!", k)
+		xylog.Logger.Infof("tasks %v start!", k)
 		tt := v.(ITask)
 		go tt.Exec()
 	}

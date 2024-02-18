@@ -92,7 +92,7 @@ func main() {
 
 func initArgs() {
 
-	pflag.StringVar(&flagConfig, "config", "config_jsonrpc.json", "config file")
+	pflag.StringVarP(&flagConfig, "config", "c", "config_jsonrpc.json", "config file")
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
 }

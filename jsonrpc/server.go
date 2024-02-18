@@ -18,11 +18,8 @@ import (
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/storage"
 	"io"
-	"log"
 	"net"
 	"net/http"
-	"os"
-	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -733,28 +730,6 @@ func NewRPCServer(dbc *storage.DBClient, config *config.JsonRcpConfig) (*RpcServ
 		rpc.limitauthsha = sha256.Sum256([]byte(auth))
 	}
 	return &rpc, nil
-}
-
-func loadCfg() {
-	// Default config.
-	configFileName := "config_jsonrpc.json"
-	if len(os.Args) > 1 {
-		configFileName = os.Args[1]
-	}
-
-	configFileName, _ = filepath.Abs(configFileName)
-	log.Printf("Loading config: %s", configFileName)
-
-	configFile, err := os.Open(configFileName)
-	if err != nil {
-		log.Fatalf("open config file[%s] error[%v]", configFileName, err.Error())
-	}
-
-	defer configFile.Close()
-	jsonParser := json.NewDecoder(configFile)
-	if err := jsonParser.Decode(cfg); err != nil {
-		log.Fatal("load config error: ", err.Error())
-	}
 }
 
 // setupRPCListeners returns a slice of listeners that are configured for use

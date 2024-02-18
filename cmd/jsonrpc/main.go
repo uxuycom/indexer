@@ -39,6 +39,7 @@ import (
 var (
 	cfg        config.JsonRcpConfig
 	flagConfig string
+	env        string // dev/test/prod
 )
 
 func main() {
@@ -46,7 +47,7 @@ func main() {
 	// init args
 	initArgs()
 
-	config.LoadJsonRpcConfig(&cfg, flagConfig)
+	config.LoadJsonRpcConfig(&cfg, flagConfig, env)
 
 	cfgJson, _ := json.Marshal(&cfg)
 	log.Printf("start server with config = %v\n", string(cfgJson))
@@ -91,5 +92,6 @@ func main() {
 
 func initArgs() {
 	flag.StringVar(&flagConfig, "config", "config_jsonrpc.json", "config file")
+	flag.StringVar(&env, "env", "", "env name")
 	flag.Parse()
 }

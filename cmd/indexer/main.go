@@ -47,6 +47,7 @@ import (
 var (
 	cfg        config.Config
 	flagConfig string
+	env        string // dev/test/prod
 )
 
 func main() {
@@ -57,7 +58,7 @@ func main() {
 	initArgs()
 
 	// load configs
-	config.LoadConfig(&cfg, flagConfig)
+	config.LoadConfig(&cfg, flagConfig, env)
 
 	// enable profile
 	if cfg.Profile != nil && cfg.Profile.Enabled {
@@ -112,5 +113,7 @@ func main() {
 
 func initArgs() {
 	flag.StringVar(&flagConfig, "config", "config.json", "config file")
+	flag.StringVar(&env, "env", "", "env name")
+
 	flag.Parse()
 }

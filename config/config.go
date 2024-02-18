@@ -91,7 +91,7 @@ type CacheConfig struct {
 	Duration    uint32 `json:"duration"`
 }
 
-func LoadConfig(cfg *Config, filePath string) {
+func LoadConfig(cfg *Config, filePath string, env string) {
 	// Default config.
 	configFileName := "config.json"
 	if len(os.Args) > 1 {
@@ -104,6 +104,10 @@ func LoadConfig(cfg *Config, filePath string) {
 	if filePath != "" {
 		configFileName = filePath
 	}
+	if len(env) > 0 {
+		configFileName = env + "_" + filePath
+	}
+
 	configFile, err := os.Open(configFileName)
 	if err != nil {
 		log.Fatal("File error: ", err.Error())
@@ -117,7 +121,7 @@ func LoadConfig(cfg *Config, filePath string) {
 	}
 }
 
-func LoadJsonRpcConfig(cfg *JsonRcpConfig, filePath string) {
+func LoadJsonRpcConfig(cfg *JsonRcpConfig, filePath string, env string) {
 	// Default config.
 	configFileName := "config_jsonrpc.json"
 	if len(os.Args) > 1 {
@@ -129,6 +133,9 @@ func LoadJsonRpcConfig(cfg *JsonRcpConfig, filePath string) {
 
 	if filePath != "" {
 		configFileName = filePath
+	}
+	if len(env) > 0 {
+		configFileName = env + "_" + filePath
 	}
 	configFile, err := os.Open(configFileName)
 	if err != nil {

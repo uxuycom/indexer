@@ -65,7 +65,7 @@ func main() {
 		return
 	}
 	//init server
-	server, err := jsonrpc.NewRPCServer(dbc, cfg.CacheStore)
+	server, err := jsonrpc.NewRPCServer(dbc, &cfg)
 	if err != nil {
 		log.Fatalf("server init err[%v]", err)
 	}

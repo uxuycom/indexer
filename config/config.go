@@ -23,26 +23,25 @@
 package config
 
 import (
-	"encoding/json"
+	"github.com/spf13/viper"
 	"github.com/uxuycom/indexer/model"
 	"log"
-	"os"
 	"path/filepath"
 )
 
 type ScanConfig struct {
-	StartBlock        uint64 `json:"start_block"`
-	BlockBatchWorkers uint64 `json:"block_batch_workers"`
-	TxBatchWorkers    uint64 `json:"tx_batch_workers"`
-	DelayedBlockNum   uint64 `json:"delayed_block_num"`
+	StartBlock        uint64 `json:"start_block" mapstructure:"start_block"`
+	BlockBatchWorkers uint64 `json:"block_batch_workers" mapstructure:"block_batch_workers"`
+	TxBatchWorkers    uint64 `json:"tx_batch_workers" mapstructure:"tx_batch_workers"`
+	DelayedBlockNum   uint64 `json:"delayed_block_num" mapstructure:"delayed_block_num"`
 }
 
 type ChainConfig struct {
-	ChainName  string           `json:"chain_name"`
+	ChainName  string           `json:"chain_name" mapstructure:"chain_name"`
 	Rpc        string           `json:"rpc"`
 	UserName   string           `json:"username"`
 	PassWord   string           `json:"password"`
-	ChainGroup model.ChainGroup `json:"chain_group"`
+	ChainGroup model.ChainGroup `json:"chain_group" mapstructure:"chain_group"`
 }
 
 type IndexFilter struct {
@@ -50,14 +49,14 @@ type IndexFilter struct {
 		Ticks     []string `json:"ticks"`
 		Protocols []string `json:"protocols"`
 	} `json:"whitelist"`
-	EventTopics []string `json:"event_topics"`
+	EventTopics []string `json:"event_topics" mapstructure:"event_topics"`
 }
 
 // DatabaseConfig database config
 type DatabaseConfig struct {
 	Type      string `json:"type"`
 	Dsn       string `json:"dsn"`
-	EnableLog bool   `json:"enable_log"`
+	EnableLog bool   `json:"enable_log" mapstructure:"enable_log"`
 }
 
 type ProfileConfig struct {
@@ -68,8 +67,8 @@ type ProfileConfig struct {
 type Config struct {
 	Scan     ScanConfig     `json:"scan"`
 	Chain    ChainConfig    `json:"chain"`
-	LogLevel string         `json:"log_level"`
-	LogPath  string         `json:"log_path"`
+	LogLevel string         `json:"log_level" mapstructure:"log_level"`
+	LogPath  string         `json:"log_path" mapstructure:"log_path"`
 	Filters  *IndexFilter   `json:"filters"`
 	Database DatabaseConfig `json:"database"`
 	Profile  *ProfileConfig `json:"profile"`
@@ -78,76 +77,53 @@ type Config struct {
 type JsonRcpConfig struct {
 	RpcListen     []string       `json:"rpclisten"`
 	RpcMaxClients int64          `json:"rpcmaxclients"`
-	LogLevel      string         `json:"log_level"`
-	LogPath       string         `json:"log_path"`
+	LogLevel      string         `json:"log_level" mapstructure:"log_level"`
+	LogPath       string         `json:"log_path" mapstructure:"log_path"`
 	Database      DatabaseConfig `json:"database"`
 	Profile       *ProfileConfig `json:"profile"`
-	CacheStore    *CacheConfig   `json:"cache_store"`
+	CacheStore    *CacheConfig   `json:"cache_store" mapstructure:"cache_store"`
 }
 
 type CacheConfig struct {
 	Started     bool   `json:"started"`
-	MaxCapacity int64  `json:"max_capacity"`
+	MaxCapacity int64  `json:"max_capacity" mapstructure:"max_capacity"`
 	Duration    uint32 `json:"duration"`
 }
 
-func LoadConfig(cfg *Config, filePath string, env string) {
-	// Default config.
-	configFileName := "config.json"
-	if len(os.Args) > 1 {
-		configFileName = os.Args[1]
-	}
+func LoadConfig(cfg *Config, configFile string) {
 
-	configFileName, _ = filepath.Abs(configFileName)
-	log.Printf("Loading config: %v", configFileName)
+	fileName := filepath.Base(configFile)
+	viper.SetConfigFile(fileName)
+	viper.SetConfigType("json")
 
-	if filePath != "" {
-		configFileName = filePath
-	}
-	if len(env) > 0 {
-		configFileName = env + "_" + filePath
-	}
+	dir := filepath.Dir(configFile)
+	viper.AddConfigPath(dir)
 
-	configFile, err := os.Open(configFileName)
-	if err != nil {
-		log.Fatal("File error: ", err.Error())
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Read file error, error:%v", err.Error())
 	}
-	defer func() {
-		_ = configFile.Close()
-	}()
-	jsonParser := json.NewDecoder(configFile)
-	if err := jsonParser.Decode(&cfg); err != nil {
-		log.Fatal("Config error: ", err.Error())
+	if err := viper.Unmarshal(&cfg); err != nil {
+		log.Fatalf("Unmarshal config fail! error:%v ", err)
 	}
+	viper.WatchConfig()
 }
 
-func LoadJsonRpcConfig(cfg *JsonRcpConfig, filePath string, env string) {
-	// Default config.
-	configFileName := "config_jsonrpc.json"
-	if len(os.Args) > 1 {
-		configFileName = os.Args[1]
-	}
+func LoadJsonRpcConfig(cfg *JsonRcpConfig, configFile string) {
 
-	configFileName, _ = filepath.Abs(configFileName)
-	log.Printf("Loading config: %v", configFileName)
+	fileName := filepath.Base(configFile)
+	viper.SetConfigFile(fileName)
+	viper.SetConfigType("json")
 
-	if filePath != "" {
-		configFileName = filePath
+	dir := filepath.Dir(configFile)
+	viper.AddConfigPath(dir)
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Read file error, error:%v", err.Error())
 	}
-	if len(env) > 0 {
-		configFileName = env + "_" + filePath
+	if err := viper.Unmarshal(&cfg); err != nil {
+		log.Fatalf("Unmarshal config fail! error:%v ", err)
 	}
-	configFile, err := os.Open(configFileName)
-	if err != nil {
-		log.Fatal("File error: ", err.Error())
-	}
-	defer func() {
-		_ = configFile.Close()
-	}()
-	jsonParser := json.NewDecoder(configFile)
-	if err := jsonParser.Decode(&cfg); err != nil {
-		log.Fatal("Config error: ", err.Error())
-	}
+	viper.WatchConfig()
 }
 
 func (cfg *JsonRcpConfig) GetConfig() *JsonRcpConfig {

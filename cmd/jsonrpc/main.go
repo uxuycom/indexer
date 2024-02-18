@@ -26,6 +26,7 @@ import (
 	"encoding/json"
 	"flag"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/jsonrpc"
 	"github.com/uxuycom/indexer/storage"
@@ -39,7 +40,6 @@ import (
 var (
 	cfg        config.JsonRcpConfig
 	flagConfig string
-	env        string // dev/test/prod
 )
 
 func main() {
@@ -47,7 +47,7 @@ func main() {
 	// init args
 	initArgs()
 
-	config.LoadJsonRpcConfig(&cfg, flagConfig, env)
+	config.LoadJsonRpcConfig(&cfg, flagConfig)
 
 	cfgJson, _ := json.Marshal(&cfg)
 	log.Printf("start server with config = %v\n", string(cfgJson))
@@ -91,7 +91,8 @@ func main() {
 }
 
 func initArgs() {
-	flag.StringVar(&flagConfig, "config", "config_jsonrpc.json", "config file")
-	flag.StringVar(&env, "env", "", "env name")
-	flag.Parse()
+
+	pflag.StringVar(&flagConfig, "config", "config_jsonrpc.json", "config file")
+	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
+	pflag.Parse()
 }

@@ -26,16 +26,16 @@ import (
 	"context"
 	"flag"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
 	"github.com/uxuycom/indexer/client"
-	"github.com/uxuycom/indexer/devents"
-	"github.com/uxuycom/indexer/protocol"
-	"github.com/uxuycom/indexer/task"
-	"github.com/uxuycom/indexer/xylog"
-
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/dcache"
+	"github.com/uxuycom/indexer/devents"
 	"github.com/uxuycom/indexer/explorer"
+	"github.com/uxuycom/indexer/protocol"
 	"github.com/uxuycom/indexer/storage"
+	"github.com/uxuycom/indexer/task"
+	"github.com/uxuycom/indexer/xylog"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -47,7 +47,6 @@ import (
 var (
 	cfg        config.Config
 	flagConfig string
-	env        string // dev/test/prod
 )
 
 func main() {
@@ -58,7 +57,7 @@ func main() {
 	initArgs()
 
 	// load configs
-	config.LoadConfig(&cfg, flagConfig, env)
+	config.LoadConfig(&cfg, flagConfig)
 
 	// enable profile
 	if cfg.Profile != nil && cfg.Profile.Enabled {
@@ -112,8 +111,8 @@ func main() {
 }
 
 func initArgs() {
-	flag.StringVar(&flagConfig, "config", "config.json", "config file")
-	flag.StringVar(&env, "env", "", "env name")
 
-	flag.Parse()
+	pflag.StringVar(&flagConfig, "config", "config.json", "config file")
+	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
+	pflag.Parse()
 }

@@ -683,13 +683,6 @@ func NewRPCServer(dbc *storage.DBClient, config *config.JsonRcpConfig) (*RpcServ
 	// load cfg
 	cfg = config
 
-	//init xylog
-	//l, err := logrus.ParseLevel(cfg.DebugLevel)
-	//if err != nil {
-	//	log.Fatalf("debug_level err:%v", err)
-	//}
-	//logrus.SetLevel(l)
-
 	// Setup listeners for the configured RPC listen addresses and
 	// TLS settings.
 	rpcListeners, err := setupRPCListeners()

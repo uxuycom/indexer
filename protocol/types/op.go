@@ -42,7 +42,7 @@ const (
 	DefaultMaxDataLength = 256
 )
 
-// DefaultMaxDataLengthMap max data length
+// DefaultMaxDataLengthMap max data length config
 var DefaultMaxDataLengthMap = map[string]int{
 	BRC20Protocol: 256,
 	ASC20Protocol: 256,

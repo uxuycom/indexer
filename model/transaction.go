@@ -115,6 +115,7 @@ type Transaction struct {
 	TxHash          []byte    `json:"tx_hash" gorm:"column:tx_hash"`                     // tx hash
 	From            string    `json:"from" gorm:"column:from"`                           // from address
 	To              string    `json:"to" gorm:"column:to"`                               // to address
+	Op              string    `json:"op" gorm:"column:op"`                               // op code
 	Gas             int64     `json:"gas" gorm:"column:gas"`                             // gas
 	GasPrice        int64     `json:"gas_price" gorm:"column:gas_price"`                 // gas price
 	Status          int8      `json:"status" gorm:"column:status"`                       // tx status

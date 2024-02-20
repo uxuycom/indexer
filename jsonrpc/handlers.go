@@ -27,6 +27,7 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_search":                    indsSearch,
 	"inds_getAllChains":              indsGetAllChains,
 	"inds_getTicks":                  indsGetTicks,
+	"inds_getTick":                   indsGetTick,
 	"inds_getTransactions":           indsGetTransactions,
 	"inds_getTransactionByAddress":   indsGetAddressTransactions,
 	"inds_getTransactionByHash":      indsGetTxByHash,
@@ -94,6 +95,18 @@ func indsGetTicks(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (int
 	svr := NewService(s)
 	return svr.GetInscriptions(req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort,
 		req.SortMode)
+}
+
+func indsGetTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*IndsGetTickCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("find Inscription cmd params:%v", req)
+
+	svr := NewService(s)
+
+	return svr.GetInscription(req.Chain, req.Protocol, req.Tick, req.DeployHash)
 }
 
 func indsGetBalancesByAddress(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {

@@ -395,6 +395,36 @@ func (conn *DBClient) GetInscriptions(limit, offset int, chain, protocol, tick, 
 	return data, total, nil
 }
 
+func (conn *DBClient) FindInscriptionInfo(chain, protocol, tick, deployHash string) (*model.InscriptionOverView, error) {
+	var inscription model.InscriptionOverView
+	result := conn.SqlDB.Model(&model.Inscriptions{}).
+		Select("inscriptions.*, inscriptions_stats.*, (inscriptions_stats.minted / inscriptions.total_supply) as progress").
+		Joins("left join inscriptions_stats ON inscriptions.chain = inscriptions_stats.chain AND inscriptions.protocol = inscriptions_stats.protocol AND inscriptions.tick = inscriptions_stats.tick")
+
+	if chain != "" {
+		result = result.Where("inscriptions.chain = ?", chain)
+	}
+	if protocol != "" {
+		result = result.Where("inscriptions.protocol = ?", protocol)
+	}
+	if tick != "" {
+		result = result.Where("inscriptions.tick = ?", tick)
+	}
+	if deployHash != "" {
+		result = result.Where("inscriptions.deploy_hash = ?", deployHash)
+	}
+
+	err := result.First(&inscription).Error
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &inscription, nil
+}
+
 func (conn *DBClient) GetInscriptionsByIdLimit(chain string, start uint64, limit int) ([]model.Inscriptions, error) {
 	inscriptions := make([]model.Inscriptions, 0)
 	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ?", start).Order("id asc").Limit(limit).Find(&inscriptions).Error

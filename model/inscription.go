@@ -110,6 +110,7 @@ type InscriptionOverView struct {
 	Holders      uint64          `json:"holders" gorm:"column:holders"`
 	Minted       decimal.Decimal `gorm:"column:minted;type:decimal(38,18)" json:"minted"`
 	TxCnt        uint64          `gorm:"column:tx_cnt" json:"tx_cnt"`
+	Progress     decimal.Decimal `gorm:"column:progress;type:decimal(36,18)" json:"progress"` // mint进度
 }
 
 type InscriptionBrief struct {

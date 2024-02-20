@@ -29,6 +29,7 @@ import (
 	"github.com/uxuycom/indexer/storage"
 	"github.com/uxuycom/indexer/xylog"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -82,10 +83,20 @@ func (t *ChainStatsTask) Exec() {
 					chainStat.BalanceLastId = t.cfg.Stat.BalanceStartId
 					chainStat.Chain = c.Chain
 				}
-				// address
-				go HandleAddress(t, chainStat, chainStatHour, limit, nowHour, lastHour)
-				// balance
-				go HandleBalance(t, chainStat, chainStatHour, limit, nowHour, lastHour)
+
+				var wg sync.WaitGroup
+				go func() {
+					wg.Done()
+					// address
+					HandleAddress(t, chainStat, chainStatHour, limit, nowHour, lastHour)
+				}()
+
+				go func() {
+					// balance
+					wg.Done()
+					HandleBalance(t, chainStat, chainStatHour, limit, nowHour, lastHour)
+				}()
+				wg.Wait()
 
 				// inscriptions
 				inscriptions, _ := t.dbc.FindInscriptionsTxByIdAndChainAndLimit(chainStat.Chain, nowHour, lastHour)

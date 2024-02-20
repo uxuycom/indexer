@@ -90,14 +90,14 @@ func (t *ChainStatsTask) Exec() {
 				var wg sync.WaitGroup
 				wg.Add(2)
 				go func() {
-					wg.Done()
+					defer wg.Done()
 					// address
 					HandleAddress(t, chainStat, chainStatHour, nowHour, lastHour)
 				}()
 
 				go func() {
 					// balance
-					wg.Done()
+					defer wg.Done()
 					HandleBalance(t, chainStat, chainStatHour, nowHour, lastHour)
 				}()
 				wg.Wait()

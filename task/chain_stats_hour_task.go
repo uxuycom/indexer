@@ -85,6 +85,7 @@ func (t *ChainStatsTask) Exec() {
 				}
 
 				var wg sync.WaitGroup
+				wg.Add(2)
 				go func() {
 					wg.Done()
 					// address

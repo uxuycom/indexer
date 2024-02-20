@@ -56,18 +56,17 @@ func (t *ChainStatsTask) Exec() {
 			xylog.Logger.Infof("Exec ChainStatsTask  task!")
 			chains, _ := t.dbc.FindAllChain()
 			limit := 5000
+			// get current hour and next hour
+			now := time.Now()
 			for _, c := range chains {
-				chainStatHour := &model.ChainStatHour{}
-				chainStatHour.AddressCount = 0
-				chainStatHour.InscriptionsCount = 0
-				chainStatHour.BalanceSum = decimal.NewFromInt(0)
-
-				chainStatHour.Chain = c.Chain
-
-				// get current hour and next hour
-				now := time.Now()
-				chainStatHour.CreatedAt = now
-				chainStatHour.UpdatedAt = now
+				chainStatHour := &model.ChainStatHour{
+					AddressCount:      0,
+					InscriptionsCount: 0,
+					BalanceSum:        decimal.NewFromInt(0),
+					Chain:             c.Chain,
+					CreatedAt:         now,
+					UpdatedAt:         now,
+				}
 
 				nowHour := now.Truncate(time.Hour)
 				lastHour := now.Add(-1 * time.Hour).Truncate(time.Hour)

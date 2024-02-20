@@ -83,31 +83,13 @@ func (t *ChainStatsTask) Exec() {
 					chainStat.Chain = c.Chain
 				}
 				// address
-				addressIndex := chainStat.AddressLastId
-				addresses, _ := t.dbc.FindAddressTxByIdAndChainAndLimit(chainStat.Chain, addressIndex, limit)
-				for {
-					if len(addresses) > 0 {
-						for _, a := range addresses {
-							if a.CreatedAt.After(nowHour) {
-								break
-							}
-							if a.CreatedAt.Before(nowHour) && a.CreatedAt.After(lastHour) {
-								chainStatHour.AddressCount++
-								chainStatHour.AddressLastId = a.ID
-							}
-							addressIndex = a.ID
-						}
-						addresses, _ = t.dbc.FindAddressTxByIdAndChainAndLimit(chainStat.Chain, addressIndex, limit)
-					} else {
-						break
-					}
-				}
-				// inscriptions
-				inscriptions, _ := t.dbc.FindInscriptionsTxByIdAndChainAndLimit(chainStat.Chain, nowHour, lastHour)
-				chainStatHour.InscriptionsCount = uint32(len(inscriptions))
+				go HandleAddress(t, chainStat, chainStatHour, limit, nowHour, lastHour)
 				// balance
 				go HandleBalance(t, chainStat, chainStatHour, limit, nowHour, lastHour)
 
+				// inscriptions
+				inscriptions, _ := t.dbc.FindInscriptionsTxByIdAndChainAndLimit(chainStat.Chain, nowHour, lastHour)
+				chainStatHour.InscriptionsCount = uint32(len(inscriptions))
 				// add stat
 				err := t.dbc.AddChainStatHour(chainStatHour)
 				if err != nil {
@@ -119,6 +101,27 @@ func (t *ChainStatsTask) Exec() {
 		}
 	}
 }
+func HandleAddress(t *ChainStatsTask, chainStat, chainStatHour *model.ChainStatHour,
+	limit int, nowHour, lastHour time.Time) *model.ChainStatHour {
+
+	addresses, _ := t.dbc.FindAddressTxByIdAndChainAndLimit(chainStat.Chain, chainStat.AddressLastId, limit)
+	if len(addresses) > 0 {
+		for _, a := range addresses {
+			if a.CreatedAt.After(nowHour) {
+				return chainStatHour
+			}
+			if a.CreatedAt.Before(nowHour) && a.CreatedAt.After(lastHour) {
+				chainStatHour.AddressCount++
+				chainStatHour.AddressLastId = a.ID
+			}
+			chainStat.AddressLastId = a.ID
+		}
+		return HandleAddress(t, chainStat, chainStatHour, limit, nowHour, lastHour)
+	} else {
+		return chainStatHour
+	}
+}
+
 func HandleBalance(t *ChainStatsTask, chainStat, chainStatHour *model.ChainStatHour,
 	limit int, nowHour, lastHour time.Time) *model.ChainStatHour {
 

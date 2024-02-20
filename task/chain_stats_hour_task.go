@@ -37,6 +37,10 @@ type ChainStatsTask struct {
 	Task
 }
 
+const (
+	limit = 5000
+)
+
 func NewChainStatsTask(dbc *storage.DBClient, cfg *config.Config) *ChainStatsTask {
 	task := &ChainStatsTask{
 		Task{
@@ -56,7 +60,6 @@ func (t *ChainStatsTask) Exec() {
 		case <-ticker.C:
 			xylog.Logger.Infof("Exec ChainStatsTask  task!")
 			chains, _ := t.dbc.FindAllChain()
-			limit := 5000
 			// get current hour and next hour
 			now := time.Now()
 			for _, c := range chains {
@@ -89,13 +92,13 @@ func (t *ChainStatsTask) Exec() {
 				go func() {
 					wg.Done()
 					// address
-					HandleAddress(t, chainStat, chainStatHour, limit, nowHour, lastHour)
+					HandleAddress(t, chainStat, chainStatHour, nowHour, lastHour)
 				}()
 
 				go func() {
 					// balance
 					wg.Done()
-					HandleBalance(t, chainStat, chainStatHour, limit, nowHour, lastHour)
+					HandleBalance(t, chainStat, chainStatHour, nowHour, lastHour)
 				}()
 				wg.Wait()
 
@@ -114,7 +117,7 @@ func (t *ChainStatsTask) Exec() {
 	}
 }
 func HandleAddress(t *ChainStatsTask, chainStat, chainStatHour *model.ChainStatHour,
-	limit int, nowHour, lastHour time.Time) *model.ChainStatHour {
+	nowHour, lastHour time.Time) *model.ChainStatHour {
 
 	addresses, _ := t.dbc.FindAddressTxByIdAndChainAndLimit(chainStat.Chain, chainStat.AddressLastId, limit)
 	if len(addresses) > 0 {
@@ -128,14 +131,14 @@ func HandleAddress(t *ChainStatsTask, chainStat, chainStatHour *model.ChainStatH
 			}
 			chainStat.AddressLastId = a.ID
 		}
-		return HandleAddress(t, chainStat, chainStatHour, limit, nowHour, lastHour)
+		return HandleAddress(t, chainStat, chainStatHour, nowHour, lastHour)
 	} else {
 		return chainStatHour
 	}
 }
 
 func HandleBalance(t *ChainStatsTask, chainStat, chainStatHour *model.ChainStatHour,
-	limit int, nowHour, lastHour time.Time) *model.ChainStatHour {
+	nowHour, lastHour time.Time) *model.ChainStatHour {
 
 	balances, _ := t.dbc.FindBalanceTxByIdAndChainAndLimit(chainStat.Chain, chainStat.BalanceLastId, limit)
 	if len(balances) > 0 {
@@ -149,7 +152,7 @@ func HandleBalance(t *ChainStatsTask, chainStat, chainStatHour *model.ChainStatH
 			}
 			chainStat.BalanceLastId = b.ID
 		}
-		return HandleBalance(t, chainStat, chainStatHour, limit, nowHour, lastHour)
+		return HandleBalance(t, chainStat, chainStatHour, nowHour, lastHour)
 	} else {
 		return chainStatHour
 	}

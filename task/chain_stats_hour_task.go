@@ -106,7 +106,8 @@ func (t *ChainStatsTask) Exec() {
 				inscriptions, _ := t.dbc.FindInscriptionsTxByIdAndChainAndLimit(chainStat.Chain, nowHour, lastHour)
 				chainStatHour.InscriptionsCount = uint32(len(inscriptions))
 				// balance
-				HandleBalance(t, chainStat, chainStatHour, limit, nowHour, lastHour)
+				go HandleBalance(t, chainStat, chainStatHour, limit, nowHour, lastHour)
+
 				// add stat
 				err := t.dbc.AddChainStatHour(chainStatHour)
 				if err != nil {

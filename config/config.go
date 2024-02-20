@@ -44,6 +44,11 @@ type ChainConfig struct {
 	ChainGroup model.ChainGroup `json:"chain_group" mapstructure:"chain_group"`
 }
 
+type StatConfig struct {
+	AddressStartId uint64 `json:"address_start_id"`
+	BalanceStartId uint64 `json:"balance_start_id"`
+}
+
 type IndexFilter struct {
 	Whitelist *struct {
 		Ticks     []string `json:"ticks"`
@@ -72,6 +77,7 @@ type Config struct {
 	Filters  *IndexFilter   `json:"filters"`
 	Database DatabaseConfig `json:"database"`
 	Profile  *ProfileConfig `json:"profile"`
+	Stat     *StatConfig    `json:"stat"`
 }
 
 type JsonRcpConfig struct {

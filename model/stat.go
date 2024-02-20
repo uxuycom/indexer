@@ -18,38 +18,28 @@
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE
+//SOFTWARE
 
-package task
+package model
 
 import (
-	"github.com/uxuycom/indexer/config"
-	"github.com/uxuycom/indexer/storage"
-	"github.com/uxuycom/indexer/xylog"
+	"github.com/shopspring/decimal"
+	"time"
 )
 
-type Task struct {
-	dbc   *storage.DBClient
-	cfg   *config.Config
-	tasks map[string]interface{}
+type ChainStatHour struct {
+	ID                uint64          `gorm:"primaryKey" json:"id"`
+	Chain             string          `json:"chain" gorm:"column:chain"`
+	DateHour          uint32          `json:"date_hour" gorm:"column:date_hour"`
+	AddressCount      uint32          `json:"address_count" gorm:"column:address_count"`
+	AddressLastId     uint64          `json:"address_last_id" gorm:"column:address_last_id"`
+	InscriptionsCount uint32          `json:"inscriptions_count" gorm:"column:inscriptions_count"`
+	BalanceSum        decimal.Decimal `json:"balance_amount_sum" gorm:"column:balance_amount_sum;type:decimal(38,18)"`
+	BalanceLastId     uint64          `json:"balance_last_id" gorm:"column:balance_last_id"`
+	CreatedAt         time.Time       `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt         time.Time       `json:"updated_at" gorm:"column:updated_at"`
 }
 
-type ITask interface {
-	Exec()
-}
-
-func InitTask(dbc *storage.DBClient, cfg *config.Config) *Task {
-
-	task := &Task{
-		tasks: map[string]interface{}{
-			"chain_stats_tak": NewChainStatsTask(dbc, cfg), // add new task here
-		},
-	}
-
-	for k, v := range task.tasks {
-		xylog.Logger.Infof("tasks %v start!", k)
-		t := v.(ITask)
-		go t.Exec()
-	}
-	return task
+func (ChainStatHour) TableName() string {
+	return "chain_stats_hour"
 }

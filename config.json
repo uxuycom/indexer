@@ -37,5 +37,9 @@
   "profile": {
     "enabled": false,
     "listen": ":6060"
+  },
+  "stat": {
+    "address_start_id": 1,
+    "balance_start_id": 1
   }
 }

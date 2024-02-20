@@ -83,6 +83,15 @@ func (InscriptionsStats) TableName() string {
 	return "inscriptions_stats"
 }
 
+type AllChain struct {
+	Chain string `json:"chain"`
+	count uint32 `json:"count"`
+}
+
+func (AllChain) TableName() string {
+	return "inscriptions"
+}
+
 type InscriptionOverView struct {
 	ID           uint32          `gorm:"primaryKey" json:"id"`
 	Chain        string          `json:"chain" gorm:"column:chain"`

@@ -32,6 +32,7 @@ import (
 	"math/big"
 	"reflect"
 	"strings"
+	"time"
 )
 
 const (
@@ -734,4 +735,54 @@ func (conn *DBClient) FindInscriptionsStatsByTick(chain string, protocol string,
 	}
 
 	return inscriptionStats, nil
+}
+
+func (conn *DBClient) FindAllChain() ([]*model.AllChain, error) {
+	allChain := make([]*model.AllChain, 0)
+	query := conn.SqlDB.Select("chain,count(*) as count").Table("inscriptions")
+	groupBy := "chain"
+	err := query.Group(groupBy).Find(&allChain).Error
+	if err != nil {
+		return nil, nil
+	}
+	return allChain, nil
+}
+
+func (conn *DBClient) FindLastChainStatHourByChainAndDateHour(chain string, dateHour uint32) (*model.ChainStatHour, error) {
+	data := &model.ChainStatHour{}
+	err := conn.SqlDB.Last(data, "chain = ?", chain).Where("date_hour = ?", dateHour).Error
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (conn *DBClient) FindAddressTxByIdAndChainAndLimit(chain string, start uint64, limit int) ([]model.AddressTxs, error) {
+	txs := make([]model.AddressTxs, 0)
+	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ?", start).Order("id asc").Limit(limit).Find(&txs).Error
+	if err != nil {
+		return nil, err
+	}
+	return txs, nil
+}
+
+func (conn *DBClient) FindInscriptionsTxByIdAndChainAndLimit(chain string, nowHour, lastHour time.Time) ([]model.Inscriptions, error) {
+	inscriptions := make([]model.Inscriptions, 0)
+	err := conn.SqlDB.Where("chain = ?", chain).Where("deploy_time > ? and deploy_time < ?", lastHour, nowHour).Find(&inscriptions).Error
+	if err != nil {
+		return nil, err
+	}
+	return inscriptions, nil
+}
+
+func (conn *DBClient) FindBalanceTxByIdAndChainAndLimit(chain string, balanceIndex uint64, limit int) ([]model.BalanceTxn, error) {
+	balances := make([]model.BalanceTxn, 0)
+	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ?", balanceIndex).Where("amount > 0").Order("id asc").Limit(limit).Find(&balances).Error
+	if err != nil {
+		return nil, err
+	}
+	return balances, nil
+}
+func (conn *DBClient) AddChainStatHour(chainStatHour *model.ChainStatHour) error {
+	return conn.SqlDB.Create(chainStatHour).Error
 }

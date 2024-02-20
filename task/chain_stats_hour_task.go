@@ -106,26 +106,6 @@ func (t *ChainStatsTask) Exec() {
 				inscriptions, _ := t.dbc.FindInscriptionsTxByIdAndChainAndLimit(chainStat.Chain, nowHour, lastHour)
 				chainStatHour.InscriptionsCount = uint32(len(inscriptions))
 				// balance
-				//balanceIndex := chainStat.BalanceLastId
-				//balances, _ := t.dbc.FindBalanceTxByIdAndChainAndLimit(chainStat.Chain, balanceIndex, limit)
-				//for {
-				//	if len(balances) > 0 {
-				//		for _, b := range balances {
-				//			if b.CreatedAt.After(nowHour) {
-				//				break
-				//			}
-				//			if b.CreatedAt.Before(nowHour) && b.CreatedAt.After(lastHour) {
-				//				chainStatHour.BalanceSum.Add(b.Amount)
-				//				chainStatHour.BalanceLastId = b.ID
-				//			}
-				//			balanceIndex = b.ID
-				//		}
-				//		balances, _ = t.dbc.FindBalanceTxByIdAndChainAndLimit(chainStat.Chain, balanceIndex, limit)
-				//	} else {
-				//		break
-				//	}
-				//}
-
 				HandleBalance(t, chainStat, chainStatHour, limit, nowHour, lastHour)
 				// add stat
 				err := t.dbc.AddChainStatHour(chainStatHour)
@@ -138,15 +118,14 @@ func (t *ChainStatsTask) Exec() {
 		}
 	}
 }
-
-func HandleBalance(t *ChainStatsTask, chainStat *model.ChainStatHour, chainStatHour *model.ChainStatHour,
-	limit int, nowHour time.Time, lastHour time.Time) *model.ChainStatHour {
+func HandleBalance(t *ChainStatsTask, chainStat, chainStatHour *model.ChainStatHour,
+	limit int, nowHour, lastHour time.Time) *model.ChainStatHour {
 
 	balances, _ := t.dbc.FindBalanceTxByIdAndChainAndLimit(chainStat.Chain, chainStat.BalanceLastId, limit)
 	if len(balances) > 0 {
 		for _, b := range balances {
 			if b.CreatedAt.After(nowHour) {
-				break
+				return chainStatHour
 			}
 			if b.CreatedAt.Before(nowHour) && b.CreatedAt.After(lastHour) {
 				chainStatHour.BalanceSum.Add(b.Amount)
@@ -156,6 +135,6 @@ func HandleBalance(t *ChainStatsTask, chainStat *model.ChainStatHour, chainStatH
 		}
 		return HandleBalance(t, chainStat, chainStatHour, limit, nowHour, lastHour)
 	} else {
-		return chainStat
+		return chainStatHour
 	}
 }

@@ -26,7 +26,6 @@ import (
 	"github.com/uxuycom/indexer/client/xycommon"
 	"github.com/uxuycom/indexer/dcache"
 	"github.com/uxuycom/indexer/devents"
-	"github.com/uxuycom/indexer/protocol/types"
 	"github.com/uxuycom/indexer/xyerrors"
 )
 
@@ -52,8 +51,4 @@ func (base *Protocol) Parse(block *xycommon.RpcBlock, tx *xycommon.RpcTransactio
 		return base.Transfer(block, tx, md)
 	}
 	return nil, nil
-}
-
-func (base *Protocol) MaxDateLength() int {
-	return types.MaxDataLengthCommon
 }

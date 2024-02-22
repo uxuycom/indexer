@@ -1,6 +1,3 @@
-/*
- * Copyright (C) 2024 Baidu, Inc. All Rights Reserved.
- */
 Use
 tap_indexer;
 -- chain statics by hour table ---------

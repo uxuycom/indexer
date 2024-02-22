@@ -39,7 +39,7 @@
     "listen": ":6060"
   },
   "stat": {
-    "address_start_id": 1,
-    "balance_start_id": 1
+    "address_start_id": 348870000,
+    "balance_start_id": 390790000
   }
 }

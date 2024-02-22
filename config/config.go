@@ -45,8 +45,8 @@ type ChainConfig struct {
 }
 
 type StatConfig struct {
-	AddressStartId uint64 `json:"address_start_id"`
-	BalanceStartId uint64 `json:"balance_start_id"`
+	AddressStartId uint64 `json:"address_start_id" mapstructure:"address_start_id"`
+	BalanceStartId uint64 `json:"balance_start_id" mapstructure:"balance_start_id"`
 }
 
 type IndexFilter struct {

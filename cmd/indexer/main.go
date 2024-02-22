@@ -87,9 +87,6 @@ func main() {
 
 	dCache := dcache.NewManager(dbClient, cfg.Chain.ChainName)
 
-	// init task
-	//task.InitTask(dbClient, &cfg)
-
 	// init protocols
 	protocol.InitProtocols(dCache)
 

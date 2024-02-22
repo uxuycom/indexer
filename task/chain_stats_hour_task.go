@@ -61,6 +61,7 @@ func (t *ChainStatsTask) Exec() {
 			xylog.Logger.Infof("Exec ChainStatsTask  task!")
 			chain := t.cfg.Chain.ChainName
 			// get current hour and last hour
+			//now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2024-02-21 20:00:00", time.Local)
 			now := time.Now()
 			nowHour := now.Truncate(time.Hour)
 			lastHour := now.Add(-1 * time.Hour).Truncate(time.Hour)
@@ -73,28 +74,31 @@ func (t *ChainStatsTask) Exec() {
 				Chain:             chain,
 				CreatedAt:         now,
 				UpdatedAt:         now,
+				DateHour:          uint32(parseUint),
 			}
-			chainStatHour.DateHour = uint32(parseUint)
 			u, _ := strconv.ParseUint(lastHour.Add(-1*time.Hour).Truncate(time.Hour).Format("2006010215"), 10, 32)
 			chainStat, _ := t.dbc.FindLastChainStatHourByChainAndDateHour(chain, uint32(u))
 			if chainStat == nil {
 				// first stat
-				chainStat.AddressLastId = t.cfg.Stat.AddressStartId
-				chainStat.BalanceLastId = t.cfg.Stat.BalanceStartId
-				chainStat.Chain = chain
+				chainStat = &model.ChainStatHour{
+					AddressLastId: t.cfg.Stat.AddressStartId,
+					BalanceLastId: t.cfg.Stat.BalanceStartId,
+					Chain:         chain,
+				}
 			}
+
 			var wg sync.WaitGroup
 			wg.Add(2)
 			go func() {
-				defer wg.Done()
 				// address
 				HandleAddress(t, chainStat, chainStatHour, nowHour, lastHour)
+				defer wg.Done()
 			}()
 
 			go func() {
 				// balance
-				defer wg.Done()
 				HandleBalance(t, chainStat, chainStatHour, nowHour, lastHour)
+				defer wg.Done()
 			}()
 			wg.Wait()
 
@@ -105,7 +109,6 @@ func (t *ChainStatsTask) Exec() {
 			err := t.dbc.AddChainStatHour(chainStatHour)
 			if err != nil {
 				xylog.Logger.Errorf("AddChainStatHour error: %v chainStatHour: %v", err, chainStatHour)
-				return
 			}
 		}
 
@@ -142,7 +145,7 @@ func HandleBalance(t *ChainStatsTask, chainStat, chainStatHour *model.ChainStatH
 				return chainStatHour
 			}
 			if b.CreatedAt.Before(nowHour) && b.CreatedAt.After(lastHour) {
-				chainStatHour.BalanceSum.Add(b.Amount)
+				chainStatHour.BalanceSum = chainStatHour.BalanceSum.Add(b.Amount)
 				chainStatHour.BalanceLastId = b.ID
 			}
 			chainStat.BalanceLastId = b.ID

@@ -789,7 +789,7 @@ func (conn *DBClient) FindLastChainStatHourByChainAndDateHour(chain string, date
 
 func (conn *DBClient) FindAddressTxByIdAndChainAndLimit(chain string, start uint64, limit int) ([]model.AddressTxs, error) {
 	txs := make([]model.AddressTxs, 0)
-	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ?", start).Order("id asc").Limit(limit).Find(&txs).Error
+	err := conn.SqlDB.Where("id > ?", start).Where("chain = ?", chain).Order("id asc").Limit(limit).Find(&txs).Error
 	if err != nil {
 		return nil, err
 	}
@@ -807,7 +807,7 @@ func (conn *DBClient) FindInscriptionsTxByIdAndChainAndLimit(chain string, nowHo
 
 func (conn *DBClient) FindBalanceTxByIdAndChainAndLimit(chain string, balanceIndex uint64, limit int) ([]model.BalanceTxn, error) {
 	balances := make([]model.BalanceTxn, 0)
-	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ?", balanceIndex).Where("amount > 0").Order("id asc").Limit(limit).Find(&balances).Error
+	err := conn.SqlDB.Where("id > ?", balanceIndex).Where("chain = ?", chain).Where("amount > 0").Order("id asc").Limit(limit).Find(&balances).Error
 	if err != nil {
 		return nil, err
 	}

@@ -72,8 +72,6 @@ func (t *ChainStatsTask) Exec() {
 				InscriptionsCount: 0,
 				BalanceSum:        decimal.NewFromInt(0),
 				Chain:             chain,
-				CreatedAt:         now,
-				UpdatedAt:         now,
 				DateHour:          uint32(parseUint),
 			}
 			u, _ := strconv.ParseUint(lastHour.Add(-1*time.Hour).Truncate(time.Hour).Format("2006010215"), 10, 32)

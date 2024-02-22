@@ -816,3 +816,21 @@ func (conn *DBClient) FindBalanceTxByIdAndChainAndLimit(chain string, balanceInd
 func (conn *DBClient) AddChainStatHour(chainStatHour *model.ChainStatHour) error {
 	return conn.SqlDB.Create(chainStatHour).Error
 }
+
+func (conn *DBClient) GetAllChainInfo() ([]model.ChainInfo, error) {
+	chains := make([]model.ChainInfo, 0)
+	err := conn.SqlDB.Model(&model.ChainInfo{}).Find(&chains).Error
+	if err != nil {
+		return nil, err
+	}
+	return chains, nil
+}
+
+func (conn *DBClient) GroupChainStatHourBy24Hour(startHour, endHour uint32) ([]model.ChainStatHour, error) {
+	stats := make([]model.ChainStatHour, 0)
+	err := conn.SqlDB.Where("date_hour >= ? and date_hour <= ?", startHour, endHour).Find(&stats).Error
+	if err != nil {
+		return nil, err
+	}
+	return stats, nil
+}

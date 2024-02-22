@@ -59,61 +59,56 @@ func (t *ChainStatsTask) Exec() {
 		select {
 		case <-ticker.C:
 			xylog.Logger.Infof("Exec ChainStatsTask  task!")
-			chains, _ := t.dbc.FindAllChain()
-			// get current hour and next hour
+			chain := t.cfg.Chain.ChainName
+			// get current hour and last hour
 			now := time.Now()
-			for _, c := range chains {
-				chainStatHour := &model.ChainStatHour{
-					AddressCount:      0,
-					InscriptionsCount: 0,
-					BalanceSum:        decimal.NewFromInt(0),
-					Chain:             c.Chain,
-					CreatedAt:         now,
-					UpdatedAt:         now,
-				}
-
-				nowHour := now.Truncate(time.Hour)
-				lastHour := now.Add(-1 * time.Hour).Truncate(time.Hour)
-				format := lastHour.Format("2006010215")
-				parseUint, _ := strconv.ParseUint(format, 10, 32)
-				chainStatHour.DateHour = uint32(parseUint)
-
-				u, _ := strconv.ParseUint(lastHour.Add(-1*time.Hour).Truncate(time.Hour).Format("2006010215"), 10, 32)
-				chainStat, _ := t.dbc.FindLastChainStatHourByChainAndDateHour(c.Chain, uint32(u))
-				if chainStat == nil {
-					// first stat
-					chainStat.AddressLastId = t.cfg.Stat.AddressStartId
-					chainStat.BalanceLastId = t.cfg.Stat.BalanceStartId
-					chainStat.Chain = c.Chain
-				}
-
-				var wg sync.WaitGroup
-				wg.Add(2)
-				go func() {
-					defer wg.Done()
-					// address
-					HandleAddress(t, chainStat, chainStatHour, nowHour, lastHour)
-				}()
-
-				go func() {
-					// balance
-					defer wg.Done()
-					HandleBalance(t, chainStat, chainStatHour, nowHour, lastHour)
-				}()
-				wg.Wait()
-
-				// inscriptions
-				inscriptions, _ := t.dbc.FindInscriptionsTxByIdAndChainAndLimit(chainStat.Chain, nowHour, lastHour)
-				chainStatHour.InscriptionsCount = uint32(len(inscriptions))
-				// add stat
-				err := t.dbc.AddChainStatHour(chainStatHour)
-				if err != nil {
-					xylog.Logger.Errorf("AddChainStatHour error: %v chainStatHour: %v", err, chainStatHour)
-					return
-				}
+			nowHour := now.Truncate(time.Hour)
+			lastHour := now.Add(-1 * time.Hour).Truncate(time.Hour)
+			format := lastHour.Format("2006010215")
+			parseUint, _ := strconv.ParseUint(format, 10, 32)
+			chainStatHour := &model.ChainStatHour{
+				AddressCount:      0,
+				InscriptionsCount: 0,
+				BalanceSum:        decimal.NewFromInt(0),
+				Chain:             chain,
+				CreatedAt:         now,
+				UpdatedAt:         now,
 			}
+			chainStatHour.DateHour = uint32(parseUint)
+			u, _ := strconv.ParseUint(lastHour.Add(-1*time.Hour).Truncate(time.Hour).Format("2006010215"), 10, 32)
+			chainStat, _ := t.dbc.FindLastChainStatHourByChainAndDateHour(chain, uint32(u))
+			if chainStat == nil {
+				// first stat
+				chainStat.AddressLastId = t.cfg.Stat.AddressStartId
+				chainStat.BalanceLastId = t.cfg.Stat.BalanceStartId
+				chainStat.Chain = chain
+			}
+			var wg sync.WaitGroup
+			wg.Add(2)
+			go func() {
+				defer wg.Done()
+				// address
+				HandleAddress(t, chainStat, chainStatHour, nowHour, lastHour)
+			}()
 
+			go func() {
+				// balance
+				defer wg.Done()
+				HandleBalance(t, chainStat, chainStatHour, nowHour, lastHour)
+			}()
+			wg.Wait()
+
+			// inscriptions
+			inscriptions, _ := t.dbc.FindInscriptionsTxByIdAndChainAndLimit(chainStat.Chain, nowHour, lastHour)
+			chainStatHour.InscriptionsCount = uint32(len(inscriptions))
+			// add stat
+			err := t.dbc.AddChainStatHour(chainStatHour)
+			if err != nil {
+				xylog.Logger.Errorf("AddChainStatHour error: %v chainStatHour: %v", err, chainStatHour)
+				return
+			}
 		}
+
 	}
 }
 func HandleAddress(t *ChainStatsTask, chainStat, chainStatHour *model.ChainStatHour,

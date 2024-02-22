@@ -323,7 +323,7 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 	return result, nil
 }
 func (s *Service) GetAllChain() (interface{}, error) {
-	chains, err := s.rpcServer.dbc.GetAllChainFromBlock()
+	chains, err := s.rpcServer.dbc.GetAllChainInfo()
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -690,4 +690,8 @@ func (s *Service) GetTickBriefs(addresses []*TickAddress) (interface{}, error) {
 	s.rpcServer.cacheStore.Set(cacheKey, resp)
 
 	return resp, nil
+}
+func (s *Service) GetChainStat() (interface{}, error) {
+
+	return nil, nil
 }

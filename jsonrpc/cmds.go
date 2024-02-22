@@ -333,6 +333,8 @@ type GetTxByHashResponse struct {
 type GetAllChainCmd struct {
 	Chains []string
 }
+type GetChainStatCmd struct {
+}
 
 func init() {
 	// No special flags for commands in this file.

@@ -33,12 +33,6 @@ const (
 	TransferTypeBalance = 2
 )
 
-type ChainInfo struct {
-	ChainId         string `json:"chain_id"`
-	ChainName       string `json:"chain_name"`
-	ProtocolOnChain string `json:"protocol_on_chain"`
-}
-
 type Inscriptions struct {
 	ID           uint32          `gorm:"primaryKey" json:"id"` // ID
 	SID          uint32          `json:"sid"  gorm:"column:sid"`

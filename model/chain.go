@@ -22,6 +22,8 @@
 
 package model
 
+import "time"
+
 type ChainGroup string
 
 const (
@@ -33,3 +35,20 @@ const (
 	ChainBTC  string = "btc"
 	ChainAVAX string = "avalanche"
 )
+
+type ChainInfo struct {
+	ID         int64     `gorm:"primaryKey" json:"id"`
+	ChainId    int64     `json:"chain_id" gorm:"column:chain_id"`
+	Chain      string    `json:"chain" gorm:"column:chain"`
+	OuterChain string    `json:"outer_chain" gorm:"column:outer_chain"`
+	Name       string    `json:"name" gorm:"column:name"`
+	Logo       string    `json:"logo" gorm:"column:logo"`
+	NetworkId  int64     `json:"network_id" gorm:"column:network_id"`
+	Ext        string    `json:"ext" gorm:"column:ext"`
+	CreatedAt  time.Time `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt  time.Time `json:"updated_at" gorm:"column:updated_at"`
+}
+
+func (ChainInfo) TableName() string {
+	return "chain_info"
+}

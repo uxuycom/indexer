@@ -174,22 +174,3 @@ CREATE TABLE `block`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci;
-
--- chain statics by hour table ---------
-CREATE TABLE `chain_stats_hour`
-(
-    `id`                 int unsigned                           NOT NULL AUTO_INCREMENT,
-    `chain`              varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'chain name',
-    `date_hour`          int unsigned                           NOT NULL COMMENT 'date_hour',
-    `address_count`      int unsigned                           NOT NULL COMMENT 'address_count',
-    `address_last_id`    bigint unsigned                        NOT NULL COMMENT 'address_last_id',
-    `inscriptions_count` int unsigned                           NOT NULL COMMENT 'inscriptions_count',
-    `balance_sum`        DECIMAL(38, 18)                        NOT NULL COMMENT 'balance_sum',
-    `balance_last_id`    bigint unsigned                        NOT NULL COMMENT 'balance_last_id',
-    `created_at`         timestamp                              NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`         timestamp                              NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uqx_chain_date_hour` (`chain`, `date_hour`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci;

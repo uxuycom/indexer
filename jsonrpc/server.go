@@ -46,7 +46,7 @@ var (
 )
 
 var (
-	cfg *config.JsonRcpConfig
+	cfg *config.RpcConfig
 )
 
 type commandHandler func(*RpcServer, interface{}, <-chan struct{}) (interface{}, error)
@@ -679,7 +679,7 @@ type RpcServerConfig struct {
 }
 
 // NewRPCServer returns a new instance of the RpcServer struct.
-func NewRPCServer(dbc *storage.DBClient, config *config.JsonRcpConfig) (*RpcServer, error) {
+func NewRPCServer(dbc *storage.DBClient, config *config.RpcConfig) (*RpcServer, error) {
 	// load cfg
 	cfg = config
 

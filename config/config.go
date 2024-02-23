@@ -23,26 +23,30 @@
 package config
 
 import (
-	"encoding/json"
+	"github.com/spf13/viper"
 	"github.com/uxuycom/indexer/model"
 	"log"
-	"os"
 	"path/filepath"
 )
 
 type ScanConfig struct {
-	StartBlock        uint64 `json:"start_block"`
-	BlockBatchWorkers uint64 `json:"block_batch_workers"`
-	TxBatchWorkers    uint64 `json:"tx_batch_workers"`
-	DelayedBlockNum   uint64 `json:"delayed_block_num"`
+	StartBlock        uint64 `json:"start_block" mapstructure:"start_block"`
+	BlockBatchWorkers uint64 `json:"block_batch_workers" mapstructure:"block_batch_workers"`
+	TxBatchWorkers    uint64 `json:"tx_batch_workers" mapstructure:"tx_batch_workers"`
+	DelayedBlockNum   uint64 `json:"delayed_block_num" mapstructure:"delayed_block_num"`
 }
 
 type ChainConfig struct {
-	ChainName  string           `json:"chain_name"`
+	ChainName  string           `json:"chain_name" mapstructure:"chain_name"`
 	Rpc        string           `json:"rpc"`
 	UserName   string           `json:"username"`
 	PassWord   string           `json:"password"`
-	ChainGroup model.ChainGroup `json:"chain_group"`
+	ChainGroup model.ChainGroup `json:"chain_group" mapstructure:"chain_group"`
+}
+
+type StatConfig struct {
+	AddressStartId uint64 `json:"address_start_id" mapstructure:"address_start_id"`
+	BalanceStartId uint64 `json:"balance_start_id" mapstructure:"balance_start_id"`
 }
 
 type IndexFilter struct {
@@ -50,14 +54,14 @@ type IndexFilter struct {
 		Ticks     []string `json:"ticks"`
 		Protocols []string `json:"protocols"`
 	} `json:"whitelist"`
-	EventTopics []string `json:"event_topics"`
+	EventTopics []string `json:"event_topics" mapstructure:"event_topics"`
 }
 
 // DatabaseConfig database config
 type DatabaseConfig struct {
 	Type      string `json:"type"`
 	Dsn       string `json:"dsn"`
-	EnableLog bool   `json:"enable_log"`
+	EnableLog bool   `json:"enable_log" mapstructure:"enable_log"`
 }
 
 type ProfileConfig struct {
@@ -68,82 +72,67 @@ type ProfileConfig struct {
 type Config struct {
 	Scan     ScanConfig     `json:"scan"`
 	Chain    ChainConfig    `json:"chain"`
-	LogLevel string         `json:"log_level"`
-	LogPath  string         `json:"log_path"`
+	LogLevel string         `json:"log_level" mapstructure:"log_level"`
+	LogPath  string         `json:"log_path" mapstructure:"log_path"`
 	Filters  *IndexFilter   `json:"filters"`
 	Database DatabaseConfig `json:"database"`
 	Profile  *ProfileConfig `json:"profile"`
+	Stat     *StatConfig    `json:"stat"`
 }
 
-type JsonRcpConfig struct {
-	RpcListen     []string       `json:"rpclisten"`
-	RpcMaxClients int64          `json:"rpcmaxclients"`
-	LogLevel      string         `json:"log_level"`
-	LogPath       string         `json:"log_path"`
-	Database      DatabaseConfig `json:"database"`
-	Profile       *ProfileConfig `json:"profile"`
-	CacheStore    *CacheConfig   `json:"cache_store"`
+type RpcConfig struct {
+	LogLevel     string         `json:"log_level" mapstructure:"log_level"`
+	LogPath      string         `json:"log_path" mapstructure:"log_path"`
+	Database     DatabaseConfig `json:"database"`
+	Profile      *ProfileConfig `json:"profile"`
+	CacheStore   *CacheConfig   `json:"cache_store" mapstructure:"cache_store"`
+	DebugLevel   string         `json:"debug_level" mapstructure:"debug_level"`
+	DisableTLS   bool           `json:"notls" description:"Disable TLS for the RPC server -- NOTE: This is only allowed if the RPC server is bound to localhost"`
+	RPCCert      string         `json:"rpccert" description:"File containing the certificate file"`
+	RPCKey       string         `json:"rpckey" description:"File containing the certificate key"`
+	RPCLimitPass string         `json:"rpclimitpass" default-mask:"-" description:"Password for limited RPC connections"`
+	RPCLimitUser string         `json:"rpclimituser" description:"Username for limited RPC connections"`
+	RPCListeners []string       `json:"rpclisten" mapstructure:"rpclisten" description:"Add an interface/port to listen for RPC
+connections (default port: 6583, testnet: 16583)"`
+	RPCMaxClients        int    `json:"rpcmaxclients" description:"Max number of RPC clients for standard connections"`
+	RPCMaxConcurrentReqs int    `json:"rpcmaxconcurrentreqs" description:"Max number of concurrent RPC requests that may be processed concurrently"`
+	RPCMaxWebsockets     int    `json:"rpcmaxwebsockets" description:"Max number of RPC websocket connections"`
+	RPCQuirks            bool   `json:"rpcquirks" description:"Mirror some JSON-RPC quirks of Bitcoin Core -- NOTE: Discouraged unless interoperability issues need to be worked around"`
+	RPCPass              string `json:"rpcpass" default-mask:"-" description:"Password for RPC connections"`
+	RPCUser              string `json:"rpcuser" description:"Username for RPC connections"`
 }
 
 type CacheConfig struct {
 	Started     bool   `json:"started"`
-	MaxCapacity int64  `json:"max_capacity"`
+	MaxCapacity int64  `json:"max_capacity" mapstructure:"max_capacity"`
 	Duration    uint32 `json:"duration"`
 }
 
-func LoadConfig(cfg *Config, filePath string) {
-	// Default config.
-	configFileName := "config.json"
-	if len(os.Args) > 1 {
-		configFileName = os.Args[1]
-	}
-
-	configFileName, _ = filepath.Abs(configFileName)
-	log.Printf("Loading config: %v", configFileName)
-
-	if filePath != "" {
-		configFileName = filePath
-	}
-	configFile, err := os.Open(configFileName)
-	if err != nil {
-		log.Fatal("File error: ", err.Error())
-	}
-	defer func() {
-		_ = configFile.Close()
-	}()
-	jsonParser := json.NewDecoder(configFile)
-	if err := jsonParser.Decode(&cfg); err != nil {
-		log.Fatal("Config error: ", err.Error())
-	}
+func LoadConfig(cfg *Config, configFile string) {
+	UnmarshalConfig(configFile, cfg)
 }
 
-func LoadJsonRpcConfig(cfg *JsonRcpConfig, filePath string) {
-	// Default config.
-	configFileName := "config_jsonrpc.json"
-	if len(os.Args) > 1 {
-		configFileName = os.Args[1]
-	}
-
-	configFileName, _ = filepath.Abs(configFileName)
-	log.Printf("Loading config: %v", configFileName)
-
-	if filePath != "" {
-		configFileName = filePath
-	}
-	configFile, err := os.Open(configFileName)
-	if err != nil {
-		log.Fatal("File error: ", err.Error())
-	}
-	defer func() {
-		_ = configFile.Close()
-	}()
-	jsonParser := json.NewDecoder(configFile)
-	if err := jsonParser.Decode(&cfg); err != nil {
-		log.Fatal("Config error: ", err.Error())
-	}
+func LoadJsonRpcConfig(cfg *RpcConfig, configFile string) {
+	UnmarshalConfig(configFile, cfg)
 }
 
-func (cfg *JsonRcpConfig) GetConfig() *JsonRcpConfig {
+func UnmarshalConfig(configFile string, cfg interface{}) {
+	fileName := filepath.Base(configFile)
+	viper.SetConfigFile(fileName)
+	viper.SetConfigType("json")
+
+	dir := filepath.Dir(configFile)
+	viper.AddConfigPath(dir)
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Read file error, error:%v", err.Error())
+	}
+	if err := viper.Unmarshal(&cfg); err != nil {
+		log.Fatalf("Unmarshal config fail! error:%v ", err)
+	}
+	viper.WatchConfig()
+}
+func (cfg *RpcConfig) GetConfig() *RpcConfig {
 	return cfg
 }
 

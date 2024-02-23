@@ -7,13 +7,17 @@
 
 package jsonrpc
 
-import "github.com/uxuycom/indexer/model"
+import (
+	"github.com/shopspring/decimal"
+	"github.com/uxuycom/indexer/model"
+	"time"
+)
 
 // EmptyCmd defines the empty JSON-RPC command.
 type EmptyCmd struct{}
 
-// FindAllInscriptionsCmd defines the inscription JSON-RPC command.
-type FindAllInscriptionsCmd struct {
+// IndsGetAllInscriptionsCmd defines the inscription JSON-RPC command.
+type IndsGetAllInscriptionsCmd struct {
 	Limit    int    `json:"limit"`
 	Offset   int    `json:"offset"`
 	Chain    string `json:"chain"`
@@ -22,6 +26,10 @@ type FindAllInscriptionsCmd struct {
 	DeployBy string `json:"deploy_by"`
 	Sort     int    `json:"sort"`
 	//SortMode int    `json:"sort_mode"`
+}
+type IndsSearchCmd struct {
+	Keyword string `json:"keyword"`
+	Chain   string `json:"chain"`
 }
 
 type IndsGetTicksCmd struct {
@@ -35,11 +43,52 @@ type IndsGetTicksCmd struct {
 	SortMode int    `json:"sort_mode"`
 }
 
-type FindAllInscriptionsResponse struct {
+type IndsGetTickCmd struct {
+	Chain      string
+	Protocol   string
+	Tick       string
+	DeployHash string
+}
+
+type IndsGetTransactionCmd struct {
+	Limit    int    `json:"limit"`
+	Offset   int    `json:"offset"`
+	Address  string `json:"address"`
+	Chain    string `json:"chain"`
+	Protocol string `json:"protocol"`
+	Tick     string `json:"tick"`
+	SortMode int    `json:"sort_mode"`
+}
+
+type IndsGetInscriptionsCmd struct {
+	Limit    int    `json:"limit"`
+	Offset   int    `json:"offset"`
+	Chain    string `json:"chain"`
+	Protocol string `json:"protocol"`
+	Tick     string `json:"tick"`
+	DeployBy string `json:"deploy_by"`
+	Sort     int    `json:"sort"`
+	//SortMode int    `json:"sort_mode"`
+}
+
+type IndsGetAllInscriptionsResponse struct {
 	Inscriptions interface{} `json:"inscriptions"`
 	Total        int64       `json:"total"`
 	Limit        int         `json:"limit"`
 	Offset       int         `json:"offset"`
+}
+
+type CommonResponse struct {
+	Data   interface{} `json:"data"`
+	Total  int64       `json:"total"`
+	Limit  int         `json:"limit"`
+	Offset int         `json:"offset"`
+	Code   int         `json:"code"`
+	Msg    int         `json:"msg"`
+}
+type SearchResult struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
 }
 
 type InscriptionInfo struct {
@@ -56,10 +105,14 @@ type InscriptionInfo struct {
 	CreatedAt    uint32 `json:"created_at"`
 	UpdatedAt    uint32 `json:"updated_at"`
 	Decimals     int8   `json:"decimals"`
+	Minted       string `json:"minted"`
+	Holders      uint64 `json:"holders"`
+	TxCnt        uint64 `json:"tx_cnt"`
+	Progress     string `json:"progress"`
 }
 
-// FindInscriptionTickCmd defines the inscription JSON-RPC command.
-type FindInscriptionTickCmd struct {
+// IndsGetInscriptionTickCmd defines the inscription JSON-RPC command.
+type IndsGetInscriptionTickCmd struct {
 	Chain    string
 	Protocol string
 	Tick     string
@@ -69,14 +122,15 @@ type FindInscriptionTickResponse struct {
 	Tick interface{} `json:"tick"`
 }
 
-// FindUserTransactionsCmd defines the inscription JSON-RPC command.
-type FindUserTransactionsCmd struct {
+// IndsGetUserTransactionsCmd defines the inscription JSON-RPC command.
+type IndsGetUserTransactionsCmd struct {
 	Limit    int
 	Offset   int
 	Address  string
 	Chain    string
 	Protocol string
 	Tick     string
+	Key      string
 	Event    int8
 }
 
@@ -111,6 +165,7 @@ type FindUserBalancesCmd struct {
 	Chain    string
 	Protocol string
 	Tick     string
+	Key      string
 }
 
 type IndsGetBalanceByAddressCmd struct {
@@ -120,6 +175,7 @@ type IndsGetBalanceByAddressCmd struct {
 	Chain    string
 	Protocol string
 	Tick     string
+	Key      string
 	Sort     int
 }
 
@@ -138,6 +194,16 @@ type BalanceInfo struct {
 	Balance      string `json:"balance"`
 	DeployHash   string `json:"deploy_hash"`
 	TransferType int8   `json:"transfer_type"`
+}
+
+type TickHolder struct {
+	Chain       string `json:"chain"`
+	Protocol    string `json:"protocol"`
+	Tick        string `json:"tick"`
+	DeployHash  string `json:"deploy_hash"`
+	Address     string `json:"address"`
+	Balance     string `json:"balance"`
+	TotalSupply string `json:"total_supply"`
 }
 
 type BalanceBrief struct {
@@ -237,20 +303,46 @@ type TransactionInfo struct {
 	From       string `json:"from"`
 	To         string `json:"to"`
 	Amount     string `json:"amount"`
+	Op         string `json:"op"`
+}
+
+type TransactionResponse struct {
+	ID              uint64          `json:"id"`
+	Chain           string          `json:"chain"`             // chain name
+	Protocol        string          `json:"protocol"`          // protocol name
+	BlockHeight     uint64          `json:"block_height"`      // block height
+	PositionInBlock uint64          `json:"position_in_block"` // Position in Block
+	BlockTime       time.Time       `json:"block_time"`        // block time
+	TxHash          string          `json:"tx_hash"`           // tx hash
+	From            string          `json:"from"`              // from address
+	To              string          `json:"to"`                // to address
+	Op              string          `json:"op"`                // op code
+	Tick            string          `json:"tick"`              // inscription code
+	Amount          decimal.Decimal `json:"amt"`               // balance
+	Gas             int64           `json:"gas" `              // gas
+	GasPrice        int64           `json:"gas_price"`         // gas price
+	Status          int8            `json:"status"`            // tx status
+	CreatedAt       time.Time       `json:"created_at" `
+	UpdatedAt       time.Time       `json:"updated_at"`
 }
 
 type GetTxByHashResponse struct {
 	IsInscription bool             `json:"is_inscription"`
 	Transaction   *TransactionInfo `json:"transaction,omitempty"`
 }
+type GetAllChainCmd struct {
+	Chains []string
+}
+type GetChainStatCmd struct {
+}
 
 func init() {
 	// No special flags for commands in this file.
 	flags := UsageFlag(0)
 
-	MustRegisterCmd("inscription.All", (*FindAllInscriptionsCmd)(nil), flags)
-	MustRegisterCmd("inscription.Tick", (*FindInscriptionTickCmd)(nil), flags)
-	MustRegisterCmd("address.Transactions", (*FindUserTransactionsCmd)(nil), flags)
+	MustRegisterCmd("inscription.All", (*IndsGetAllInscriptionsCmd)(nil), flags)
+	MustRegisterCmd("inscription.Tick", (*IndsGetInscriptionTickCmd)(nil), flags)
+	MustRegisterCmd("address.Transactions", (*IndsGetUserTransactionsCmd)(nil), flags)
 	MustRegisterCmd("address.Balances", (*FindUserBalancesCmd)(nil), flags)
 	MustRegisterCmd("address.Balance", (*FindUserBalanceCmd)(nil), flags)
 	MustRegisterCmd("tick.Holders", (*FindTickHoldersCmd)(nil), flags)
@@ -259,12 +351,22 @@ func init() {
 	MustRegisterCmd("transaction.Info", (*GetTxByHashCmd)(nil), flags)
 	MustRegisterCmd("tick.GetBriefs", (*GetTickBriefsCmd)(nil), flags)
 
-	//v2
+	// v2
 	MustRegisterCmd("inds_getTicks", (*IndsGetTicksCmd)(nil), flags)
-	MustRegisterCmd("inds_getTransactionByAddress", (*FindUserTransactionsCmd)(nil), flags)
+	MustRegisterCmd("inds_getTick", (*IndsGetTickCmd)(nil), flags)
+	MustRegisterCmd("inds_getTransactionByAddress", (*IndsGetUserTransactionsCmd)(nil), flags)
 	MustRegisterCmd("inds_getBalanceByAddress", (*IndsGetBalanceByAddressCmd)(nil), flags)
 	MustRegisterCmd("inds_getHoldersByTick", (*IndsGetHoldersByTickCmd)(nil), flags)
 	MustRegisterCmd("inds_getLastBlockNumberIndexed", (*LastBlockNumberCmd)(nil), flags)
 	MustRegisterCmd("inds_getTickByCallData", (*TxOperateCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactionByHash", (*GetTxByHashCmd)(nil), flags)
+	MustRegisterCmd("inds_getTransactions", (*IndsGetTransactionCmd)(nil), flags)
+	MustRegisterCmd("inds_getInscriptions", (*IndsGetInscriptionsCmd)(nil), flags)
+	MustRegisterCmd("inds_getInscriptionTxOperate", (*TxOperateCmd)(nil), flags)
+	MustRegisterCmd("inds_getAllChains", (*GetAllChainCmd)(nil), flags)
+	MustRegisterCmd("inds_search", (*IndsSearchCmd)(nil), flags)
+	MustRegisterCmd("inds_getAddressBalance", (*FindUserBalanceCmd)(nil), flags)
+	MustRegisterCmd("inds_getTickBriefs", (*GetTickBriefsCmd)(nil), flags)
+	MustRegisterCmd("index_getInscriptionByTick", (*IndsGetInscriptionTickCmd)(nil), flags)
+
 }

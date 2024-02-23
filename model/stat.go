@@ -20,33 +20,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //SOFTWARE
 
-package types
+package model
 
 import (
-	"github.com/uxuycom/indexer/client/xycommon"
-	"github.com/uxuycom/indexer/devents"
-	"github.com/uxuycom/indexer/xyerrors"
+	"github.com/shopspring/decimal"
+	"time"
 )
 
-type IProtocol interface {
-	Parse(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, md *devents.MetaData) ([]*devents.TxResult, *xyerrors.InsError)
+type ChainStatHour struct {
+	ID                uint64          `gorm:"primaryKey" json:"id"`
+	Chain             string          `json:"chain" gorm:"column:chain"`
+	DateHour          uint32          `json:"date_hour" gorm:"column:date_hour"`
+	AddressCount      uint32          `json:"address_count" gorm:"column:address_count"`
+	AddressLastId     uint64          `json:"address_last_id" gorm:"column:address_last_id"`
+	InscriptionsCount uint32          `json:"inscriptions_count" gorm:"column:inscriptions_count"`
+	BalanceSum        decimal.Decimal `json:"balance_amount_sum" gorm:"column:balance_amount_sum;type:decimal(38,18)"`
+	BalanceLastId     uint64          `json:"balance_last_id" gorm:"column:balance_last_id"`
+	CreatedAt         time.Time       `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt         time.Time       `json:"updated_at" gorm:"column:updated_at"`
 }
 
-const (
-	BRC20Protocol = "brc-20"
-	ASC20Protocol = "asc-20"
-	BSC20Protocol = "bsc-20"
-	PRC20Protocol = "prc-20"
-	ERC20Protocol = "erc-20"
-
-	DefaultMaxDataLength = 256
-)
-
-// DefaultMaxDataLengthMap max data length config
-var DefaultMaxDataLengthMap = map[string]int{
-	BRC20Protocol: 256,
-	ASC20Protocol: 256,
-	BSC20Protocol: 256,
-	PRC20Protocol: 256,
-	ERC20Protocol: 256,
+func (ChainStatHour) TableName() string {
+	return "chain_stats_hour"
 }

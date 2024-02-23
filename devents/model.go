@@ -23,6 +23,8 @@
 package devents
 
 import (
+	"encoding/json"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
 	"github.com/uxuycom/indexer/xylog"
@@ -121,8 +123,9 @@ func (tc *TxResultHandler) BuildInscriptionStat(e *TxResult) map[DBAction]*model
 }
 
 type AddressTxEvent struct {
-	Address string
-	Amount  decimal.Decimal
+	Address        string
+	RelatedAddress string
+	Amount         decimal.Decimal
 }
 
 func (tc *TxResultHandler) BuildAddressTxEvents(e *TxResult) []*AddressTxEvent {
@@ -147,15 +150,22 @@ func (tc *TxResultHandler) BuildAddressTxEvents(e *TxResult) []*AddressTxEvent {
 			sendTotalAmount = sendTotalAmount.Add(item.Amount)
 		}
 
+		sendToAddr := ""
+		if len(e.Transfer.Receives) == 1 {
+			sendToAddr = e.Transfer.Receives[0].Address
+		}
+
 		items = append(items, &AddressTxEvent{
-			Address: e.Transfer.Sender,
-			Amount:  sendTotalAmount,
+			Address:        e.Transfer.Sender,
+			RelatedAddress: sendToAddr,
+			Amount:         sendTotalAmount.Neg(),
 		})
 
 		for _, item := range e.Transfer.Receives {
 			items = append(items, &AddressTxEvent{
-				Address: item.Address,
-				Amount:  item.Amount,
+				Address:        item.Address,
+				RelatedAddress: e.Transfer.Sender,
+				Amount:         item.Amount,
 			})
 		}
 	}
@@ -167,15 +177,16 @@ func (tc *TxResultHandler) BuildAddressTxs(e *TxResult) (txs []*model.AddressTxs
 	txs = make([]*model.AddressTxs, 0, len(addressTxEvents))
 	for _, item := range addressTxEvents {
 		txs = append(txs, &model.AddressTxs{
-			Event:     tc.getEventByOperate(e.MD.Operate),
-			Address:   item.Address,
-			Amount:    item.Amount,
-			TxHash:    e.Tx.Hash,
-			Tick:      e.MD.Tick,
-			Protocol:  e.MD.Protocol,
-			Operate:   e.MD.Operate,
-			Chain:     e.MD.Chain,
-			CreatedAt: time.Unix(int64(e.Block.Time), 0),
+			Event:          tc.getEventByOperate(e.MD.Operate),
+			Address:        item.Address,
+			RelatedAddress: item.RelatedAddress,
+			Amount:         item.Amount,
+			TxHash:         common.FromHex(e.Tx.Hash),
+			Tick:           e.MD.Tick,
+			Protocol:       e.MD.Protocol,
+			Operate:        e.MD.Operate,
+			Chain:          e.MD.Chain,
+			CreatedAt:      time.Unix(int64(e.Block.Time), 0),
 		})
 	}
 	return txs
@@ -275,7 +286,7 @@ func (tc *TxResultHandler) BuildBalance(e *TxResult) (txns []*model.BalanceTxn, 
 			Amount:    event.Amount,
 			Balance:   event.OverallBalance,
 			Available: event.AvailableBalance,
-			TxHash:    e.Tx.Hash,
+			TxHash:    common.FromHex(e.Tx.Hash),
 			CreatedAt: time.Unix(int64(e.Block.Time), 0),
 		})
 
@@ -298,15 +309,12 @@ func (tc *TxResultHandler) BuildBalance(e *TxResult) (txns []*model.BalanceTxn, 
 func (tc *TxResultHandler) BuildTx(e *TxResult) *model.Transaction {
 	return &model.Transaction{
 		Chain:           e.MD.Chain,
-		Protocol:        e.MD.Protocol,
 		BlockHeight:     e.Tx.BlockNumber.Uint64(),
 		PositionInBlock: e.Tx.TxIndex.Uint64(),
 		BlockTime:       time.Unix(int64(e.Block.Time), 0),
-		TxHash:          e.Tx.Hash,
+		TxHash:          common.FromHex(e.Tx.Hash),
 		From:            e.Tx.From,
 		To:              e.Tx.To,
-		Op:              e.MD.Operate,
-		Tick:            e.MD.Tick,
 		Gas:             e.Tx.Gas.Int64(),
 		GasPrice:        e.Tx.GasPrice.Int64(),
 	}
@@ -350,6 +358,10 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 		BalanceTxs: make([]*model.BalanceTxn, 0, len(blocksEvents)*2),
 	}
 	for _, blockEvent := range blocksEvents {
+
+		data, _ := json.Marshal(blockEvent)
+		xylog.Logger.Debugf("BuildDBUpdateModel blockEvent = %v", string(data))
+
 		for _, event := range blockEvent.Items {
 			for action, item := range event.Inscriptions {
 				if _, ok := dm.Inscriptions[action][item.SID]; ok {
@@ -376,7 +388,7 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 				dm.InscriptionStats[action][item.SID] = item
 			}
 
-			txIdx := event.Tx.TxHash
+			txIdx := common.Bytes2Hex(event.Tx.TxHash)
 			if _, ok := dm.Txs[txIdx]; ok {
 				xylog.Logger.Debugf("tx[%s] exist & force update", txIdx)
 			}
@@ -407,6 +419,7 @@ func BuildDBUpdateModel(blocksEvents []*Event) (dmf *DBModelsFattened) {
 		BlockHash:   lastBlockEvent.BlockHash,
 		BlockNumber: lastBlockEvent.BlockNum,
 		BlockTime:   time.Unix(int64(lastBlockEvent.BlockTime), 0),
+		ChainId:     lastBlockEvent.ChainId,
 	}
 
 	dmf = &DBModelsFattened{

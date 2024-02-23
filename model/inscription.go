@@ -33,12 +33,6 @@ const (
 	TransferTypeBalance = 2
 )
 
-type ChainInfo struct {
-	ChainId         string `json:"chain_id"`
-	ChainName       string `json:"chain_name"`
-	ProtocolOnChain string `json:"protocol_on_chain"`
-}
-
 type Inscriptions struct {
 	ID           uint32          `gorm:"primaryKey" json:"id"` // ID
 	SID          uint32          `json:"sid"  gorm:"column:sid"`
@@ -83,6 +77,15 @@ func (InscriptionsStats) TableName() string {
 	return "inscriptions_stats"
 }
 
+type AllChain struct {
+	Chain string `json:"chain"`
+	count uint32 `json:"count"`
+}
+
+func (AllChain) TableName() string {
+	return "inscriptions"
+}
+
 type InscriptionOverView struct {
 	ID           uint32          `gorm:"primaryKey" json:"id"`
 	Chain        string          `json:"chain" gorm:"column:chain"`
@@ -101,6 +104,7 @@ type InscriptionOverView struct {
 	Holders      uint64          `json:"holders" gorm:"column:holders"`
 	Minted       decimal.Decimal `gorm:"column:minted;type:decimal(38,18)" json:"minted"`
 	TxCnt        uint64          `gorm:"column:tx_cnt" json:"tx_cnt"`
+	Progress     decimal.Decimal `gorm:"column:progress;type:decimal(36,18)" json:"progress"` // mint进度
 }
 
 type InscriptionBrief struct {

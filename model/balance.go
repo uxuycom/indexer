@@ -78,3 +78,13 @@ type BalanceInscription struct {
 	DeployHash   string          `json:"deploy_hash"`
 	TransferType int8            `json:"transfer_type"`
 }
+
+type BalanceChain struct {
+	Chain   string          `json:"chain"`
+	Address string          `json:"address"`
+	Balance decimal.Decimal `json:"balance"`
+}
+
+func (BalanceChain) TableName() string {
+	return "balances"
+}

@@ -32,6 +32,7 @@ import (
 	"math/big"
 	"reflect"
 	"strings"
+	"time"
 )
 
 const (
@@ -237,28 +238,28 @@ func (conn *DBClient) BatchAddTransaction(dbTx *gorm.DB, items []*model.Transact
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 1000)
+	return conn.CreateInBatches(dbTx, items, 5000)
 }
 
 func (conn *DBClient) BatchAddBalanceTx(dbTx *gorm.DB, items []*model.BalanceTxn) error {
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 1000)
+	return conn.CreateInBatches(dbTx, items, 5000)
 }
 
 func (conn *DBClient) BatchAddAddressTx(dbTx *gorm.DB, items []*model.AddressTxs) error {
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 1000)
+	return conn.CreateInBatches(dbTx, items, 5000)
 }
 
 func (conn *DBClient) BatchAddBalances(dbTx *gorm.DB, items []*model.Balances) error {
 	if len(items) < 1 {
 		return nil
 	}
-	return conn.CreateInBatches(dbTx, items, 1000)
+	return conn.CreateInBatches(dbTx, items, 2000)
 }
 
 func (conn *DBClient) BatchUpdateBalances(dbTx *gorm.DB, chain string, items []*model.Balances) error {
@@ -394,6 +395,36 @@ func (conn *DBClient) GetInscriptions(limit, offset int, chain, protocol, tick, 
 	return data, total, nil
 }
 
+func (conn *DBClient) FindInscriptionInfo(chain, protocol, tick, deployHash string) (*model.InscriptionOverView, error) {
+	var inscription model.InscriptionOverView
+	result := conn.SqlDB.Model(&model.Inscriptions{}).
+		Select("inscriptions.*, inscriptions_stats.*, (inscriptions_stats.minted / inscriptions.total_supply) as progress").
+		Joins("left join inscriptions_stats ON inscriptions.chain = inscriptions_stats.chain AND inscriptions.protocol = inscriptions_stats.protocol AND inscriptions.tick = inscriptions_stats.tick")
+
+	if chain != "" {
+		result = result.Where("inscriptions.chain = ?", chain)
+	}
+	if protocol != "" {
+		result = result.Where("inscriptions.protocol = ?", protocol)
+	}
+	if tick != "" {
+		result = result.Where("inscriptions.tick = ?", tick)
+	}
+	if deployHash != "" {
+		result = result.Where("inscriptions.deploy_hash = ?", deployHash)
+	}
+
+	err := result.First(&inscription).Error
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &inscription, nil
+}
+
 func (conn *DBClient) GetInscriptionsByIdLimit(chain string, start uint64, limit int) ([]model.Inscriptions, error) {
 	inscriptions := make([]model.Inscriptions, 0)
 	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ?", start).Order("id asc").Limit(limit).Find(&inscriptions).Error
@@ -410,6 +441,33 @@ func (conn *DBClient) GetInscriptionStatsByIdLimit(chain string, start uint64, l
 		return nil, err
 	}
 	return stats, nil
+}
+
+func (conn *DBClient) GetInscriptionStats(chain string, start uint64, limit int) ([]model.InscriptionsStats, error) {
+	stats := make([]model.InscriptionsStats, 0)
+	err := conn.SqlDB.Where("chain = ?", chain).Where("id > ?", start).Order("id asc").Limit(limit).Find(&stats).Error
+	if err != nil {
+		return nil, err
+	}
+	return stats, nil
+}
+
+func (conn *DBClient) GetInscriptionStatsList(limit int, offset int, sort int) ([]model.InscriptionsStats, int64, error) {
+	stats := make([]model.InscriptionsStats, 0)
+	query := conn.SqlDB.Model(&model.InscriptionsStats{})
+
+	var total int64
+	query.Count(&total)
+
+	orderBy := " id DESC"
+	if sort == OrderByModeAsc {
+		orderBy = " id ASC"
+	}
+	err := query.Order(orderBy).Limit(limit).Offset(offset).Find(&stats).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return stats, total, nil
 }
 
 func (conn *DBClient) GetInscriptionsByAddress(limit, offset int, address string) ([]*model.Balances, error) {
@@ -502,7 +560,32 @@ func (conn *DBClient) GetTxsByHashes(chain string, hashes []string) ([]*model.Tr
 	return txs, nil
 }
 
-func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, protocol, tick string, sort int) (
+// GetTransactions find all transaction
+func (conn *DBClient) GetTransactions(address string, tick string, limit int, offset int, sort int) ([]*model.Transaction, int64, error) {
+
+	txs := make([]*model.Transaction, 0)
+	query := conn.SqlDB.Model(&model.Transaction{})
+
+	var total int64
+	if len(address) > 0 {
+		query = query.Where("from = ? or to = ?", address, address)
+	}
+	if len(tick) > 0 {
+		query = query.Where("tick = ?", tick)
+	}
+	orderBy := " id DESC"
+	if sort == OrderByModeAsc {
+		orderBy = " id ASC"
+	}
+	err := query.Order(orderBy).Limit(limit).Offset(offset).Find(&txs).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return txs, total, nil
+}
+
+func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, protocol, tick string,
+	key string, sort int) (
 	[]*model.BalanceInscription, int64, error) {
 
 	var data []*model.BalanceInscription
@@ -520,7 +603,10 @@ func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, 
 		query = query.Where("`b`.protocol = ?", protocol)
 	}
 	if tick != "" {
-		query = query.Where("`b`.tick like ?", "%"+tick+"%")
+		query = query.Where("`b`.tick = ?", tick)
+	}
+	if key != "" {
+		query = query.Where("`b`.tick like ?", "%"+key+"%")
 	}
 
 	query = query.Count(&total)
@@ -537,13 +623,13 @@ func (conn *DBClient) GetAddressInscriptions(limit, offset int, address, chain, 
 	return data, total, nil
 }
 
-func (conn *DBClient) GetBalancesByAddress(limit, offset int, address, chain, protocol, tick string) (
-	[]*model.Balances, int64, error) {
+func (conn *DBClient) GetBalancesChainByAddress(limit, offset int, address, chain, protocol, tick string) (
+	[]*model.BalanceChain, int64, error) {
 
-	var balances []*model.Balances
+	var balances []*model.BalanceChain
 	var total int64
 
-	query := conn.SqlDB.Model(&model.Balances{}).Where("`address` = ?", address)
+	query := conn.SqlDB.Select("chain,address,SUM(balance) as balance").Table("balances").Where("`address` = ?", address)
 	if chain != "" {
 		query = query.Where("`chain` = ?", chain)
 	}
@@ -554,7 +640,9 @@ func (conn *DBClient) GetBalancesByAddress(limit, offset int, address, chain, pr
 		query = query.Where("`tick` = ?", tick)
 	}
 	query = query.Count(&total)
-	err := query.Limit(limit).Offset(offset).Find(&balances).Error
+	orderBy := "balance DESC"
+	groupBy := "chain"
+	err := query.Group(groupBy).Order(orderBy).Limit(limit).Offset(offset).Find(&balances).Error
 	if err != nil {
 		return nil, 0, err
 	}
@@ -632,6 +720,25 @@ func (conn *DBClient) FindAddressTxByHash(chain, hash string) (*model.AddressTxs
 	return tx, nil
 }
 
+func (conn *DBClient) FindBalanceByTxHash(hash string) ([]*model.BalanceTxn, error) {
+	balances := make([]*model.BalanceTxn, 0)
+	err := conn.SqlDB.Model(&model.BalanceTxn{}).Where("tx_hash = ? ", hash).Find(balances).Error
+	if err != nil {
+		return nil, err
+	}
+	return balances, nil
+}
+
+// GetAllChainFromBlock query all chains from block table
+func (conn *DBClient) GetAllChainFromBlock() ([]string, error) {
+	var chains []string
+	err := conn.SqlDB.Model(&model.Block{}).Distinct().Pluck("chain", &chains).Error
+	if err != nil {
+		return nil, err
+	}
+	return chains, nil
+}
+
 func (conn *DBClient) FindLastBlock(chain string) (*model.Block, error) {
 	data := &model.Block{}
 	err := conn.SqlDB.First(data, "chain = ? ", chain).Error
@@ -658,4 +765,72 @@ func (conn *DBClient) FindInscriptionsStatsByTick(chain string, protocol string,
 	}
 
 	return inscriptionStats, nil
+}
+
+func (conn *DBClient) FindAllChain() ([]*model.AllChain, error) {
+	allChain := make([]*model.AllChain, 0)
+	query := conn.SqlDB.Select("chain,count(*) as count").Table("inscriptions")
+	groupBy := "chain"
+	err := query.Group(groupBy).Find(&allChain).Error
+	if err != nil {
+		return nil, nil
+	}
+	return allChain, nil
+}
+
+func (conn *DBClient) FindLastChainStatHourByChainAndDateHour(chain string, dateHour uint32) (*model.ChainStatHour, error) {
+	data := &model.ChainStatHour{}
+	err := conn.SqlDB.Last(data, "chain = ?", chain).Where("date_hour = ?", dateHour).Error
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (conn *DBClient) FindAddressTxByIdAndChainAndLimit(chain string, start uint64, limit int) ([]model.AddressTxs, error) {
+	txs := make([]model.AddressTxs, 0)
+	err := conn.SqlDB.Where("id > ?", start).Where("chain = ?", chain).Order("id asc").Limit(limit).Find(&txs).Error
+	if err != nil {
+		return nil, err
+	}
+	return txs, nil
+}
+
+func (conn *DBClient) FindInscriptionsTxByIdAndChainAndLimit(chain string, nowHour, lastHour time.Time) ([]model.Inscriptions, error) {
+	inscriptions := make([]model.Inscriptions, 0)
+	err := conn.SqlDB.Where("chain = ?", chain).Where("deploy_time > ? and deploy_time < ?", lastHour, nowHour).Find(&inscriptions).Error
+	if err != nil {
+		return nil, err
+	}
+	return inscriptions, nil
+}
+
+func (conn *DBClient) FindBalanceTxByIdAndChainAndLimit(chain string, balanceIndex uint64, limit int) ([]model.BalanceTxn, error) {
+	balances := make([]model.BalanceTxn, 0)
+	err := conn.SqlDB.Where("id > ?", balanceIndex).Where("chain = ?", chain).Where("amount > 0").Order("id asc").Limit(limit).Find(&balances).Error
+	if err != nil {
+		return nil, err
+	}
+	return balances, nil
+}
+func (conn *DBClient) AddChainStatHour(chainStatHour *model.ChainStatHour) error {
+	return conn.SqlDB.Create(chainStatHour).Error
+}
+
+func (conn *DBClient) GetAllChainInfo() ([]model.ChainInfo, error) {
+	chains := make([]model.ChainInfo, 0)
+	err := conn.SqlDB.Model(&model.ChainInfo{}).Find(&chains).Error
+	if err != nil {
+		return nil, err
+	}
+	return chains, nil
+}
+
+func (conn *DBClient) GroupChainStatHourBy24Hour(startHour, endHour uint32) ([]model.ChainStatHour, error) {
+	stats := make([]model.ChainStatHour, 0)
+	err := conn.SqlDB.Where("date_hour >= ? and date_hour <= ?", startHour, endHour).Find(&stats).Error
+	if err != nil {
+		return nil, err
+	}
+	return stats, nil
 }

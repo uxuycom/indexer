@@ -5,6 +5,7 @@ import (
 )
 
 type Block struct {
+	ChainId     int64     `json:"chain_id" gorm:"column:chain_id"`
 	Chain       string    `json:"chain" gorm:"column:chain"`
 	BlockHash   string    `json:"block_hash" gorm:"column:block_hash"`
 	BlockNumber string    `json:"block_number" gorm:"column:block_number"`

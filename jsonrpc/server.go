@@ -18,11 +18,8 @@ import (
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/storage"
 	"io"
-	"log"
 	"net"
 	"net/http"
-	"os"
-	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -49,27 +46,8 @@ var (
 )
 
 var (
-	cfg = &Config{}
+	cfg *config.RpcConfig
 )
-
-// Config defines the configuration options for btcd.
-//
-// See loadConfig for details on the configuration load process.
-type Config struct {
-	DebugLevel           string   `json:"debug_level"`
-	DisableTLS           bool     `json:"notls" description:"Disable TLS for the RPC server -- NOTE: This is only allowed if the RPC server is bound to localhost"`
-	RPCCert              string   `json:"rpccert" description:"File containing the certificate file"`
-	RPCKey               string   `json:"rpckey" description:"File containing the certificate key"`
-	RPCLimitPass         string   `json:"rpclimitpass" default-mask:"-" description:"Password for limited RPC connections"`
-	RPCLimitUser         string   `json:"rpclimituser" description:"Username for limited RPC connections"`
-	RPCListeners         []string `json:"rpclisten" description:"Add an interface/port to listen for RPC connections (default port: 6583, testnet: 16583)"`
-	RPCMaxClients        int      `json:"rpcmaxclients" description:"Max number of RPC clients for standard connections"`
-	RPCMaxConcurrentReqs int      `json:"rpcmaxconcurrentreqs" description:"Max number of concurrent RPC requests that may be processed concurrently"`
-	RPCMaxWebsockets     int      `json:"rpcmaxwebsockets" description:"Max number of RPC websocket connections"`
-	RPCQuirks            bool     `json:"rpcquirks" description:"Mirror some JSON-RPC quirks of Bitcoin Core -- NOTE: Discouraged unless interoperability issues need to be worked around"`
-	RPCPass              string   `json:"rpcpass" default-mask:"-" description:"Password for RPC connections"`
-	RPCUser              string   `json:"rpcuser" description:"Username for RPC connections"`
-}
 
 type commandHandler func(*RpcServer, interface{}, <-chan struct{}) (interface{}, error)
 
@@ -701,16 +679,9 @@ type RpcServerConfig struct {
 }
 
 // NewRPCServer returns a new instance of the RpcServer struct.
-func NewRPCServer(dbc *storage.DBClient, cacheConfig *config.CacheConfig) (*RpcServer, error) {
-	//load cfg
-	loadCfg()
-
-	//init xylog
-	//l, err := logrus.ParseLevel(cfg.DebugLevel)
-	//if err != nil {
-	//	log.Fatalf("debug_level err:%v", err)
-	//}
-	//logrus.SetLevel(l)
+func NewRPCServer(dbc *storage.DBClient, config *config.RpcConfig) (*RpcServer, error) {
+	// load cfg
+	cfg = config
 
 	// Setup listeners for the configured RPC listen addresses and
 	// TLS settings.
@@ -732,11 +703,11 @@ func NewRPCServer(dbc *storage.DBClient, cacheConfig *config.CacheConfig) (*RpcS
 		requestProcessShutdown: make(chan struct{}),
 		quit:                   make(chan int),
 		dbc:                    dbc,
-		cacheConfig:            cacheConfig,
+		cacheConfig:            cfg.CacheStore,
 	}
 
-	if cacheConfig != nil && cacheConfig.Started {
-		cacheStore := cache_store.NewCacheStore(cacheConfig.MaxCapacity, cacheConfig.Duration)
+	if cfg.CacheStore != nil && cfg.CacheStore.Started {
+		cacheStore := cache_store.NewCacheStore(cfg.CacheStore.MaxCapacity, cfg.CacheStore.Duration)
 		rpc.cacheStore = cacheStore
 		go cacheStore.Clear()
 	}
@@ -752,28 +723,6 @@ func NewRPCServer(dbc *storage.DBClient, cacheConfig *config.CacheConfig) (*RpcS
 		rpc.limitauthsha = sha256.Sum256([]byte(auth))
 	}
 	return &rpc, nil
-}
-
-func loadCfg() {
-	// Default config.
-	configFileName := "config_jsonrpc.json"
-	if len(os.Args) > 1 {
-		configFileName = os.Args[1]
-	}
-
-	configFileName, _ = filepath.Abs(configFileName)
-	log.Printf("Loading config: %s", configFileName)
-
-	configFile, err := os.Open(configFileName)
-	if err != nil {
-		log.Fatalf("open config file[%s] error[%v]", configFileName, err.Error())
-	}
-
-	defer configFile.Close()
-	jsonParser := json.NewDecoder(configFile)
-	if err := jsonParser.Decode(cfg); err != nil {
-		log.Fatal("load config error: ", err.Error())
-	}
 }
 
 // setupRPCListeners returns a slice of listeners that are configured for use

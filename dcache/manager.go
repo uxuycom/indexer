@@ -58,6 +58,10 @@ func NewManager(db *storage.DBClient, chain string) *Manager {
 	return e
 }
 
+func (h *Manager) GetDataSource() *storage.DBClient {
+	return h.db
+}
+
 func (h *Manager) initInscriptionCache(chain string) {
 	h.Inscription = NewInscription()
 

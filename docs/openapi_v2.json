@@ -9,7 +9,7 @@
   },
   "servers": [
     {
-      "url": "https://api.indexs.io/v2/rpc/"
+      "url": "https://alpha.indexs.io/v2/rpc"
     }
   ],
   "paths": {
@@ -69,7 +69,16 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "", "", "", "",  3, 1]
+                    "default": [
+                      10,
+                      0,
+                      "",
+                      "",
+                      "",
+                      "",
+                      3,
+                      1
+                    ]
                   }
                 }
               }
@@ -134,7 +143,15 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "0x6Ac6f9231c86ba4Ea4C40D196DA930C1d66439f5", "", "", "", 0]
+                    "default": [
+                      10,
+                      0,
+                      "0x6Ac6f9231c86ba4Ea4C40D196DA930C1d66439f5",
+                      "",
+                      "",
+                      "",
+                      0
+                    ]
                   }
                 }
               }
@@ -143,9 +160,9 @@
         }
       }
     },
-    "/inds_getBalanceByAddress": {
+    "/inds_getBalancesByAddress": {
       "post": {
-        "operationId": "inds_getBalanceByAddress",
+        "operationId": "inds_getBalancesByAddress",
         "deprecated": false,
         "summary": "Get Address Balances",
         "description": "Get Address Balances From UXUY Indexer",
@@ -172,7 +189,7 @@
                 "properties": {
                   "method": {
                     "type": "string",
-                    "default": "inds_getBalanceByAddress",
+                    "default": "inds_getBalancesByAddress",
                     "description": "Method name"
                   },
                   "id": {
@@ -199,7 +216,15 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "0xF2f9D2575023D320475ed7875FCDCB9b52787E59", "", "", "", 1]
+                    "default": [
+                      10,
+                      0,
+                      "0xF2f9D2575023D320475ed7875FCDCB9b52787E59",
+                      "",
+                      "",
+                      "",
+                      1
+                    ]
                   }
                 }
               }
@@ -264,7 +289,14 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [10, 0, "avalanche", "asc-20", "crazydog", 1]
+                    "default": [
+                      10,
+                      0,
+                      "avalanche",
+                      "asc-20",
+                      "crazydog",
+                      1
+                    ]
                   }
                 }
               }
@@ -329,7 +361,11 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": [["avalanche"]]
+                    "default": [
+                      [
+                        "avalanche"
+                      ]
+                    ]
                   }
                 }
               }
@@ -394,7 +430,10 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": ["avalanche", "0x646174613a2c7b2270223a226173632d3230222c226f70223a226d696e74222c227469636b223a22746f6d726179222c22616d74223a2231227d"]
+                    "default": [
+                      "avalanche",
+                      "0x646174613a2c7b2270223a226173632d3230222c226f70223a226d696e74222c227469636b223a22746f6d726179222c22616d74223a2231227d"
+                    ]
                   }
                 }
               }
@@ -459,7 +498,568 @@
                         "description": "A param to include"
                       }
                     },
-                    "default": ["avalanche", "0x2f88df8669337ec739d8414df0f3ef32bf166cb73233c965e805b7fa54eef1f2"]
+                    "default": [
+                      "avalanche",
+                      "0x2f88df8669337ec739d8414df0f3ef32bf166cb73233c965e805b7fa54eef1f2"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inds_getTransactions": {
+      "post": {
+        "operationId": "inds_getTransactions",
+        "deprecated": false,
+        "summary": "Get Transaction List Info",
+        "description": "Get Transaction Info From UXUY Indexer",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "inds_getTransactions",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": [
+                      10,
+                      0,
+                      "",
+                      "",
+                      "",
+                      "",
+                      1
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inds_getInscriptions": {
+      "post": {
+        "operationId": "inds_getInscriptions",
+        "deprecated": false,
+        "summary": "Get InscriptionsStats List Info",
+        "description": "Get Transaction Info From UXUY Indexer",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "inds_getInscriptions",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": [
+                      10,
+                      0,
+                      "",
+                      "",
+                      "",
+                      "",
+                      3
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inds_getInscriptionTxOperate": {
+      "post": {
+        "operationId": "inds_getInscriptionTxOperate",
+        "deprecated": false,
+        "summary": "Get InscriptionTxOperate",
+        "description": "Get InscriptionTxOperate From UXUY Indexer",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "inds_getInscriptionTxOperate",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": [
+                      "avalanche",
+                      "0x646174613a2c7b2270223a226173632d3230222c226f70223a226d696e74222c227469636b223a22746f6d726179222c22616d74223a2231227d"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/index_getInscriptionByTick": {
+      "post": {
+        "operationId": "index_getInscriptionByTick",
+        "deprecated": false,
+        "summary": "Get Inscription by Tick",
+        "description": "Get Inscription Tick From UXUY Indexer",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "index_getInscriptionByTick",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": [
+                      "avalanche",
+                      "asc-20",
+                      "crazydog"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inds_getAddressBalance": {
+      "post": {
+        "operationId": "inds_getAddressBalance",
+        "deprecated": false,
+        "summary": "Get Address Balance",
+        "description": "Get Address Balance From UXUY Indexer",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "inds_getAddressBalance",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": [
+                      "0xF2f9D2575023D320475ed7875FCDCB9b52787E59",
+                      "avalanche",
+                      "asc-20",
+                      "crazydog"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inds_getTickBriefs": {
+      "post": {
+        "operationId": "inds_getTickBriefs",
+        "deprecated": false,
+        "summary": "Get tick briefs",
+        "description": "Get Tick Briefs From UXUY Indexer",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "inds_getTickBriefs",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": [
+                      [
+                        {
+                          "chain": "avalanche",
+                          "deploy_hash": "0x7ffc56b2bf20f4f3474c1fd503fc3f1fb9066c8b0665d6da11185cac892108a5"
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inds_search": {
+      "post": {
+        "operationId": "inds_search",
+        "deprecated": false,
+        "summary": "Search address or transaction or tick",
+        "description": "Search address or transaction or tick",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "inds_search",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "string",
+                        "default": "",
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": [
+                      "0x4273173187f1108007b1C1ABE5301eFa03f7fc8A",
+                      ""
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inds_getAllChains": {
+      "post": {
+        "operationId": "inds_getAllChains",
+        "deprecated": false,
+        "summary": "Get All Chain",
+        "description": "Get All Chain",
+        "tags": [
+          "JSONRPC"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "id",
+                  "jsonrpc",
+                  "params"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "default": "inds_getAllChains",
+                    "description": "Method name"
+                  },
+                  "id": {
+                    "type": "integer",
+                    "default": 1,
+                    "format": "int32",
+                    "description": "Request ID"
+                  },
+                  "jsonrpc": {
+                    "type": "string",
+                    "default": "2.0",
+                    "description": "JSON-RPC Version (2.0)"
+                  },
+                  "params": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "required": [
+                      "jsonParam"
+                    ],
+                    "properties": {
+                      "jsonParam": {
+                        "type": "string",
+                        "default": "",
+                        "description": "A param to include"
+                      }
+                    },
+                    "default": [[]]
                   }
                 }
               }

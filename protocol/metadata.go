@@ -30,6 +30,7 @@ import (
 	"github.com/uxuycom/indexer/devents"
 	"github.com/uxuycom/indexer/model"
 	"github.com/uxuycom/indexer/protocol/avax/asc20"
+	"github.com/uxuycom/indexer/protocol/types"
 	"strings"
 )
 
@@ -70,11 +71,6 @@ func ParseEVMMetaData(chain string, inputData string) (*devents.MetaData, error)
 		return nil, fmt.Errorf("data seprator index failed")
 	}
 
-	// max length limit
-	if len(input) > 256 {
-		return nil, fmt.Errorf("data character size[%d] > 256", len(input))
-	}
-
 	//set parse content types
 	contentType := ""
 	if dataPrefixIdx > 5 {
@@ -93,6 +89,17 @@ func ParseEVMMetaData(chain string, inputData string) (*devents.MetaData, error)
 
 	// trim prefix / suffix spaces & case insensitive
 	proto.Protocol = strings.ToLower(strings.TrimSpace(proto.Protocol))
+
+	maxDataLength := types.DefaultMaxDataLength
+	if value, ok := types.DefaultMaxDataLengthMap[proto.Protocol]; ok {
+		maxDataLength = value
+	}
+
+	// max length limit
+	if len(input) > maxDataLength {
+		return nil, fmt.Errorf("data character size[%d] > 256", len(input))
+	}
+
 	proto.Operate = strings.ToLower(strings.TrimSpace(proto.Operate))
 	proto.Tick = strings.ToLower(strings.TrimSpace(proto.Tick))
 

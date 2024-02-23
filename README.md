@@ -32,7 +32,7 @@ make build install
 ### Build indexer
 ```
 make build install-indexer
-indexer -config config.json
+indexer --config config.json or  indexer -c config.json
 ```
 
 
@@ -42,7 +42,7 @@ indexer -config config.json
 ### Build apiserver
 ```
 make build install-jsonrpc
-apiserver -config config_jsonrpc.json
+apiserver --config config_jsonrpc.json or  apiserver -c config_jsonrpc.json
 ```
 
 

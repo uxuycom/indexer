@@ -23,8 +23,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/jsonrpc"
 	"github.com/uxuycom/indexer/storage"
@@ -36,7 +38,7 @@ import (
 )
 
 var (
-	cfg        config.JsonRcpConfig
+	cfg        config.RpcConfig
 	flagConfig string
 )
 
@@ -47,7 +49,13 @@ func main() {
 
 	config.LoadJsonRpcConfig(&cfg, flagConfig)
 
-	logLevel, _ := logrus.ParseLevel(cfg.LogLevel)
+	cfgJson, _ := json.Marshal(&cfg)
+	log.Printf("start server with config = %v\n", string(cfgJson))
+
+	logLevel, err := logrus.ParseLevel(cfg.LogLevel)
+	if err != nil {
+		log.Printf("start server parse log level err  = %v\n", err)
+	}
 	xylog.InitLog(logLevel, cfg.LogPath)
 
 	//db client
@@ -57,7 +65,7 @@ func main() {
 		return
 	}
 	//init server
-	server, err := jsonrpc.NewRPCServer(dbc, cfg.CacheStore)
+	server, err := jsonrpc.NewRPCServer(dbc, &cfg)
 	if err != nil {
 		log.Fatalf("server init err[%v]", err)
 	}
@@ -83,6 +91,8 @@ func main() {
 }
 
 func initArgs() {
-	flag.StringVar(&flagConfig, "config", "config_jsonrpc.json", "config file")
-	flag.Parse()
+
+	pflag.StringVarP(&flagConfig, "config", "c", "config_jsonrpc.json", "config file")
+	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
+	pflag.Parse()
 }

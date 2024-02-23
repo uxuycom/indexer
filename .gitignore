@@ -5,3 +5,9 @@
 /config.ini
 /bin/
 ./indexer
+indexer
+build.sh 
+log
+dev_config.json
+test_config.json
+dev_config_jsonrpc.json

@@ -24,6 +24,7 @@ package evm
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum"
@@ -57,7 +58,7 @@ func (ec *RawClient) Client() *rpc.Client {
 }
 
 func (ec *RawClient) doCallContext(retry int, result interface{}, method string, args ...interface{}) (err error) {
-	timeCtx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	timeCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	t1 := time.Now()
@@ -88,6 +89,8 @@ func (ec *RawClient) CallContext(ctx context.Context, result interface{}, method
 			if result == nil {
 				return rpc.ErrNoResult
 			}
+			d, _ := json.Marshal(result)
+			xylog.Logger.Debugf("CallContext result=%v", string(d))
 			return nil
 		}
 

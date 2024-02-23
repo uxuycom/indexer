@@ -18,35 +18,38 @@
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//SOFTWARE
+// SOFTWARE
 
-package types
+package task
 
 import (
-	"github.com/uxuycom/indexer/client/xycommon"
-	"github.com/uxuycom/indexer/devents"
-	"github.com/uxuycom/indexer/xyerrors"
+	"github.com/uxuycom/indexer/config"
+	"github.com/uxuycom/indexer/storage"
+	"github.com/uxuycom/indexer/xylog"
 )
 
-type IProtocol interface {
-	Parse(block *xycommon.RpcBlock, tx *xycommon.RpcTransaction, md *devents.MetaData) ([]*devents.TxResult, *xyerrors.InsError)
+type Task struct {
+	dbc   *storage.DBClient
+	cfg   *config.Config
+	tasks map[string]interface{}
 }
 
-const (
-	BRC20Protocol = "brc-20"
-	ASC20Protocol = "asc-20"
-	BSC20Protocol = "bsc-20"
-	PRC20Protocol = "prc-20"
-	ERC20Protocol = "erc-20"
+type ITask interface {
+	Exec()
+}
 
-	DefaultMaxDataLength = 256
-)
+func InitTask(dbc *storage.DBClient, cfg *config.Config) *Task {
 
-// DefaultMaxDataLengthMap max data length config
-var DefaultMaxDataLengthMap = map[string]int{
-	BRC20Protocol: 256,
-	ASC20Protocol: 256,
-	BSC20Protocol: 256,
-	PRC20Protocol: 256,
-	ERC20Protocol: 256,
+	task := &Task{
+		tasks: map[string]interface{}{
+			"chain_stats_tak": NewChainStatsTask(dbc, cfg), // add new task here
+		},
+	}
+
+	for k, v := range task.tasks {
+		xylog.Logger.Infof("tasks %v start!", k)
+		t := v.(ITask)
+		go t.Exec()
+	}
+	return task
 }

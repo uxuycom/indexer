@@ -1,446 +1,210 @@
-// Copyright (c) 2023-2024 The UXUY Developer Team
-// License:
-// MIT License
-
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//SOFTWARE
-
 package jsonrpc
 
 import (
 	"errors"
-	"fmt"
-	"github.com/uxuycom/indexer/model"
-	"github.com/uxuycom/indexer/protocol"
 	"github.com/uxuycom/indexer/storage"
 	"github.com/uxuycom/indexer/xylog"
-	"strings"
 )
 
+// v1 version
 var rpcHandlersBeforeInit = map[string]commandHandler{
-	"inscription.All":           handleFindAllInscriptions,
-	"inscription.Tick":          handleFindInscriptionTick,
-	"address.Transactions":      handleFindAddressTransactions,
-	"address.Balances":          handleFindAddressBalances,
-	"address.Balance":           handleFindAddressBalance,
-	"tick.Holders":              handleFindTickHolders,
-	"block.LastNumber":          handleGetLastBlockNumber,
-	"tool.InscriptionTxOperate": handleGetTxOperate,
-	"transaction.Info":          handleGetTxByHash,
-	"tick.GetBriefs":            handleGetTickBriefs,
+	"inscription.All":           indsGetInscriptions,
+	"inscription.Tick":          indsGetInscriptionByTick,
+	"address.Transactions":      indsGetAddressTransactions,
+	"address.Balances":          indsGetBalancesByAddress,
+	"address.Balance":           indsGetAddressBalance,
+	"tick.Holders":              indsGetHoldersByTick,
+	"block.LastNumber":          indsGetLastBlockNumber,
+	"tool.InscriptionTxOperate": indsGetTxOperate,
+	"transaction.Info":          indsGetTxByHash,
+	"tick.GetBriefs":            indsGetTickBriefs,
 }
 
-func handleFindAllInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	req, ok := cmd.(*FindAllInscriptionsCmd)
+// v2 version
+var rpcHandlersBeforeInitV2 = map[string]commandHandler{
+	"inds_getInscriptions":           indsGetInscriptions,
+	"index_getInscriptionByTick":     indsGetInscriptionByTick,
+	"inds_search":                    indsSearch,
+	"inds_getAllChains":              indsGetAllChains,
+	"inds_getTicks":                  indsGetTicks,
+	"inds_getTick":                   indsGetTick,
+	"inds_getTransactions":           indsGetTransactions,
+	"inds_getTransactionByAddress":   indsGetAddressTransactions,
+	"inds_getTransactionByHash":      indsGetTxByHash,
+	"inds_getBalancesByAddress":      indsGetBalancesByAddress,
+	"inds_getHoldersByTick":          indsGetHoldersByTick,
+	"inds_getLastBlockNumberIndexed": indsGetLastBlockNumber,
+	"inds_getTickByCallData":         indsGetTxOperate, //
+	"inds_getInscriptionTxOperate":   indsGetTxOperate, //
+	"inds_getAddressBalance":         indsGetAddressBalance,
+	"inds_getTickBriefs":             indsGetTickBriefs,
+	"inds_getChainStat":              indsGetChainStat,
+}
+
+func indsGetAllChains(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*GetAllChainCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
+	xylog.Logger.Infof("find all chain cmd params:%v", req)
+	svr := NewService(s)
+	return svr.GetAllChain()
+}
+
+func indsSearch(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*IndsSearchCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("find all txs cmd params:%v", req)
+	svr := NewService(s)
+	return svr.Search(req.Keyword, req.Chain)
+
+}
+
+func indsGetInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+
+	req, ok := cmd.(*IndsGetInscriptionsCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("find all txs cmd params:%v", req)
+	svr := NewService(s)
+	return svr.GetInscriptions(req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort,
+		storage.OrderByModeDesc)
+}
+
+func indsGetTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+
+	req, ok := cmd.(*IndsGetTransactionCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("find all txs cmd params:%v", req)
+	svr := NewService(s)
+	return svr.GetTransactions(req.Address, req.Tick, req.Limit, req.Offset, req.SortMode)
+
+}
+
+func indsGetTicks(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*IndsGetTicksCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+
 	xylog.Logger.Infof("find all Inscriptions cmd params:%v", req)
-	return findInsciptions(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort, storage.OrderByModeDesc)
+	svr := NewService(s)
+	return svr.GetInscriptions(req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort,
+		req.SortMode)
 }
 
-func handleFindInscriptionTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	req, ok := cmd.(*FindInscriptionTickCmd)
+func indsGetTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*IndsGetTickCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-	xylog.Logger.Infof("find inscriptions tick cmd params:%v", req)
+	xylog.Logger.Infof("find Inscription cmd params:%v", req)
 
-	req.Protocol = strings.ToLower(req.Protocol)
-	req.Tick = strings.ToLower(req.Tick)
+	svr := NewService(s)
 
-	cacheKey := fmt.Sprintf("tick_%s_%s_%s", req.Chain, req.Protocol, req.Tick)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
-		if ticks, ok := ins.(*InscriptionInfo); ok {
-			return ticks, nil
-		}
-	}
-
-	data, err := s.dbc.FindInscriptionByTick(req.Chain, req.Protocol, req.Tick)
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-	if data == nil {
-		return ErrRPCRecordNotFound, err
-	}
-
-	resp := &InscriptionInfo{
-		Chain:        data.Chain,
-		Protocol:     data.Protocol,
-		Tick:         data.Tick,
-		Name:         data.Name,
-		LimitPerMint: data.LimitPerMint.String(),
-		DeployBy:     data.DeployBy,
-		TotalSupply:  data.TotalSupply.String(),
-		DeployHash:   data.DeployHash,
-		DeployTime:   uint32(data.DeployTime.Unix()),
-		TransferType: data.TransferType,
-		CreatedAt:    uint32(data.CreatedAt.Unix()),
-		UpdatedAt:    uint32(data.UpdatedAt.Unix()),
-		Decimals:     data.Decimals,
-	}
-	s.cacheStore.Set(cacheKey, resp)
-	return resp, nil
+	return svr.GetInscription(req.Chain, req.Protocol, req.Tick, req.DeployHash)
 }
 
-func handleFindAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	req, ok := cmd.(*FindUserTransactionsCmd)
-	if !ok {
-		return ErrRPCInvalidParams, errors.New("invalid params")
-	}
-	xylog.Logger.Infof("find user transactions cmd params:%v", req)
-
-	req.Protocol = strings.ToLower(req.Protocol)
-	req.Tick = strings.ToLower(req.Tick)
-
-	cacheKey := fmt.Sprintf("addr_txs_%d_%d_%s_%s_%s_%s_%d", req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Event)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
-		if allIns, ok := ins.(*FindUserTransactionsResponse); ok {
-			return allIns, nil
-		}
-	}
-
-	transactions, total, err := s.dbc.GetAddressTxs(req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Event)
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-
-	txsHashes := make(map[string][]string)
-	for _, v := range transactions {
-		txsHashes[v.Chain] = append(txsHashes[v.Chain], v.TxHash)
-	}
-
-	txMap := make(map[string]*model.Transaction)
-	for chain, hashes := range txsHashes {
-		txs, err := s.dbc.GetTxsByHashes(chain, hashes)
-		if err != nil {
-			xylog.Logger.Error(err)
-			continue
-		}
-		if len(txs) > 0 {
-			for _, v := range txs {
-				key := fmt.Sprintf("%s_%s", v.Chain, v.TxHash)
-				txMap[key] = v
-			}
-		}
-	}
-
-	list := make([]*AddressTransaction, 0, len(transactions))
-	for _, t := range transactions {
-		key := fmt.Sprintf("%s_%s", t.Chain, t.TxHash)
-		from := ""
-		to := ""
-		if tx, ok := txMap[key]; ok {
-			from = tx.From
-			to = tx.To
-		}
-
-		trans := &AddressTransaction{
-			Event:     t.Event,
-			TxHash:    t.TxHash,
-			Address:   t.Address,
-			From:      from,
-			To:        to,
-			Amount:    t.Amount.String(),
-			Tick:      t.Tick,
-			Protocol:  t.Protocol,
-			Operate:   t.Operate,
-			Chain:     t.Chain,
-			Status:    t.Status,
-			CreatedAt: uint32(t.CreatedAt.Unix()),
-			UpdatedAt: uint32(t.UpdatedAt.Unix()),
-		}
-		list = append(list, trans)
-	}
-
-	resp := &FindUserTransactionsResponse{
-		Transactions: list,
-		Total:        total,
-		Limit:        req.Limit,
-		Offset:       req.Offset,
-	}
-	s.cacheStore.Set(cacheKey, resp)
-	return resp, nil
-}
-
-func handleFindAddressBalances(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	req, ok := cmd.(*FindUserBalancesCmd)
+func indsGetBalancesByAddress(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*IndsGetBalanceByAddressCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("find user balances cmd params:%v", req)
-
-	return findAddressBalances(s, req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, storage.OrderByModeDesc)
+	svr := NewService(s)
+	return svr.GetAddressBalances(req.Limit, req.Offset, req.Address, req.Chain, req.Protocol, req.Tick, req.Key,
+		req.Sort)
 }
 
-func handleFindAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	req, ok := cmd.(*FindUserBalanceCmd)
+func indsGetHoldersByTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*IndsGetHoldersByTickCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-	xylog.Logger.Infof("find user balance cmd params:%v", req)
-
-	req.Protocol = strings.ToLower(req.Protocol)
-	req.Tick = strings.ToLower(req.Tick)
-	cacheKey := fmt.Sprintf("addr_balance_%s_%s_%s", req.Chain, req.Protocol, req.Tick)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
-		if allIns, ok := ins.(*BalanceBrief); ok {
-			return allIns, nil
-		}
-	}
-	inscription, err := s.dbc.FindInscriptionByTick(req.Chain, req.Protocol, req.Tick)
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-	if inscription == nil {
-		return nil, errors.New("Record not found")
-	}
-
-	resp := &BalanceBrief{
-		Tick:         inscription.Tick,
-		TransferType: inscription.TransferType,
-		DeployHash:   inscription.DeployHash,
-	}
-
-	// balance
-	balance, err := s.dbc.FindUserBalanceByTick(req.Chain, req.Protocol, req.Tick, req.Address)
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-	if balance == nil {
-		return nil, errors.New("Record not found")
-	}
-	resp.Balance = balance.Balance.String()
-
-	switch inscription.TransferType {
-	case model.TransferTypeHash:
-		// transfer with hash
-		result, err := s.dbc.GetUtxosByAddress(req.Address, req.Chain, req.Protocol, req.Tick)
-		if err != nil {
-			return ErrRPCInternal, err
-		}
-		utxos := make([]*UTXOBrief, 0, len(result))
-		for _, u := range result {
-			utxos = append(utxos, &UTXOBrief{
-				Tick:     u.Tick,
-				Amount:   u.Amount.String(),
-				RootHash: u.RootHash,
-			})
-		}
-		resp.Utxos = utxos
-	}
-	s.cacheStore.Set(cacheKey, resp)
-	return resp, nil
+	xylog.Logger.Infof("find user balances cmd params:%v", req)
+	svr := NewService(s)
+	return svr.GetTickHolders(req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.SortMode)
 }
 
-func handleFindTickHolders(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	req, ok := cmd.(*FindTickHoldersCmd)
+func indsGetInscriptionByTick(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*IndsGetInscriptionTickCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-	xylog.Logger.Infof("find tick holders cmd params:%v", req)
-	return findTickHolders(s, req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, storage.OrderByModeDesc)
+	xylog.Logger.Infof("find inscriptions tick cmd params:%v", req)
+	svr := NewService(s)
+	return svr.GetInscriptionByTick(req.Protocol, req.Tick, req.Chain)
 }
 
-func handleGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	req, ok := cmd.(*LastBlockNumberCmd)
+func indsGetAddressTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*IndsGetUserTransactionsCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-	xylog.Logger.Infof("get last block number cmd params:%v", req)
-	chains := strings.Join(req.Chains, "_")
-	cacheKey := fmt.Sprintf("block_number_%s", chains)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
-		if allIns, ok := ins.([]*BlockInfo); ok {
-			return allIns, nil
-		}
-	}
-	result := make([]*BlockInfo, 0)
-	for _, chain := range req.Chains {
-		block, err := s.dbc.FindLastBlock(chain)
-		if err != nil {
-			return ErrRPCInternal, err
-		}
-		blockInfo := &BlockInfo{
-			Chain:       chain,
-			BlockNumber: block.BlockNumber,
-			TimeStamp:   uint32(block.BlockTime.Unix()),
-			BlockTime:   block.BlockTime.String(),
-		}
-		result = append(result, blockInfo)
-	}
-	s.cacheStore.Set(cacheKey, result)
-	return result, nil
+	xylog.Logger.Infof("find user transactions cmd params:%v", req)
+	svr := NewService(s)
+	return svr.GetAddressTransactions(req.Protocol, req.Tick, req.Chain, req.Limit, req.Offset, req.Address, req.Event)
 }
 
-func handleGetTxOperate(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	req, ok := cmd.(*TxOperateCmd)
-	if !ok {
-		return ErrRPCInvalidParams, errors.New("invalid params")
-	}
-	cacheKey := fmt.Sprintf("tx_operate_%s_%s", req.Chain, req.InputData)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
-		if allIns, ok := ins.(*TxOperateResponse); ok {
-			return allIns, nil
-		}
-	}
-	operate := protocol.GetOperateByTxInput(req.Chain, req.InputData, s.dbc)
-	if operate == nil {
-		return nil, errors.New("Record not found")
-	}
-	var deployHash string
-	if operate.Protocol != "" && operate.Tick != "" {
-		inscription, err := s.dbc.FindInscriptionByTick(strings.ToLower(req.Chain), strings.ToLower(string(operate.Protocol)), strings.ToLower(operate.Tick))
-		if err != nil {
-			xylog.Logger.Errorf("the query for the inscription failed. chain:%s protocol:%s tick:%s err=%s", req.Chain, string(operate.Protocol), operate.Tick, err)
-		}
-		if inscription != nil {
-			deployHash = inscription.DeployHash
-		}
-	}
-
-	resp := &TxOperateResponse{
-		Protocol:   operate.Protocol,
-		Operate:    operate.Operate,
-		Tick:       operate.Tick,
-		DeployHash: deployHash,
-	}
-	s.cacheStore.Set(cacheKey, resp)
-	return resp, nil
-}
-
-func handleGetTxByHash(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+func indsGetTxByHash(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	req, ok := cmd.(*GetTxByHashCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("get tx by hash cmd params:%v", req)
-
-	req.TxHash = strings.ToLower(req.TxHash)
-	cacheKey := fmt.Sprintf("tx_info_%s_%s", req.Chain, req.TxHash)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
-		if allIns, ok := ins.(*GetTxByHashResponse); ok {
-			return allIns, nil
-		}
-	}
-	tx, err := s.dbc.FindTransaction(req.Chain, req.TxHash)
-	if err != nil {
-		return nil, err
-	}
-	if tx == nil {
-		return nil, errors.New("Record not found")
-	}
-
-	resp := &GetTxByHashResponse{}
-
-	// not inscription transaction
-	if tx == nil {
-		resp.IsInscription = false
-		return resp, nil
-	}
-
-	transInfo := &TransactionInfo{
-		Protocol: tx.Protocol,
-		Tick:     tx.Tick,
-		From:     tx.From,
-		To:       tx.To,
-	}
-
-	inscription, err := s.dbc.FindInscriptionByTick(tx.Chain, tx.Protocol, tx.Tick)
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-	if inscription == nil {
-		return nil, errors.New("Record not found")
-	}
-	transInfo.DeployHash = inscription.DeployHash
-
-	// get amount from address tx tab
-	addressTx, err := s.dbc.FindAddressTxByHash(req.Chain, req.TxHash)
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-	if addressTx == nil {
-		return nil, errors.New("Record not found")
-	}
-	transInfo.Amount = addressTx.Amount.String()
-
-	resp.IsInscription = true
-	resp.Transaction = transInfo
-	s.cacheStore.Set(cacheKey, resp)
-	return resp, nil
+	svr := NewService(s)
+	return svr.GetTxByHash(req.TxHash, req.Chain)
 }
 
-func handleGetTickBriefs(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+func indsGetLastBlockNumber(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*LastBlockNumberCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("get last block number cmd params:%v", req)
+	svr := NewService(s)
+	return svr.GetLastBlockNumber(req.Chains)
+}
+
+func indsGetTxOperate(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*TxOperateCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	svr := NewService(s)
+	return svr.GetTxOperate(req.Chain, req.InputData)
+}
+
+func indsGetAddressBalance(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*FindUserBalanceCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("find user balance cmd params:%v", req)
+	svr := NewService(s)
+	return svr.GetAddressBalance(req.Protocol, req.Chain, req.Tick, req.Address)
+}
+
+func indsGetTickBriefs(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	req, ok := cmd.(*GetTickBriefsCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
 	xylog.Logger.Infof("get tick briefs cmd params:%v", req)
-
-	deployHashGroups := make(map[string][]string)
-	key := ""
-	for _, address := range req.Addresses {
-		deployHashGroups[address.Chain] = append(deployHashGroups[address.Chain], address.DeployHash)
-		key += fmt.Sprintf("%s_%s", address.Chain, address.DeployHash)
+	svr := NewService(s)
+	return svr.GetTickBriefs(req.Addresses)
+}
+func indsGetChainStat(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*GetChainStatCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-
-	cacheKey := fmt.Sprintf("tick_briefs_%s", key)
-	if ins, ok := s.cacheStore.Get(cacheKey); ok {
-		if allIns, ok := ins.(*GetTickBriefsResp); ok {
-			return allIns, nil
-		}
-	}
-
-	result := make([]*model.InscriptionOverView, 0, len(req.Addresses))
-	for chain, groups := range deployHashGroups {
-		dbTicks, err := s.dbc.GetInscriptionsByChain(chain, groups)
-		if err != nil {
-			continue
-		}
-		for _, dbTick := range dbTicks {
-			overview := &model.InscriptionOverView{
-				Chain:        dbTick.Chain,
-				Protocol:     dbTick.Protocol,
-				Tick:         dbTick.Tick,
-				Name:         dbTick.Name,
-				LimitPerMint: dbTick.LimitPerMint,
-				TotalSupply:  dbTick.TotalSupply,
-				DeployBy:     dbTick.DeployBy,
-				DeployHash:   dbTick.DeployHash,
-				DeployTime:   dbTick.DeployTime,
-				TransferType: dbTick.TransferType,
-				Decimals:     dbTick.Decimals,
-				CreatedAt:    dbTick.CreatedAt,
-			}
-			stat, _ := s.dbc.FindInscriptionsStatsByTick(dbTick.Chain, dbTick.Protocol, dbTick.Tick)
-			if stat != nil {
-				overview.Holders = stat.Holders
-				overview.Minted = stat.Minted
-				overview.TxCnt = stat.TxCnt
-			}
-			result = append(result, overview)
-		}
-	}
-
-	resp := &GetTickBriefsResp{}
-	resp.Inscriptions = result
-	s.cacheStore.Set(cacheKey, resp)
-
-	return resp, nil
+	xylog.Logger.Infof("get chain stat cmd params:%v", req)
+	svr := NewService(s)
+	return svr.GetChainStat()
 }

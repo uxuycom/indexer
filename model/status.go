@@ -25,6 +25,7 @@ package model
 import "time"
 
 type BlockStatus struct {
+	ChainId     int64     `json:"chain_id" gorm:"column:chain_id"`
 	Chain       string    `json:"chain" gorm:"column:chain"`               // chain name
 	BlockHash   string    `json:"block_hash" gorm:"column:block_hash"`     // block hash
 	BlockNumber uint64    `json:"block_number" gorm:"column:block_number"` // block height

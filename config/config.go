@@ -80,7 +80,7 @@ type Config struct {
 	Stat     *StatConfig    `json:"stat"`
 }
 
-type JsonRcpConfig struct {
+type RpcConfig struct {
 	LogLevel     string         `json:"log_level" mapstructure:"log_level"`
 	LogPath      string         `json:"log_path" mapstructure:"log_path"`
 	Database     DatabaseConfig `json:"database"`
@@ -112,7 +112,7 @@ func LoadConfig(cfg *Config, configFile string) {
 	UnmarshalConfig(configFile, cfg)
 }
 
-func LoadJsonRpcConfig(cfg *JsonRcpConfig, configFile string) {
+func LoadJsonRpcConfig(cfg *RpcConfig, configFile string) {
 	UnmarshalConfig(configFile, cfg)
 }
 
@@ -132,7 +132,7 @@ func UnmarshalConfig(configFile string, cfg interface{}) {
 	}
 	viper.WatchConfig()
 }
-func (cfg *JsonRcpConfig) GetConfig() *JsonRcpConfig {
+func (cfg *RpcConfig) GetConfig() *RpcConfig {
 	return cfg
 }
 

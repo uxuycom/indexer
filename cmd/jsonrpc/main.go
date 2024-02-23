@@ -38,7 +38,7 @@ import (
 )
 
 var (
-	cfg        config.JsonRcpConfig
+	cfg        config.RpcConfig
 	flagConfig string
 )
 

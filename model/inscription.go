@@ -79,7 +79,7 @@ func (InscriptionsStats) TableName() string {
 
 type AllChain struct {
 	Chain string `json:"chain"`
-	count uint32 `json:"count"`
+	Count uint32 `json:"count"`
 }
 
 func (AllChain) TableName() string {

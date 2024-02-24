@@ -26,7 +26,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/wealdtech/go-merkletree/keccak256"
+	"log"
 	"math/big"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -52,7 +54,7 @@ func ParseInt64(str string) int64 {
 	}
 }
 
-func ConvetStr(number string) (*big.Int, error) {
+func ConvertStr(number string) (*big.Int, error) {
 	if number != "" {
 		max_big, is_ok := new(big.Int).SetString(number, 10)
 		if !is_ok {
@@ -67,4 +69,13 @@ func Keccak256(str string) string {
 	h := keccak256.New()
 	bytes := h.Hash([]byte(str))
 	return hex.EncodeToString(bytes)
+}
+
+func ReadFile(fileName string) *os.File {
+
+	configFile, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal("File error: ", err.Error())
+	}
+	return configFile
 }

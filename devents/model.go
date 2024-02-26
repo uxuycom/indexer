@@ -309,12 +309,16 @@ func (tc *TxResultHandler) BuildBalance(e *TxResult) (txns []*model.BalanceTxn, 
 func (tc *TxResultHandler) BuildTx(e *TxResult) *model.Transaction {
 	return &model.Transaction{
 		Chain:           e.MD.Chain,
+		ChainId:         e.Tx.ChainID.Int64(),
+		Protocol:        e.MD.Protocol,
 		BlockHeight:     e.Tx.BlockNumber.Uint64(),
 		PositionInBlock: e.Tx.TxIndex.Uint64(),
 		BlockTime:       time.Unix(int64(e.Block.Time), 0),
 		TxHash:          common.FromHex(e.Tx.Hash),
 		From:            e.Tx.From,
 		To:              e.Tx.To,
+		Op:              e.MD.Operate,
+		Tick:            e.MD.Tick,
 		Gas:             e.Tx.Gas.Int64(),
 		GasPrice:        e.Tx.GasPrice.Int64(),
 	}

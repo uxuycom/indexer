@@ -8,7 +8,9 @@ import (
 	"github.com/uxuycom/indexer/model"
 	"github.com/uxuycom/indexer/protocol"
 	"github.com/uxuycom/indexer/xylog"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Service struct {
@@ -692,7 +694,48 @@ func (s *Service) GetTickBriefs(addresses []*TickAddress) (interface{}, error) {
 
 	return resp, nil
 }
-func (s *Service) GetChainStat() (interface{}, error) {
-
-	return nil, nil
+func (s *Service) GetChainStat(chain []string) (interface{}, error) {
+	// get 24H chain stat from chain_stats_hour
+	now := time.Now().Truncate(time.Hour)
+	yesterday := now.Add(-24 * time.Hour).Truncate(time.Hour)
+	dayBeforeYesterday := yesterday.Add(-24 * time.Hour).Truncate(time.Hour)
+	nowFormat := now.Format("2006010215")
+	nowUint, _ := strconv.ParseUint(nowFormat, 10, 32)
+	yesterdayFormat := yesterday.Format("2006010215")
+	yesterdayUint, _ := strconv.ParseUint(yesterdayFormat, 10, 32)
+	dayBeforeYesterdayFormat := dayBeforeYesterday.Format("2006010215")
+	dayBeforeYesterdayUint, _ := strconv.ParseUint(dayBeforeYesterdayFormat, 10, 32)
+	todayStat, err := s.rpcServer.dbc.GroupChainStatHourBy24Hour(uint32(nowUint), uint32(yesterdayUint), chain)
+	if err != nil {
+		return ErrRPCInternal, err
+	}
+	yesterdayStat, err := s.rpcServer.dbc.GroupChainStatHourBy24Hour(uint32(yesterdayUint), uint32(dayBeforeYesterdayUint), chain)
+	result := make([]*model.Chain24HourStat, 0)
+	xylog.Logger.Infof("chain stat today:%v yesterdayStat:%v", todayStat, yesterdayStat)
+	for _, a := range todayStat {
+		xylog.Logger.Infof("chain stat hour:%v", a)
+		chainInfo, _ := s.rpcServer.dbc.GetChainInfoByChain(a.Chain)
+		if chainInfo != nil {
+			chain24HourStat := &model.Chain24HourStat{
+				ChainId:    chainInfo.ChainId,
+				Chain:      a.Chain,
+				Name:       chainInfo.Name,
+				Logo:       chainInfo.Logo,
+				Address24h: a.AddressCount,
+				Balance24h: a.BalanceSum,
+				Tick24h:    a.InscriptionsCount,
+			}
+			for _, b := range yesterdayStat {
+				if b.Chain == a.Chain {
+					chain24HourStat.Address24hPercent = a.AddressCount / b.AddressCount
+					partA := a.BalanceSum.IntPart()
+					partB := b.BalanceSum.IntPart()
+					chain24HourStat.Balance24hPercent = uint32(partA / partB)
+					chain24HourStat.Tick24hPercent = a.InscriptionsCount / b.InscriptionsCount
+				}
+			}
+			result = append(result, chain24HourStat)
+		}
+	}
+	return result, nil
 }

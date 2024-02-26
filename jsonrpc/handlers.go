@@ -38,7 +38,7 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getInscriptionTxOperate":   indsGetTxOperate, //
 	"inds_getAddressBalance":         indsGetAddressBalance,
 	"inds_getTickBriefs":             indsGetTickBriefs,
-	"inds_getChainStat":              indsGetChainStat,
+	"inds_chainStat":                 indsChainStat,
 }
 
 func indsGetAllChains(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -199,12 +199,12 @@ func indsGetTickBriefs(s *RpcServer, cmd interface{}, closeChan <-chan struct{})
 	svr := NewService(s)
 	return svr.GetTickBriefs(req.Addresses)
 }
-func indsGetChainStat(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	req, ok := cmd.(*GetChainStatCmd)
+func indsChainStat(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*ChainStatCmd)
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-	xylog.Logger.Infof("get chain stat cmd params:%v", req)
+	xylog.Logger.Infof("chain stat cmd params:%v", req)
 	svr := NewService(s)
-	return svr.GetChainStat()
+	return svr.GetChainStat(req.Chains)
 }

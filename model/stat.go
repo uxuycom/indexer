@@ -34,7 +34,7 @@ type ChainStatHour struct {
 	AddressCount      uint32          `json:"address_count" gorm:"column:address_count"`
 	AddressLastId     uint64          `json:"address_last_id" gorm:"column:address_last_id"`
 	InscriptionsCount uint32          `json:"inscriptions_count" gorm:"column:inscriptions_count"`
-	BalanceSum        decimal.Decimal `json:"balance_amount_sum" gorm:"column:balance_amount_sum;type:decimal(38,18)"`
+	BalanceSum        decimal.Decimal `json:"balance_sum" gorm:"column:balance_sum;type:decimal(38,18)"`
 	BalanceLastId     uint64          `json:"balance_last_id" gorm:"column:balance_last_id"`
 	CreatedAt         time.Time       `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt         time.Time       `json:"updated_at" gorm:"column:updated_at"`
@@ -42,4 +42,28 @@ type ChainStatHour struct {
 
 func (ChainStatHour) TableName() string {
 	return "chain_stats_hour"
+}
+
+type GroupChainStatHour struct {
+	Chain             string          `json:"chain" gorm:"column:chain"`
+	AddressCount      uint32          `json:"address_count" gorm:"column:address_count"`
+	InscriptionsCount uint32          `json:"inscriptions_count" gorm:"column:inscriptions_count"`
+	BalanceSum        decimal.Decimal `json:"balance_amount_sum" gorm:"column:balance_amount_sum;type:decimal(38,18)"`
+}
+
+func (GroupChainStatHour) TableName() string {
+	return "chain_stats_hour"
+}
+
+type Chain24HourStat struct {
+	ChainId           int64           `json:"chain_id"`
+	Chain             string          `json:"chain"`
+	Name              string          `json:"name"`
+	Logo              string          `json:"logo"`
+	Address24h        uint32          `json:"address_24h"`
+	Address24hPercent uint32          `json:"address_24h_percent"`
+	Tick24h           uint32          `json:"tick_24h"`
+	Tick24hPercent    uint32          `json:"tick_24h_percent"`
+	Balance24h        decimal.Decimal `json:"balance_24h"`
+	Balance24hPercent uint32          `json:"balance_24h_percent"`
 }

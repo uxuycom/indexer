@@ -38,6 +38,7 @@ CREATE TABLE `chain_info`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci;
 
+INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (0, 'btc', 'btc', 'BTC', '', 0, '');
 INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (1, 'eth', 'eth', 'Ethereum', '', 1, '');
 INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (43114, 'avalanche', 'avax', 'Avalanche', '', 43114, '');
 INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (42161, 'arbitrum', 'ETH', 'Arbitrum One', '', 42161, '');

@@ -616,6 +616,7 @@ func (s *Service) GetAddressBalance(protocol string, chain string, tick string,
 		return nil, errors.New("Record not found")
 	}
 	resp.Balance = balance.Balance.String()
+	resp.Available = balance.Available.String()
 
 	switch inscription.TransferType {
 	case model.TransferTypeHash:

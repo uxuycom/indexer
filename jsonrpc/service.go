@@ -7,8 +7,8 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
 	"github.com/uxuycom/indexer/protocol"
+	"github.com/uxuycom/indexer/utils"
 	"github.com/uxuycom/indexer/xylog"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -725,15 +725,10 @@ func (s *Service) GetTickBriefs(addresses []*TickAddress) (interface{}, error) {
 }
 func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 	// get 24H chain stat from chain_stats_hour
-	now := time.Now().Truncate(time.Hour)
-	yesterday := now.Add(-24 * time.Hour).Truncate(time.Hour)
-	dayBeforeYesterday := yesterday.Add(-24 * time.Hour).Truncate(time.Hour)
-	nowFormat := now.Format("2006010215")
-	nowUint, _ := strconv.ParseUint(nowFormat, 10, 32)
-	yesterdayFormat := yesterday.Format("2006010215")
-	yesterdayUint, _ := strconv.ParseUint(yesterdayFormat, 10, 32)
-	dayBeforeYesterdayFormat := dayBeforeYesterday.Format("2006010215")
-	dayBeforeYesterdayUint, _ := strconv.ParseUint(dayBeforeYesterdayFormat, 10, 32)
+	nowUint := utils.TimeHourInt(time.Now())
+	yesterdayUint := utils.TimeHourInt(utils.YesterdayHour())
+	dayBeforeYesterdayUint := utils.TimeHourInt(utils.BeforeYesterdayHour())
+
 	todayStat, err := s.rpcServer.dbc.GroupChainStatHourBy24Hour(uint32(nowUint), uint32(yesterdayUint), chain)
 	if err != nil {
 		return ErrRPCInternal, err

@@ -23,7 +23,6 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/uxuycom/indexer/xylog"
 	"strconv"
 	"time"
@@ -58,22 +57,4 @@ func TimeHourInt(tm time.Time) uint64 {
 		xylog.Logger.Errorf("TimeHourInt err!, err = %v ", err)
 	}
 	return tmInt
-}
-
-func All() time.Time {
-	// get 24H chain stat from chain_stats_hour
-	now := time.Now().Truncate(time.Hour)
-	yesterday := now.Add(-24 * time.Hour).Truncate(time.Hour)
-	dayBeforeYesterday := yesterday.Add(-24 * time.Hour).Truncate(time.Hour)
-	_ = fmt.Sprintf("dayBeforeYesterday:%v", dayBeforeYesterday)
-
-	nowFormat := now.Format("2006010215")
-	nowUint, _ := strconv.ParseUint(nowFormat, 10, 32)
-	yesterdayFormat := yesterday.Format("2006010215")
-	yesterdayUint, _ := strconv.ParseUint(yesterdayFormat, 10, 32)
-	dayBeforeYesterdayFormat := dayBeforeYesterday.Format("2006010215")
-
-	fmt.Printf("%v  %v %v ", nowUint, yesterdayUint, dayBeforeYesterdayFormat)
-
-	return dayBeforeYesterday
 }

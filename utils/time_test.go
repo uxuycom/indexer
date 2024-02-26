@@ -39,10 +39,6 @@ func Test_BeforeYesterdayHour(t *testing.T) {
 	t.Logf("hour: %v", BeforeYesterdayHour())
 }
 
-func Test_test(t *testing.T) {
-	t.Logf("hour: %v", All())
-}
-
 func Test_TimeHour(t *testing.T) {
 	now := Hour(time.Now())
 	yesterday := YesterdayHour()

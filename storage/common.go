@@ -837,7 +837,7 @@ func (conn *DBClient) GetChainInfoByChain(chain string) (*model.ChainInfo, error
 func (conn *DBClient) GroupChainStatHourBy24Hour(startHour, endHour uint32, chain []string) ([]model.GroupChainStatHour, error) {
 	stats := make([]model.GroupChainStatHour, 0)
 	tx := conn.SqlDB.Select("chain,SUM(address_count) as address_count,SUM(inscriptions_count) as inscriptions_count,SUM(balance_sum) as balance_sum").
-		Where("date_hour >= ? and date_hour <= ?", startHour, endHour)
+		Where("date_hour >= ? and date_hour <= ?", endHour, startHour)
 	if len(chain) > 0 {
 		tx = tx.Where("chain in ?", chain)
 	}

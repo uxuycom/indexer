@@ -325,11 +325,40 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 	return result, nil
 }
 func (s *Service) GetAllChain() (interface{}, error) {
+
+	blocksMap := make(map[string]model.Block, 0)
+	blocks, err := s.rpcServer.dbc.GetAllBlocks()
+	if err != nil {
+		return ErrRPCInternal, err
+	}
+	for _, v := range blocks {
+		blocksMap[v.Chain] = v
+	}
+
 	chains, err := s.rpcServer.dbc.GetAllChainInfo()
 	if err != nil {
 		return ErrRPCInternal, err
 	}
-	return chains, nil
+
+	chainsInfo := make([]ChainInfo, 0)
+	for _, v := range chains {
+		info := ChainInfo{
+			ChainId:    v.ChainId,
+			Chain:      v.Chain,
+			OuterChain: v.OuterChain,
+			Name:       v.Name,
+			Logo:       v.Logo,
+			NetworkId:  v.NetworkId,
+			Ext:        v.Ext,
+		}
+		if block, ok := blocksMap[v.Chain]; ok {
+			info.BlockTime = block.BlockTime
+			info.UpdatedAt = block.UpdatedAt
+			info.BlockNumber = block.BlockNumber
+		}
+		chainsInfo = append(chainsInfo, info)
+	}
+	return chainsInfo, nil
 }
 
 func (s *Service) GetInscriptionByTick(protocol string, tick string, chain string) (interface{}, error) {

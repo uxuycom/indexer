@@ -739,6 +739,16 @@ func (conn *DBClient) GetAllChainFromBlock() ([]string, error) {
 	return chains, nil
 }
 
+// GetAllBlocks query all last block from block table
+func (conn *DBClient) GetAllBlocks() ([]model.Block, error) {
+	blocks := make([]model.Block, 0)
+	err := conn.SqlDB.Model(&model.Block{}).Find(&blocks).Error
+	if err != nil {
+		return nil, err
+	}
+	return blocks, nil
+}
+
 func (conn *DBClient) FindLastBlock(chain string) (*model.Block, error) {
 	data := &model.Block{}
 	err := conn.SqlDB.First(data, "chain = ? ", chain).Error

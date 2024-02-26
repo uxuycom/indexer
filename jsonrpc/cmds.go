@@ -111,6 +111,19 @@ type InscriptionInfo struct {
 	Progress     string `json:"progress"`
 }
 
+type ChainInfo struct {
+	ChainId     int64     `json:"chain_id"`
+	Chain       string    `json:"chain"`
+	OuterChain  string    `json:"outer_chain"`
+	Name        string    `json:"name"`
+	Logo        string    `json:"logo"`
+	NetworkId   int64     `json:"network_id"`
+	Ext         string    `json:"ext"`
+	BlockNumber string    `json:"block_number"`
+	BlockTime   time.Time `json:"block_time"`
+	UpdatedAt   time.Time `json:"timestamp"`
+}
+
 // IndsGetInscriptionTickCmd defines the inscription JSON-RPC command.
 type IndsGetInscriptionTickCmd struct {
 	Chain    string

@@ -767,17 +767,6 @@ func (conn *DBClient) FindInscriptionsStatsByTick(chain string, protocol string,
 	return inscriptionStats, nil
 }
 
-func (conn *DBClient) FindAllChain() ([]*model.AllChain, error) {
-	allChain := make([]*model.AllChain, 0)
-	query := conn.SqlDB.Select("chain,count(*) as count").Table("inscriptions")
-	groupBy := "chain"
-	err := query.Group(groupBy).Find(&allChain).Error
-	if err != nil {
-		return nil, nil
-	}
-	return allChain, nil
-}
-
 func (conn *DBClient) FindLastChainStatHourByChainAndDateHour(chain string, dateHour uint32) (*model.ChainStatHour, error) {
 	data := &model.ChainStatHour{}
 	err := conn.SqlDB.Last(data, "chain = ?", chain).Where("date_hour = ?", dateHour).Error
@@ -826,9 +815,23 @@ func (conn *DBClient) GetAllChainInfo() ([]model.ChainInfo, error) {
 	return chains, nil
 }
 
-func (conn *DBClient) GroupChainStatHourBy24Hour(startHour, endHour uint32) ([]model.ChainStatHour, error) {
-	stats := make([]model.ChainStatHour, 0)
-	err := conn.SqlDB.Where("date_hour >= ? and date_hour <= ?", startHour, endHour).Find(&stats).Error
+func (conn *DBClient) GetChainInfoByChain(chain string) (*model.ChainInfo, error) {
+	chainInfo := &model.ChainInfo{}
+	err := conn.SqlDB.Model(&model.ChainInfo{}).Where("chain = ?", chain).Find(&chainInfo).Error
+	if err != nil {
+		return nil, err
+	}
+	return chainInfo, nil
+}
+
+func (conn *DBClient) GroupChainStatHourBy24Hour(startHour, endHour uint32, chain []string) ([]model.GroupChainStatHour, error) {
+	stats := make([]model.GroupChainStatHour, 0)
+	tx := conn.SqlDB.Select("chain,SUM(address_count) as address_count,SUM(inscriptions_count) as inscriptions_count,SUM(balance_sum) as balance_sum").
+		Where("date_hour >= ? and date_hour <= ?", startHour, endHour)
+	if len(chain) > 0 {
+		tx = tx.Where("chain in ?", chain)
+	}
+	err := tx.Table("chain_stats_hour").Group("chain").Find(&stats).Error
 	if err != nil {
 		return nil, err
 	}

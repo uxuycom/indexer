@@ -334,7 +334,8 @@ type GetTxByHashResponse struct {
 type GetAllChainCmd struct {
 	Chains []string
 }
-type GetChainStatCmd struct {
+type ChainStatCmd struct {
+	Chains []string
 }
 
 func init() {
@@ -369,5 +370,6 @@ func init() {
 	MustRegisterCmd("inds_getAddressBalance", (*FindUserBalanceCmd)(nil), flags)
 	MustRegisterCmd("inds_getTickBriefs", (*GetTickBriefsCmd)(nil), flags)
 	MustRegisterCmd("index_getInscriptionByTick", (*IndsGetInscriptionTickCmd)(nil), flags)
+	MustRegisterCmd("inds_chainStat", (*ChainStatCmd)(nil), flags)
 
 }

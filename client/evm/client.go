@@ -24,6 +24,7 @@ package evm
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum"
@@ -88,8 +89,8 @@ func (ec *RawClient) CallContext(ctx context.Context, result interface{}, method
 			if result == nil {
 				return rpc.ErrNoResult
 			}
-			//d, _ := json.Marshal(result)
-			//xylog.Logger.Debugf("CallContext result=%v", string(d))
+			d, _ := json.Marshal(result)
+			xylog.Logger.Debugf("CallContext result=%v", string(d))
 			return nil
 		}
 

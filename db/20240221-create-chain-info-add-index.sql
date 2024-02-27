@@ -45,3 +45,13 @@ INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext
 INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (56, 'bsc', 'BSC', 'BNB Smart Chain Mainnet', '', 56, '');
 INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (250, 'fantom', 'FTM', 'Fantom Opera', '', 250, '');
 INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (137, 'polygon', 'Polygon', 'Polygon Mainnet', '', 137, '');
+
+Use
+    tap_indexer;
+UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/btc.png' WHERE chain = 'btc';
+UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/eth.png' WHERE chain = 'eth';
+UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/avalanche.png' WHERE chain = 'avalanche';
+UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/arbitrum.png' WHERE chain = 'arbitrum';
+UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/bsc.png' WHERE chain = 'bsc';
+UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/fantom.png' WHERE chain = 'fantom';
+UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/polygon.png' WHERE chain = 'polygon';

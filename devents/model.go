@@ -307,9 +307,8 @@ func (tc *TxResultHandler) BuildBalance(e *TxResult) (txns []*model.BalanceTxn, 
 }
 
 func (tc *TxResultHandler) BuildTx(e *TxResult) *model.Transaction {
-	return &model.Transaction{
+	trx := &model.Transaction{
 		Chain:           e.MD.Chain,
-		ChainId:         e.Tx.ChainID.Int64(),
 		Protocol:        e.MD.Protocol,
 		BlockHeight:     e.Tx.BlockNumber.Uint64(),
 		PositionInBlock: e.Tx.TxIndex.Uint64(),
@@ -322,6 +321,12 @@ func (tc *TxResultHandler) BuildTx(e *TxResult) *model.Transaction {
 		Gas:             e.Tx.Gas.Int64(),
 		GasPrice:        e.Tx.GasPrice.Int64(),
 	}
+	if e.Tx.ChainID == nil {
+		trx.ChainId = 0
+	} else {
+		trx.ChainId = e.Tx.ChainID.Int64()
+	}
+	return trx
 }
 
 type DBModelsFattened struct {

@@ -75,7 +75,7 @@ type RpcTransaction struct {
 	TxIndex     *big.Int       `json:"transactionIndex"`
 	Type        *big.Int       `json:"type"`
 	Hash        string         `json:"hash"`
-	ChainID     *big.Int       `json:"chainId,omitempty"`
+	ChainID     *big.Int       `json:"chainId"`
 	From        string         `json:"from"`
 	To          string         `json:"to"`
 	Input       string         `json:"input"`

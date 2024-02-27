@@ -370,7 +370,7 @@ func init() {
 	MustRegisterCmd("inds_getTicks", (*IndsGetTicksCmd)(nil), flags)
 	MustRegisterCmd("inds_getTick", (*IndsGetTickCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactionByAddress", (*IndsGetUserTransactionsCmd)(nil), flags)
-	MustRegisterCmd("inds_getBalanceByAddress", (*IndsGetBalanceByAddressCmd)(nil), flags)
+	MustRegisterCmd("inds_getBalancesByAddress", (*IndsGetBalanceByAddressCmd)(nil), flags)
 	MustRegisterCmd("inds_getHoldersByTick", (*IndsGetHoldersByTickCmd)(nil), flags)
 	MustRegisterCmd("inds_getLastBlockNumberIndexed", (*LastBlockNumberCmd)(nil), flags)
 	MustRegisterCmd("inds_getTickByCallData", (*TxOperateCmd)(nil), flags)

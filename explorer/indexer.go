@@ -197,7 +197,7 @@ func (e *Explorer) handleTxs(block *xycommon.RpcBlock, txs []*xycommon.RpcTransa
 		for _, txResult := range txResults {
 			e.txResultHandler.UpdateCache(txResult)
 
-			if txResult.Tx.ChainID == nil {
+			if txResult.Tx.ChainID == nil || txResult.Tx.ChainID.Int64() == 0 {
 				tx, _ := json.Marshal(txResult)
 				xylog.Logger.Infof("handleTxs_chainid =%v", string(tx))
 			}

@@ -23,6 +23,7 @@
 package explorer
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/alitto/pond"
@@ -195,6 +196,11 @@ func (e *Explorer) handleTxs(block *xycommon.RpcBlock, txs []*xycommon.RpcTransa
 		// update cache
 		for _, txResult := range txResults {
 			e.txResultHandler.UpdateCache(txResult)
+
+			if txResult.Tx.ChainID == nil {
+				tx, _ := json.Marshal(txResult)
+				xylog.Logger.Infof("handleTxs_chainid =%v", string(tx))
+			}
 			blockTxResults = append(blockTxResults, e.txResultHandler.BuildModel(txResult))
 		}
 	}

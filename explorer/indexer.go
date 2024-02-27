@@ -33,6 +33,7 @@ import (
 	"github.com/uxuycom/indexer/xyerrors"
 	"github.com/uxuycom/indexer/xylog"
 	"math/big"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -221,7 +222,8 @@ func (e *Explorer) FlushDB() {
 	defer func() {
 		e.cancel()
 		if err := recover(); err != nil {
-			xylog.Logger.Panicf("flush db error & quit, err[%v]", err)
+			stack := string(debug.Stack())
+			xylog.Logger.Panicf("flush db error & quit, err[%v], stack=%v", err, stack)
 		}
 		xylog.Logger.Infof("flush db quit")
 	}()
@@ -232,7 +234,8 @@ func (e *Explorer) Index() {
 	defer func() {
 		e.cancel()
 		if err := recover(); err != nil {
-			xylog.Logger.Panicf("index error & quit, err[%v]", err)
+			stack := string(debug.Stack())
+			xylog.Logger.Panicf("index error & quit, err[%v], stack:%v", err, stack)
 		}
 		xylog.Logger.Infof("index quit")
 	}()

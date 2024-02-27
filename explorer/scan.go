@@ -37,6 +37,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"math/big"
 	"os"
+	"runtime/debug"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -83,7 +84,8 @@ func (e *Explorer) Scan() {
 	defer func() {
 		e.cancel()
 		if err := recover(); err != nil {
-			xylog.Logger.Panicf("scan error & quit, err[%v]", err)
+			stack := string(debug.Stack())
+			xylog.Logger.Panicf("scan error & quit, err[%v],stack=%v", err, stack)
 		}
 		xylog.Logger.Infof("scan quit")
 		e.quit <- syscall.SIGUSR1

@@ -729,6 +729,7 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 	nowUint := utils.TimeHourInt(time.Now())
 	yesterdayUint := utils.TimeHourInt(utils.YesterdayHour())
 	dayBeforeYesterdayUint := utils.TimeHourInt(utils.BeforeYesterdayHour())
+	xylog.Logger.Infof("chain stat nowUint:%v yesterdayUint:%v dayBeforeYesterdayUint:%v", nowUint, yesterdayUint, dayBeforeYesterdayUint)
 
 	todayStat, err := s.rpcServer.dbc.GroupChainStatHourBy24Hour(uint32(nowUint), uint32(yesterdayUint), chain)
 	if err != nil {

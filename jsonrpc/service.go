@@ -753,7 +753,11 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 			}
 			for _, b := range yesterdayStat {
 				if b.Chain == a.Chain {
-					chain24HourStat.Address24hPercent = a.AddressCount / b.AddressCount
+					if a.AddressCount == 0 || b.AddressCount == 0 {
+						chain24HourStat.Address24hPercent = 0
+					} else {
+						chain24HourStat.Address24hPercent = a.AddressCount / b.AddressCount
+					}
 					partA := a.BalanceSum.IntPart()
 					partB := b.BalanceSum.IntPart()
 					if partA == 0 || partB == 0 {

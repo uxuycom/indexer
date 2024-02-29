@@ -8,6 +8,7 @@
 package jsonrpc
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
 	"time"
@@ -148,19 +149,19 @@ type IndsGetUserTransactionsCmd struct {
 }
 
 type AddressTransaction struct {
-	Chain     string `json:"chain"`
-	Protocol  string `json:"protocol"`
-	Tick      string `json:"tick"`
-	Address   string `json:"address"`
-	From      string `json:"from"`
-	To        string `json:"to"`
-	TxHash    string `json:"tx_hash"`
-	Amount    string `json:"amount"`
-	Event     int8   `json:"event"`
-	Operate   string `json:"operate"`
-	Status    int8   `json:"status"`
-	CreatedAt uint32 `json:"created_at"`
-	UpdatedAt uint32 `json:"updated_at"`
+	Chain     string      `json:"chain"`
+	Protocol  string      `json:"protocol"`
+	Tick      string      `json:"tick"`
+	Address   string      `json:"address"`
+	From      string      `json:"from"`
+	To        string      `json:"to"`
+	TxHash    common.Hash `json:"tx_hash"`
+	Amount    string      `json:"amount"`
+	Event     int8        `json:"event"`
+	Operate   string      `json:"operate"`
+	Status    int8        `json:"status"`
+	CreatedAt uint32      `json:"created_at"`
+	UpdatedAt uint32      `json:"updated_at"`
 }
 
 type FindUserTransactionsResponse struct {
@@ -327,7 +328,7 @@ type TransactionResponse struct {
 	BlockHeight     uint64          `json:"block_height"`      // block height
 	PositionInBlock uint64          `json:"position_in_block"` // Position in Block
 	BlockTime       time.Time       `json:"block_time"`        // block time
-	TxHash          string          `json:"tx_hash"`           // tx hash
+	TxHash          common.Hash     `json:"tx_hash"`           // tx hash
 	From            string          `json:"from"`              // from address
 	To              string          `json:"to"`                // to address
 	Op              string          `json:"op"`                // op code

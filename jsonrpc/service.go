@@ -251,7 +251,7 @@ func (s *Service) GetTransactions(address string, tick string, limit int, offset
 			BlockHeight:     v.BlockHeight,
 			PositionInBlock: v.PositionInBlock,
 			BlockTime:       v.BlockTime,
-			TxHash:          common.Bytes2Hex(v.TxHash),
+			TxHash:          common.BytesToHash(v.TxHash),
 			From:            v.From,
 			To:              v.To,
 			Gas:             v.Gas,
@@ -452,7 +452,7 @@ func (s *Service) GetAddressTransactions(protocol string, tick string, chain str
 
 		trans := &AddressTransaction{
 			Event:     t.Event,
-			TxHash:    common.Bytes2Hex(t.TxHash),
+			TxHash:    common.BytesToHash(t.TxHash),
 			Address:   t.Address,
 			From:      from,
 			To:        to,

@@ -224,20 +224,21 @@ func (s *Service) GetTickHolders(limit int, offset int, chain, protocol, tick st
 	return resp, nil
 }
 
-func (s *Service) GetTransactions(address string, tick string, limit int, offset int,
+func (s *Service) GetTransactions(chain string, address string, tick string, limit int, offset int,
 	sortMode int) (interface{},
 	error) {
 
 	address = strings.ToLower(address)
 	tick = strings.ToLower(tick)
+	chain = strings.ToLower(chain)
 
-	cacheKey := fmt.Sprintf("all_transactions_%d_%d_%s_%s_%d", limit, offset, address, tick, sortMode)
+	cacheKey := fmt.Sprintf("all_transactions_%d_%d_%s_%s_%s_%d", limit, offset, chain, address, tick, sortMode)
 	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if transactions, ok := ins.(*CommonResponse); ok {
 			return transactions, nil
 		}
 	}
-	txs, total, err := s.rpcServer.dbc.GetTransactions(address, tick, limit, offset, sortMode)
+	txs, total, err := s.rpcServer.dbc.GetTransactions(chain, address, tick, limit, offset, sortMode)
 	if err != nil {
 		return ErrRPCInternal, err
 	}

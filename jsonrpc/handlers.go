@@ -82,7 +82,7 @@ func indsGetTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{
 	}
 	xylog.Logger.Infof("find all txs cmd params:%v", req)
 	svr := NewService(s)
-	return svr.GetTransactions(req.Address, req.Tick, req.Limit, req.Offset, req.SortMode)
+	return svr.GetTransactions(req.Chain, req.Address, req.Tick, req.Limit, req.Offset, req.SortMode)
 
 }
 

@@ -25,6 +25,7 @@ package storage
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/model"
 	"gorm.io/gorm"
@@ -333,7 +334,7 @@ func (conn *DBClient) FindUserBalanceByTick(chain, protocol, tick, addr string) 
 	return balance, nil
 }
 
-func (conn *DBClient) FindTransaction(chain string, hash string) (*model.Transaction, error) {
+func (conn *DBClient) FindTransaction(chain string, hash common.Hash) (*model.Transaction, error) {
 	txn := &model.Transaction{}
 	err := conn.SqlDB.First(txn, "chain = ? AND tx_hash = ?", chain, hash).Error
 	if err != nil {
@@ -712,7 +713,7 @@ func (conn *DBClient) GetUtxosByAddress(address, chain, protocol, tick string) (
 	return utxos, nil
 }
 
-func (conn *DBClient) FindAddressTxByHash(chain, hash string) (*model.AddressTxs, error) {
+func (conn *DBClient) FindAddressTxByHash(chain string, hash common.Hash) (*model.AddressTxs, error) {
 	tx := &model.AddressTxs{}
 	err := conn.SqlDB.First(tx, "chain = ? and tx_hash = ? ", chain, hash).Error
 	if err != nil {

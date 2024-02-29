@@ -479,9 +479,8 @@ func (s *Service) GetAddressTransactions(protocol string, tick string, chain str
 	return resp, nil
 }
 
-func (s *Service) GetTxByHash(txHash string, chain string) (interface{}, error) {
+func (s *Service) GetTxByHash(txHash common.Hash, chain string) (interface{}, error) {
 
-	txHash = strings.ToLower(txHash)
 	cacheKey := fmt.Sprintf("tx_info_%s_%s", chain, txHash)
 	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*GetTxByHashResponse); ok {

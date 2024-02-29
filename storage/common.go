@@ -722,7 +722,8 @@ func (conn *DBClient) FindAddressTxByHash(chain, hash string) (*model.AddressTxs
 
 func (conn *DBClient) FindBalanceByTxHash(hash string) ([]*model.BalanceTxn, error) {
 	balances := make([]*model.BalanceTxn, 0)
-	err := conn.SqlDB.Model(&model.BalanceTxn{}).Where("tx_hash = ? ", hash).Find(&balances).Error
+	str := "SELECT * FROM balance_txn WHERE tx_hash = " + hash
+	err := conn.SqlDB.Raw(str).Find(&balances).Error
 	if err != nil {
 		return nil, err
 	}

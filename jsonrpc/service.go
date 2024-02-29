@@ -294,7 +294,7 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 	result := &SearchResult{}
 	if len(keyword) <= 10 {
 		// Inscription
-		inscriptions, _ := s.GetInscriptions(10, 0, chain, "", keyword, "", 2, 0)
+		inscriptions, _ := s.GetInscriptions(100, 0, chain, "", keyword, "", 2, 0)
 		result.Data = inscriptions
 		result.Type = "Inscription"
 		return result, nil
@@ -302,7 +302,7 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 	if strings.HasPrefix(keyword, "0x") {
 		if len(keyword) == 42 {
 			// address
-			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
+			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(100, 0, keyword, chain, "", "")
 			result.Data = address
 			result.Type = "Address"
 		}
@@ -318,7 +318,7 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 			result.Type = "TxHash"
 		} else {
 			// address
-			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
+			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(100, 0, keyword, chain, "", "")
 			result.Data = address
 			result.Type = "Address"
 		}
@@ -729,6 +729,7 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 	nowUint := utils.TimeHourInt(time.Now())
 	yesterdayUint := utils.TimeHourInt(utils.YesterdayHour())
 	dayBeforeYesterdayUint := utils.TimeHourInt(utils.BeforeYesterdayHour())
+	xylog.Logger.Infof("chain stat nowUint:%v yesterdayUint:%v dayBeforeYesterdayUint:%v", nowUint, yesterdayUint, dayBeforeYesterdayUint)
 
 	todayStat, err := s.rpcServer.dbc.GroupChainStatHourBy24Hour(uint32(nowUint), uint32(yesterdayUint), chain)
 	if err != nil {
@@ -752,11 +753,24 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 			}
 			for _, b := range yesterdayStat {
 				if b.Chain == a.Chain {
-					chain24HourStat.Address24hPercent = a.AddressCount / b.AddressCount
+					if a.AddressCount == 0 || b.AddressCount == 0 {
+						chain24HourStat.Address24hPercent = 0
+					} else {
+						chain24HourStat.Address24hPercent = a.AddressCount / b.AddressCount
+					}
 					partA := a.BalanceSum.IntPart()
 					partB := b.BalanceSum.IntPart()
-					chain24HourStat.Balance24hPercent = uint32(partA / partB)
-					chain24HourStat.Tick24hPercent = a.InscriptionsCount / b.InscriptionsCount
+					if partA == 0 || partB == 0 {
+						chain24HourStat.Balance24hPercent = 0
+					} else {
+						chain24HourStat.Balance24hPercent = uint32(partA / partB)
+					}
+					if a.InscriptionsCount == 0 || b.InscriptionsCount == 0 {
+						chain24HourStat.Tick24hPercent = 0
+					} else {
+						chain24HourStat.Tick24hPercent = a.InscriptionsCount / b.InscriptionsCount
+					}
+
 				}
 			}
 			result = append(result, chain24HourStat)

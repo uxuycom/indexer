@@ -422,9 +422,9 @@ func (s *Service) GetAddressTransactions(protocol string, tick string, chain str
 		return ErrRPCInternal, err
 	}
 
-	txsHashes := make(map[string][]string)
+	txsHashes := make(map[string][]common.Hash)
 	for _, v := range transactions {
-		txsHashes[v.Chain] = append(txsHashes[v.Chain], common.Bytes2Hex(v.TxHash))
+		txsHashes[v.Chain] = append(txsHashes[v.Chain], common.BytesToHash(v.TxHash))
 	}
 
 	txMap := make(map[string]*model.Transaction)

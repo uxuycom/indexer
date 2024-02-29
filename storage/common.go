@@ -552,7 +552,7 @@ func (conn *DBClient) GetAddressTxs(limit, offset int, address, chain, protocol,
 	return data, total, nil
 }
 
-func (conn *DBClient) GetTxsByHashes(chain string, hashes []string) ([]*model.Transaction, error) {
+func (conn *DBClient) GetTxsByHashes(chain string, hashes []common.Hash) ([]*model.Transaction, error) {
 	txs := make([]*model.Transaction, 0)
 	err := conn.SqlDB.Where("chain = ? AND tx_hash in ?", chain, hashes).Find(&txs).Error
 	if err != nil {

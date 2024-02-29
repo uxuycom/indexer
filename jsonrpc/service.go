@@ -492,7 +492,7 @@ func (s *Service) GetTxByHash(txHash common.Hash, chain string) (interface{}, er
 		return nil, err
 	}
 	if tx == nil {
-		return nil, errors.New("Record not found")
+		return nil, errors.New("Transaction Record not found")
 	}
 
 	resp := &GetTxByHashResponse{}
@@ -504,19 +504,19 @@ func (s *Service) GetTxByHash(txHash common.Hash, chain string) (interface{}, er
 	}
 
 	transInfo := &TransactionInfo{
-		Protocol: "",
-		Tick:     "",
+		Protocol: tx.Protocol,
+		Tick:     tx.Tick,
 		From:     tx.From,
 		To:       tx.To,
 		Op:       tx.Op,
 	}
 
-	inscription, err := s.rpcServer.dbc.FindInscriptionByTick(tx.Chain, "", "")
+	inscription, err := s.rpcServer.dbc.FindInscriptionByTick(tx.Chain, tx.Protocol, tx.Tick)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
 	if inscription == nil {
-		return nil, errors.New("Record not found")
+		return nil, errors.New("Inscription Record not found")
 	}
 	transInfo.DeployHash = inscription.DeployHash
 
@@ -526,7 +526,7 @@ func (s *Service) GetTxByHash(txHash common.Hash, chain string) (interface{}, er
 		return ErrRPCInternal, err
 	}
 	if addressTx == nil {
-		return nil, errors.New("Record not found")
+		return nil, errors.New("AddressTx Record not found")
 	}
 	transInfo.Amount = addressTx.Amount.String()
 

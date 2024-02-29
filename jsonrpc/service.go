@@ -294,7 +294,7 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 	result := &SearchResult{}
 	if len(keyword) <= 10 {
 		// Inscription
-		inscriptions, _ := s.GetInscriptions(10, 0, chain, "", keyword, "", 2, 0)
+		inscriptions, _ := s.GetInscriptions(100, 0, chain, "", keyword, "", 2, 0)
 		result.Data = inscriptions
 		result.Type = "Inscription"
 		return result, nil
@@ -302,7 +302,7 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 	if strings.HasPrefix(keyword, "0x") {
 		if len(keyword) == 42 {
 			// address
-			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
+			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(100, 0, keyword, chain, "", "")
 			result.Data = address
 			result.Type = "Address"
 		}
@@ -318,7 +318,7 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 			result.Type = "TxHash"
 		} else {
 			// address
-			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
+			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(100, 0, keyword, chain, "", "")
 			result.Data = address
 			result.Type = "Address"
 		}

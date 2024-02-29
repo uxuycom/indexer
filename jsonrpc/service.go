@@ -756,8 +756,17 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 					chain24HourStat.Address24hPercent = a.AddressCount / b.AddressCount
 					partA := a.BalanceSum.IntPart()
 					partB := b.BalanceSum.IntPart()
-					chain24HourStat.Balance24hPercent = uint32(partA / partB)
-					chain24HourStat.Tick24hPercent = a.InscriptionsCount / b.InscriptionsCount
+					if partA == 0 || partB == 0 {
+						chain24HourStat.Balance24hPercent = 0
+					} else {
+						chain24HourStat.Balance24hPercent = uint32(partA / partB)
+					}
+					if a.InscriptionsCount == 0 || b.InscriptionsCount == 0 {
+						chain24HourStat.Tick24hPercent = 0
+					} else {
+						chain24HourStat.Tick24hPercent = a.InscriptionsCount / b.InscriptionsCount
+					}
+
 				}
 			}
 			result = append(result, chain24HourStat)

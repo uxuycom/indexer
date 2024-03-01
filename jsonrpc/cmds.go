@@ -311,16 +311,6 @@ type GetTxByHashCmd struct {
 	TxHash common.Hash
 }
 
-type TransactionInfo struct {
-	Protocol   string `json:"protocol"`
-	Tick       string `json:"tick"`
-	DeployHash string `json:"deploy_hash"`
-	From       string `json:"from"`
-	To         string `json:"to"`
-	Amount     string `json:"amount"`
-	Op         string `json:"op"`
-}
-
 type TransactionResponse struct {
 	ID              uint64          `json:"id"`
 	Chain           string          `json:"chain"`             // chain name
@@ -342,8 +332,10 @@ type TransactionResponse struct {
 }
 
 type GetTxByHashResponse struct {
-	IsInscription bool             `json:"is_inscription"`
-	Transaction   *TransactionInfo `json:"transaction,omitempty"`
+	IsInscription bool                `json:"is_inscription"`
+	Transaction   *model.Transaction  `json:"transaction,omitempty"`
+	Inscriptions  *model.Inscriptions `json:"inscriptions,omitempty"`
+	Address       *model.AddressTxs   `json:"address,omitempty"`
 }
 type GetAllChainCmd struct {
 	Chains []string

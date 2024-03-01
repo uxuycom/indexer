@@ -332,10 +332,10 @@ type TransactionResponse struct {
 }
 
 type GetTxByHashResponse struct {
-	IsInscription bool                `json:"is_inscription"`
-	Transaction   *model.Transaction  `json:"transaction,omitempty"`
-	Inscriptions  *model.Inscriptions `json:"inscriptions,omitempty"`
-	Address       *model.AddressTxs   `json:"address,omitempty"`
+	IsInscription bool                 `json:"is_inscription"`
+	Transaction   *TransactionResponse `json:"transaction,omitempty"`
+	Inscriptions  *model.Inscriptions  `json:"inscriptions,omitempty"`
+	Address       *model.AddressTxs    `json:"address,omitempty"`
 }
 type GetAllChainCmd struct {
 	Chains []string

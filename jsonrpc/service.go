@@ -499,9 +499,32 @@ func (s *Service) GetTxByHash(txHash common.Hash, chain string) (interface{}, er
 	// get amount from address tx tab
 	addressTx, err := s.rpcServer.dbc.FindAddressTxByHash(chain, txHash)
 	resp.IsInscription = true
-	resp.Transaction = tx
+
 	resp.Inscriptions = inscription
 	resp.Address = addressTx
+
+	if tx != nil {
+		trs := &TransactionResponse{
+			ID:              tx.ID,
+			Chain:           tx.Chain,
+			Protocol:        tx.Protocol,
+			BlockHeight:     tx.BlockHeight,
+			PositionInBlock: tx.PositionInBlock,
+			BlockTime:       tx.BlockTime,
+			TxHash:          common.BytesToHash(tx.TxHash),
+			From:            tx.From,
+			To:              tx.To,
+			Op:              tx.Op,
+			Tick:            tx.Tick,
+			Amount:          tx.Amount,
+			Gas:             tx.Gas,
+			GasPrice:        tx.GasPrice,
+			Status:          tx.Status,
+			CreatedAt:       tx.CreatedAt,
+			UpdatedAt:       tx.UpdatedAt,
+		}
+		resp.Transaction = trs
+	}
 	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }

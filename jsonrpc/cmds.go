@@ -69,7 +69,7 @@ type IndsGetInscriptionsCmd struct {
 	Tick     string `json:"tick"`
 	DeployBy string `json:"deploy_by"`
 	Sort     int    `json:"sort"`
-	//SortMode int    `json:"sort_mode"`
+	SortMode int    `json:"sort_mode"`
 }
 
 type IndsGetAllInscriptionsResponse struct {

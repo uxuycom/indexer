@@ -2,7 +2,6 @@ package jsonrpc
 
 import (
 	"errors"
-	"github.com/uxuycom/indexer/storage"
 	"github.com/uxuycom/indexer/xylog"
 )
 
@@ -71,7 +70,7 @@ func indsGetInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{
 	xylog.Logger.Infof("find all txs cmd params:%v", req)
 	svr := NewService(s)
 	return svr.GetInscriptions(req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort,
-		storage.OrderByModeDesc)
+		req.SortMode)
 }
 
 func indsGetTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {

@@ -332,16 +332,23 @@ type TransactionResponse struct {
 }
 
 type GetTxByHashResponse struct {
-	IsInscription bool                 `json:"is_inscription"`
-	Transaction   *TransactionResponse `json:"transaction,omitempty"`
-	Inscriptions  *model.Inscriptions  `json:"inscriptions,omitempty"`
-	Address       *model.AddressTxs    `json:"address,omitempty"`
+	IsInscription    bool                 `json:"is_inscription"`
+	Transaction      *TransactionResponse `json:"transaction,omitempty"`
+	Inscriptions     *model.Inscriptions  `json:"inscriptions,omitempty"`
+	Address          *model.AddressTxs    `json:"address,omitempty"`
+	InscriptionsData *InscriptionsData    `json:"data,omitempty"`
 }
 type GetAllChainCmd struct {
 	Chains []string
 }
 type ChainStatCmd struct {
 	Chains []string
+}
+type InscriptionsData struct {
+	Protocol string          `json:"p"`
+	Operate  string          `json:"op"`
+	Tick     string          `json:"tick"`
+	Amount   decimal.Decimal `json:"amt"`
 }
 
 func init() {

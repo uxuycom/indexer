@@ -525,6 +525,13 @@ func (s *Service) GetTxByHash(txHash common.Hash, chain string) (interface{}, er
 		}
 		resp.Transaction = trs
 	}
+	inscriptionsData := &InscriptionsData{
+		Protocol: tx.Protocol,
+		Operate:  tx.Op,
+		Tick:     tx.Tick,
+		Amount:   tx.Amount,
+	}
+	resp.InscriptionsData = inscriptionsData
 	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }

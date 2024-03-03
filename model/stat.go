@@ -72,7 +72,7 @@ type ChainBlockStat struct {
 	BlockHeight      uint64    `json:"block_height" gorm:"column:block_height"`
 	TickCount        uint32    `json:"tick_count" gorm:"column:tick_count"`
 	TransactionCount uint32    `json:"transaction_count" gorm:"column:transaction_count"`
-	CreateAt         time.Time `json:"create_at" gorm:"column:create_at"`
+	CreatedAt        time.Time `json:"created_at" gorm:"column:created_at"`
 }
 
 func (ChainBlockStat) TableName() string {

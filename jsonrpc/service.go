@@ -778,3 +778,12 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 	}
 	return result, nil
 }
+
+func (s *Service) GetChainBlockStat(chain string) (interface{}, error) {
+	transaction, _ := s.rpcServer.dbc.MaxIdFromTransaction()
+	stat, err := s.rpcServer.dbc.GroupChainBlockStat(transaction-20000, chain)
+	if err != nil {
+		return ErrRPCInternal, err
+	}
+	return stat, nil
+}

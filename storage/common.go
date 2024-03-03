@@ -854,3 +854,14 @@ func (conn *DBClient) GroupChainStatHourBy24Hour(startHour, endHour uint32, chai
 	}
 	return stats, nil
 }
+
+func (conn *DBClient) GroupChainBlockStat(chain string) ([]model.ChainBlockStat, error) {
+	stats := make([]model.ChainBlockStat, 0)
+	tx := conn.SqlDB.Select("block_height,count(distinct(tick)) as tick_count,count(*) as transaction_count,min(created_at) as created_at").
+		Where("chain = ?", chain)
+	err := tx.Table("txs").Group("chain,block_height").Limit(10).Order("created_at desc").Find(&stats).Error
+	if err != nil {
+		return nil, err
+	}
+	return stats, nil
+}

@@ -778,3 +778,11 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 	}
 	return result, nil
 }
+
+func (s *Service) GetChainBlockStat(chain string) (interface{}, error) {
+	stat, err := s.rpcServer.dbc.GroupChainBlockStat(chain)
+	if err != nil {
+		return ErrRPCInternal, err
+	}
+	return stat, nil
+}

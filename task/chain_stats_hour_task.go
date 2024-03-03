@@ -73,6 +73,8 @@ func (t *ChainStatsTask) Exec() {
 				BalanceSum:        decimal.NewFromInt(0),
 				Chain:             chain,
 				DateHour:          uint32(parseUint),
+				AddressLastId:     t.cfg.Stat.AddressStartId,
+				BalanceLastId:     t.cfg.Stat.BalanceStartId,
 			}
 			u, _ := strconv.ParseUint(lastHour.Add(-1*time.Hour).Truncate(time.Hour).Format("2006010215"), 10, 32)
 			chainStat, _ := t.dbc.FindLastChainStatHourByChainAndDateHour(chain, uint32(u))

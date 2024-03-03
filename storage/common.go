@@ -568,15 +568,17 @@ func (conn *DBClient) GetTransactions(chain string, address string, tick string,
 	query := conn.SqlDB.Model(&model.Transaction{})
 
 	var total int64
-	if len(address) > 0 {
-		query = query.Where("from = ? or to = ?", address, address)
+
+	if len(chain) > 0 {
+		query = query.Where("chain = ?", chain)
 	}
+
 	if len(tick) > 0 {
 		query = query.Where("tick = ?", tick)
 	}
 
-	if len(chain) > 0 {
-		query = query.Where("chain = ?", chain)
+	if len(address) > 0 {
+		query = query.Where("from = ? or to = ?", address, address)
 	}
 
 	orderBy := " id DESC"

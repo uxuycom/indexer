@@ -326,6 +326,22 @@ func (tc *TxResultHandler) BuildTx(e *TxResult) *model.Transaction {
 	} else {
 		trx.ChainId = e.Tx.ChainID.Int64()
 	}
+	switch trx.Op {
+	case OperateMint:
+		if e.Mint != nil {
+			trx.Amount = e.Mint.Amount
+		}
+	case OperateDeploy:
+		trx.Amount = decimal.NewFromInt(0)
+	case OperateTransfer:
+		if e.Transfer != nil {
+			amount := decimal.NewFromInt(0)
+			for _, v := range e.Transfer.Receives {
+				amount = amount.Add(v.Amount)
+			}
+			trx.Amount = amount
+		}
+	}
 	return trx
 }
 

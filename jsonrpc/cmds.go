@@ -347,6 +347,9 @@ type ChainStatCmd struct {
 type ChainBlockStatCmd struct {
 	Chain string
 }
+type ChainInfoCmd struct {
+	Chain string
+}
 type InscriptionsData struct {
 	Protocol string          `json:"p"`
 	Operate  string          `json:"op"`
@@ -388,5 +391,6 @@ func init() {
 	MustRegisterCmd("index_getInscriptionByTick", (*IndsGetInscriptionTickCmd)(nil), flags)
 	MustRegisterCmd("inds_chainStat", (*ChainStatCmd)(nil), flags)
 	MustRegisterCmd("inds_chainBlockStat", (*ChainBlockStatCmd)(nil), flags)
+	MustRegisterCmd("inds_chainInfo", (*ChainInfoCmd)(nil), flags)
 
 }

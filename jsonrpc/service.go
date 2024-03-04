@@ -789,3 +789,11 @@ func (s *Service) GetChainBlockStat(chain string) (interface{}, error) {
 	}
 	return stat, nil
 }
+func (s *Service) GetChainInfo(chain string) (interface{}, error) {
+	chainInfo, err := s.rpcServer.dbc.GetChainInfoByChain(chain)
+	if err != nil {
+		return ErrRPCInternal, err
+	}
+	//todo
+	return chainInfo, nil
+}

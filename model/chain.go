@@ -49,6 +49,14 @@ type ChainInfo struct {
 	UpdatedAt  time.Time `json:"updated_at" gorm:"column:updated_at"`
 }
 
+type ChainInfoExt struct {
+	TickCount    int64 `json:"tick_count"`
+	AddressCount int64 `json:"address_count"`
+	DeployCount  int64 `json:"deploy_count"`
+	MintCount    int64 `json:"mint_count"`
+	ChainInfo
+}
+
 func (ChainInfo) TableName() string {
 	return "chain_info"
 }

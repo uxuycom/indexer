@@ -255,6 +255,8 @@ func (s *Service) GetTransactions(chain string, address string, tick string, lim
 			TxHash:          common.BytesToHash(v.TxHash),
 			From:            v.From,
 			To:              v.To,
+			Op:              v.Op,
+			Tick:            v.Tick,
 			Gas:             v.Gas,
 			GasPrice:        v.GasPrice,
 			Status:          v.Status,

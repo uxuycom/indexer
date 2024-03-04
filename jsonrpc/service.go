@@ -795,5 +795,26 @@ func (s *Service) GetChainInfo(chain string) (interface{}, error) {
 		return ErrRPCInternal, err
 	}
 	//todo
-	return chainInfo, nil
+
+	chifo := model.ChainInfo{
+		ID:         chainInfo.ID,
+		ChainId:    chainInfo.ChainId,
+		Chain:      chainInfo.Chain,
+		OuterChain: chainInfo.OuterChain,
+		Name:       chainInfo.Name,
+		Logo:       chainInfo.Logo,
+		NetworkId:  chainInfo.NetworkId,
+		Ext:        chainInfo.Ext,
+		UpdatedAt:  chainInfo.UpdatedAt,
+		CreatedAt:  chainInfo.CreatedAt,
+	}
+
+	chainInfoExt := &model.ChainInfoExt{
+		ChainInfo:    chifo,
+		TickCount:    0, // TODO
+		AddressCount: 0, // TODO
+		MintCount:    0, // TODO
+
+	}
+	return chainInfoExt, nil
 }

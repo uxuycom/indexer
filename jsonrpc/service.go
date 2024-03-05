@@ -796,8 +796,6 @@ func (s *Service) GetChainInfo(chain string) (interface{}, error) {
 	if err != nil {
 		return ErrRPCInternal, err
 	}
-	//todo
-
 	chifo := model.ChainInfo{
 		ID:         chainInfo.ID,
 		ChainId:    chainInfo.ChainId,

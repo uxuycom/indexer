@@ -57,7 +57,7 @@ func indsSearch(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (inter
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-	xylog.Logger.Infof("find all txs cmd params:%v", req)
+	xylog.Logger.Infof("search cmd params:%v", req)
 	svr := NewService(s)
 	return svr.Search(req.Keyword, req.Chain)
 
@@ -69,7 +69,7 @@ func indsGetInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-	xylog.Logger.Infof("find all txs cmd params:%v", req)
+	xylog.Logger.Infof("get inscriptions cmd params:%v", req)
 	svr := NewService(s)
 	return svr.GetInscriptions(req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort,
 		req.SortMode)

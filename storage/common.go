@@ -562,13 +562,13 @@ func (conn *DBClient) GetTxsByHashes(chain string, hashes []common.Hash) ([]*mod
 }
 
 // GetTransactions find all transaction
-func (conn *DBClient) GetTransactions(chain string, address string, tick string, limit int, offset int, sort int) ([]*model.Transaction, int64, error) {
+func (conn *DBClient) GetTransactions(blockTime, chain string, address string, tick string, limit int, offset int, sort int) ([]*model.Transaction, int64, error) {
 
 	txs := make([]*model.Transaction, 0)
 	query := conn.SqlDB.Model(&model.Transaction{})
 
 	var total int64
-
+	query.Where("block_time >= ?", blockTime)
 	if len(chain) > 0 {
 		query = query.Where("chain = ?", chain)
 	}
@@ -874,4 +874,10 @@ func (conn *DBClient) MaxIdFromTransaction() (uint64, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+func (conn *DBClient) CountTickByChain(chain string) int64 {
+	var total int64
+	conn.SqlDB.Model(model.Inscriptions{}).Where("chain = ?", chain).Count(&total)
+	return total
 }

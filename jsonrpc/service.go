@@ -238,7 +238,9 @@ func (s *Service) GetTransactions(chain string, address string, tick string, lim
 			return transactions, nil
 		}
 	}
-	txs, total, err := s.rpcServer.dbc.GetTransactions(chain, address, tick, limit, offset, sortMode)
+	lastMonth := time.Now().AddDate(0, -1, 0).Format("2006-01-02")[:7] + "-01"
+
+	txs, total, err := s.rpcServer.dbc.GetTransactions(lastMonth, chain, address, tick, limit, offset, sortMode)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -811,9 +813,9 @@ func (s *Service) GetChainInfo(chain string) (interface{}, error) {
 
 	chainInfoExt := &model.ChainInfoExt{
 		ChainInfo:    chifo,
-		TickCount:    0, // TODO
-		AddressCount: 0, // TODO
-		MintCount:    0, // TODO
+		TickCount:    s.rpcServer.dbc.CountTickByChain(chain), // TODO
+		AddressCount: 0,                                       // TODO
+		MintCount:    0,                                       // TODO
 
 	}
 	return chainInfoExt, nil

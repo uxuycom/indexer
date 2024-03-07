@@ -494,7 +494,8 @@ func (conn *DBClient) GetTransactionsByAddress(limit, offset int, address, chain
 	var data []*model.AddressTransaction
 	var total int64
 
-	query := conn.SqlDB.Select("*").Table("txs as t").
+	tr := model.Transaction{}
+	query := conn.SqlDB.Select("*").Table(tr.TableName()+" as t").
 		Joins("left join `address_txs` as a on (`t`.tx_hash = `a`.tx_hash and `t`.chain = `a`.chain and `t`.protocol = `a`.protocol and `t`.tick = `a`.tick)").
 		Where("`a`.address = ?", address)
 

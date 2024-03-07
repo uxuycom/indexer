@@ -493,7 +493,7 @@ func (conn *DBClient) GetTransactionsByAddress(limit, offset int, address, chain
 	var data []*model.AddressTransaction
 	var total int64
 
-	query := conn.SqlDB.Select("*").Table("txs as t").
+	query := conn.SqlDB.Select("*").Table("txs_new as t").
 		Joins("left join `address_txs` as a on (`t`.tx_hash = `a`.tx_hash and `t`.chain = `a`.chain and `t`.protocol = `a`.protocol and `t`.tick = `a`.tick)").
 		Where("`a`.address = ?", address)
 
@@ -874,7 +874,7 @@ func (conn *DBClient) GroupChainBlockStat(startId uint64, chain string) ([]model
 	stats := make([]model.ChainBlockStat, 0)
 	tx := conn.SqlDB.Select("block_height,count(distinct(tick)) as tick_count,count(*) as transaction_count,min(created_at) as created_at").
 		Where("id> ? and chain = ?", startId, chain)
-	err := tx.Table("txs").Group("chain,block_height").Limit(10).Order("created_at desc").Find(&stats).Error
+	err := tx.Table("txs_new").Group("chain,block_height").Limit(10).Order("created_at desc").Find(&stats).Error
 	if err != nil {
 		return nil, err
 	}

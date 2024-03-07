@@ -791,7 +791,7 @@ func (s *Service) GetChainBlockStat(chain string) (interface{}, error) {
 	if block != nil {
 		endTime = block.BlockTime
 	}
-	startTime := endTime.Add(-72 * time.Hour)
+	startTime := endTime.Add(-120 * time.Hour)
 	stat, err := s.rpcServer.dbc.GroupChainBlockStat(startTime, endTime, 0, chain)
 	if err != nil {
 		return ErrRPCInternal, err

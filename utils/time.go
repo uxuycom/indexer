@@ -93,3 +93,8 @@ func LastDayOfMonth(date time.Time) int {
 	lastDay := time.Date(year, month+1, 0, 0, 0, 0, 0, time.UTC)
 	return lastDay.Day()
 }
+
+func TimeLineFormat(tm time.Time) string {
+	return tm.Format(timeLineFormat)
+
+}

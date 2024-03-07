@@ -28,6 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/model"
+	"github.com/uxuycom/indexer/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"math/big"
@@ -870,11 +871,20 @@ func (conn *DBClient) GroupChainStatHour(limit, offset int, chain []string) ([]m
 	return stats, nil
 }
 
-func (conn *DBClient) GroupChainBlockStat(startId uint64, chain string) ([]model.ChainBlockStat, error) {
+func (conn *DBClient) GroupChainBlockStat(startTime time.Time, end time.Time, startId uint64, chain string) ([]model.ChainBlockStat, error) {
 	stats := make([]model.ChainBlockStat, 0)
-	tx := conn.SqlDB.Select("block_height,count(distinct(tick)) as tick_count,count(*) as transaction_count,min(created_at) as created_at").
-		Where("id> ? and chain = ?", startId, chain)
-	err := tx.Table("txs").Group("chain,block_height").Limit(10).Order("created_at desc").Find(&stats).Error
+
+	startTimeStr := utils.TimeLineFormat(startTime)
+	endTimeStr := utils.TimeLineFormat(end)
+	tx := conn.SqlDB.Select("block_height,count(distinct(tick)) as tick_count,count(*) as transaction_count,min(created_at) as created_at")
+
+	if startId > 0 {
+		tx = tx.Where("id >= ? and chain = ?", startId, chain)
+	} else {
+		tx = tx.Where("block_time >= ? and block_time <= ?and chain = ?", startTimeStr, endTimeStr, chain)
+	}
+	tr := model.Transaction{}
+	err := tx.Table(tr.TableName()).Group("chain,block_height").Limit(10).Order("created_at desc").Find(&stats).Error
 	if err != nil {
 		return nil, err
 	}

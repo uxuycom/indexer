@@ -785,8 +785,14 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 }
 
 func (s *Service) GetChainBlockStat(chain string) (interface{}, error) {
-	transaction, _ := s.rpcServer.dbc.MaxIdFromTransaction()
-	stat, err := s.rpcServer.dbc.GroupChainBlockStat(transaction-20000, chain)
+
+	block, err := s.rpcServer.dbc.FindLastBlock(chain)
+	endTime := time.Now()
+	if block != nil {
+		endTime = block.BlockTime
+	}
+	startTime := endTime.Add(-72 * time.Hour)
+	stat, err := s.rpcServer.dbc.GroupChainBlockStat(startTime, endTime, 0, chain)
 	if err != nil {
 		return ErrRPCInternal, err
 	}

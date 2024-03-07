@@ -33,8 +33,8 @@ var (
 	dateLineFormat = "2006-01-02"
 	hourFormat     = "2006010215"
 	hourLineFormat = "2006-01-02-15"
-	timeFormat     = "20060102 15:23:26"
-	timeLineFormat = "2006-01-02 15:23:26"
+	timeFormat     = "20060102 15:04:05"
+	timeLineFormat = "2006-01-02 15:04:05"
 )
 
 func BeforeYesterdayHour() time.Time {

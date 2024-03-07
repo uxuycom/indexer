@@ -1,14 +1,21 @@
 {
   "scan": {
-    "start_block": 39205395,
+    "start_block": 17672762,
     "block_batch_workers": 1,
     "tx_batch_workers": 1,
     "delayed_block_num": 10
   },
   "database": {
     "type": "mysql",
-    "dsn": "root:1234qwer@tcp(127.0.0.1:3306)/tap_indexer?charset=utf8mb4&parseTime=True&loc=Local&collation=utf8mb4_general_ci",
-    "enable_log": false
+    "dsn": "root:1234567890Abc!@tcp(localhost:3306)/tap_indexer?charset=utf8mb4&parseTime=True&loc=Local",
+    "enable_log": true
+  },
+  "chain_bak": {
+    "chain_name": "eth",
+    "rpc": "wss://nameless-warmhearted-choice.quiknode.pro/6aab406f8ab26acd3cab5211733a049e80f0fbdc/",
+    "rpc2": "https://nameless-warmhearted-choice.quiknode.pro/6aab406f8ab26acd3cab5211733a049e80f0fbdc/",
+    "username": "",
+    "password": ""
   },
   "chain": {
     "chain_name": "avalanche",
@@ -16,30 +23,23 @@
     "username": "",
     "password": ""
   },
-  "log_level": "info",
+  "log_level": "debug",
+  "log_path":"/data/logs/index_part_eths.log",
   "notls": true,
   "rpclisten": [
-    ":6583"
+    ":6585"
   ],
   "rpcmaxclients": 10000,
   "filters": {
     "event_topics": [
-      "0xe2750d6418e3719830794d3db788aa72febcd657bcd18ed8f1facdbf61a69a9a",
-      "0x3efe873bf4d1c1061b9980e7aed9b564e024844522ec8c80aec160809948ef77",
-      "0x8cdf9e10a7b20e7a9c4e778fc3eb28f2766e438a9856a62eac39fbd2be98cbc2"
-    ],
-    "whitelist": {
-      "ticks": [
-        "cczzc"
-      ]
-    }
+    ]
   },
   "profile": {
-    "enabled": false,
+    "enabled": true,
     "listen": ":6060"
   },
   "stat": {
-    "address_start_id": 348870000,
-    "balance_start_id": 390790000
+    "address_start_id": 37000,
+    "balance_start_id": 376000
   }
 }

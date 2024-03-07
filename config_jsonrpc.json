@@ -13,6 +13,7 @@
   "database": {
     "type": "mysql",
     "dsn": "root:@tcp(127.0.0.1:3306)/tap_indexer?charset=utf8mb4&parseTime=True&loc=Local&collation=utf8mb4_general_ci",
+    "dsn_bak": "jsonrpc_read:jsonrpc_read@tcp(indxer-aurora-reader.c2gnaphbuwzn.ap-southeast-1.rds.amazonaws.com:3306)/part_indexer?charset=utf8mb4&parseTime=True&loc=Local&collation=utf8mb4_general_ci",
     "enable_log": true
   },
   "log_level": "info",

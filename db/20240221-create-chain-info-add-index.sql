@@ -38,20 +38,10 @@ CREATE TABLE `chain_info`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci;
 
-INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (0, 'btc', 'btc', 'BTC', '', 0, '');
-INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (1, 'eth', 'eth', 'Ethereum', '', 1, '');
-INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (43114, 'avalanche', 'avax', 'Avalanche', '', 43114, '');
-INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (42161, 'arbitrum', 'ETH', 'Arbitrum One', '', 42161, '');
-INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (56, 'bsc', 'BSC', 'BNB Smart Chain Mainnet', '', 56, '');
-INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (250, 'fantom', 'FTM', 'Fantom Opera', '', 250, '');
-INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (137, 'polygon', 'Polygon', 'Polygon Mainnet', '', 137, '');
-
-Use
-    tap_indexer;
-UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/btc.png' WHERE chain = 'btc';
-UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/eth.png' WHERE chain = 'eth';
-UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/avalanche.png' WHERE chain = 'avalanche';
-UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/arbitrum.png' WHERE chain = 'arbitrum';
-UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/bsc.png' WHERE chain = 'bsc';
-UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/fantom.png' WHERE chain = 'fantom';
-UPDATE chain_info SET logo = 'https://s3.indexs.io/chain/icon/polygon.png' WHERE chain = 'polygon';
+INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (0, 'btc', 'btc', 'BTC', 'https://s3.indexs.io/chain/icon/btc.png', 0, '');
+INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (1, 'eth', 'eth', 'Ethereum', 'https://s3.indexs.io/chain/icon/eth.png', 1, '');
+INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (43114, 'avalanche', 'avax', 'Avalanche', 'https://s3.indexs.io/chain/icon/avalanche.png', 43114, '');
+INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (56, 'bsc', 'BSC', 'BNB Smart Chain Mainnet', 'https://s3.indexs.io/chain/icon/bsc.png', 56, '');
+INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (42161, 'arbitrum', 'ETH', 'Arbitrum One', 'https://s3.indexs.io/chain/icon/arbitrum.png', 42161, '');
+INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (137, 'polygon', 'Polygon', 'Polygon Mainnet', 'https://s3.indexs.io/chain/icon/polygon.png', 137, '');
+INSERT INTO chain_info (chain_id, chain, outer_chain, name, logo, network_id,ext)VALUES (250, 'fantom', 'FTM', 'Fantom Opera', 'https://s3.indexs.io/chain/icon/fantom.png', 250, '');

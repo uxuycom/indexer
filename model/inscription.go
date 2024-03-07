@@ -108,21 +108,21 @@ type InscriptionOverView struct {
 }
 
 type InscriptionBrief struct {
-	Chain         string    `json:"chain"`
-	Protocol      string    `json:"protocol"`
-	Tick          string    `json:"tick"`
-	DeployBy      string    `json:"deploy_by"`
-	DeployHash    string    `json:"deploy_hash"`
-	DeployTime    time.Time `json:"deploy_time"`
-	TotalSupply   string    `json:"total_supply"`
-	MintedPercent string    `json:"minted_percent"`
-	LimitPerMint  string    `json:"limit_per_mint"`
-	Holders       uint64    `json:"holders"`
-	TransferType  int8      `json:"transfer_type"`
-	Status        uint32    `json:"status"`
-	Minted        string    `json:"minted"`
-	TxCnt         uint64    `json:"tx_cnt"`
-	CreatedAt     uint32    `json:"created_at"`
+	Chain         string `json:"chain"`
+	Protocol      string `json:"protocol"`
+	Tick          string `json:"tick"`
+	DeployBy      string `json:"deploy_by"`
+	DeployHash    string `json:"deploy_hash"`
+	DeployTime    uint32 `json:"deploy_time"`
+	TotalSupply   string `json:"total_supply"`
+	MintedPercent string `json:"minted_percent"`
+	LimitPerMint  string `json:"limit_per_mint"`
+	Holders       uint64 `json:"holders"`
+	TransferType  int8   `json:"transfer_type"`
+	Status        uint32 `json:"status"`
+	Minted        string `json:"minted"`
+	TxCnt         uint64 `json:"tx_cnt"`
+	CreatedAt     uint32 `json:"created_at"`
 }
 
 type UserInscription struct {

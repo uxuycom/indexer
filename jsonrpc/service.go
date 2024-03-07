@@ -735,11 +735,11 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 	dayBeforeYesterdayUint := utils.TimeHourInt(utils.BeforeYesterdayHour())
 	xylog.Logger.Infof("chain stat nowUint:%v yesterdayUint:%v dayBeforeYesterdayUint:%v", nowUint, yesterdayUint, dayBeforeYesterdayUint)
 
-	todayStat, err := s.rpcServer.dbc.GroupChainStatHourBy24Hour(uint32(nowUint), uint32(yesterdayUint), chain)
+	todayStat, err := s.rpcServer.dbc.GroupChainStatHour(24, 0, chain)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
-	yesterdayStat, err := s.rpcServer.dbc.GroupChainStatHourBy24Hour(uint32(yesterdayUint), uint32(dayBeforeYesterdayUint), chain)
+	yesterdayStat, err := s.rpcServer.dbc.GroupChainStatHour(24, 24, chain)
 	result := make([]*model.Chain24HourStat, 0)
 	xylog.Logger.Infof("chain stat today:%v yesterdayStat:%v", todayStat, yesterdayStat)
 	for _, a := range todayStat {

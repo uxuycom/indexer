@@ -92,6 +92,7 @@ func (s *Service) GetInscriptions(limit, offset int, chain, protocol, tick, depl
 			Tick:         ins.Name,
 			DeployBy:     ins.DeployBy,
 			DeployHash:   ins.DeployHash,
+			DeployTime:   ins.DeployTime,
 			TotalSupply:  ins.TotalSupply.String(),
 			Holders:      ins.Holders,
 			Minted:       ins.Minted.String(),

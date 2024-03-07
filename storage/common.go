@@ -881,7 +881,7 @@ func (conn *DBClient) GroupChainBlockStat(startTime time.Time, end time.Time, st
 	if startId > 0 {
 		tx = tx.Where("id >= ? and chain = ?", startId, chain)
 	} else {
-		tx = tx.Where("block_time >= ? and block_time <= ?and chain = ?", startTimeStr, endTimeStr, chain)
+		tx = tx.Where("block_time >= ? and block_time <= ? and chain = ?", startTimeStr, endTimeStr, chain)
 	}
 	tr := model.Transaction{}
 	err := tx.Table(tr.TableName()).Group("chain,block_height").Limit(10).Order("created_at desc").Find(&stats).Error

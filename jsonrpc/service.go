@@ -333,6 +333,13 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 }
 func (s *Service) GetAllChain() (interface{}, error) {
 
+	cacheKey := fmt.Sprintf("GetAllChain")
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
+		if chains, ok := ins.([]*ChainInfo); ok {
+			xylog.Logger.Debugf("GetAllChain from cache,count=%v", len(chains))
+			return chains, nil
+		}
+	}
 	blocksMap := make(map[string]model.Block, 0)
 	blocks, err := s.rpcServer.dbc.GetAllBlocks()
 	if err != nil {
@@ -365,6 +372,7 @@ func (s *Service) GetAllChain() (interface{}, error) {
 		}
 		chainsInfo = append(chainsInfo, info)
 	}
+	s.rpcServer.cacheStore.Set(cacheKey, chainsInfo)
 	return chainsInfo, nil
 }
 

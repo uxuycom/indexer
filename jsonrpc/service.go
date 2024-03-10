@@ -17,7 +17,6 @@ type Service struct {
 	rpcServer *RpcServer
 }
 
-var ()
 var service *Service
 
 func NewService(rpcServer *RpcServer) *Service {

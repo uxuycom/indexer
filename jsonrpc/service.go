@@ -822,7 +822,7 @@ func (s *Service) GetChainInfo(chain string) (interface{}, error) {
 	if err != nil {
 		return ErrRPCInternal, err
 	}
-	chifo := model.ChainInfo{
+	info := model.ChainInfo{
 		ID:         chainInfo.ID,
 		ChainId:    chainInfo.ChainId,
 		Chain:      chainInfo.Chain,
@@ -836,11 +836,10 @@ func (s *Service) GetChainInfo(chain string) (interface{}, error) {
 	}
 
 	chainInfoExt := &model.ChainInfoExt{
-		ChainInfo:    chifo,
-		TickCount:    s.rpcServer.dbc.CountTickByChain(chain), // TODO
-		AddressCount: 0,                                       // TODO
-		MintCount:    0,                                       // TODO
-
+		ChainInfo:    info,
+		TickCount:    s.rpcServer.dbc.CountTickByChain(chain),
+		AddressCount: 0,
+		MintCount:    0,
 	}
 	return chainInfoExt, nil
 }

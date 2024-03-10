@@ -17,6 +17,7 @@ type Service struct {
 	rpcServer *RpcServer
 }
 
+var ()
 var service *Service
 
 func NewService(rpcServer *RpcServer) *Service {
@@ -794,6 +795,13 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 
 func (s *Service) GetChainBlockStat(chain string) (interface{}, error) {
 
+	cacheKey := fmt.Sprintf("chain_block_stat_%s", chain)
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
+		if allIns, ok := ins.([]model.ChainBlockStat); ok {
+			return allIns, nil
+		}
+	}
+
 	block, err := s.rpcServer.dbc.FindLastBlock(chain)
 	endTime := time.Now()
 	if block != nil {
@@ -804,8 +812,11 @@ func (s *Service) GetChainBlockStat(chain string) (interface{}, error) {
 	if err != nil {
 		return ErrRPCInternal, err
 	}
+	s.rpcServer.cacheStore.Set(cacheKey, stat)
+
 	return stat, nil
 }
+
 func (s *Service) GetChainInfo(chain string) (interface{}, error) {
 	chainInfo, err := s.rpcServer.dbc.GetChainInfoByChain(chain)
 	if err != nil {

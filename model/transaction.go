@@ -126,7 +126,7 @@ type Transaction struct {
 }
 
 func (Transaction) TableName() string {
-	return "txs_new"
+	return "txs"
 }
 
 type AddressTransaction struct {

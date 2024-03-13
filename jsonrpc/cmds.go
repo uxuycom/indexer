@@ -8,6 +8,7 @@
 package jsonrpc
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
 	"github.com/uxuycom/indexer/model"
 	"time"
@@ -68,7 +69,7 @@ type IndsGetInscriptionsCmd struct {
 	Tick     string `json:"tick"`
 	DeployBy string `json:"deploy_by"`
 	Sort     int    `json:"sort"`
-	//SortMode int    `json:"sort_mode"`
+	SortMode int    `json:"sort_mode"`
 }
 
 type IndsGetAllInscriptionsResponse struct {
@@ -148,19 +149,19 @@ type IndsGetUserTransactionsCmd struct {
 }
 
 type AddressTransaction struct {
-	Chain     string `json:"chain"`
-	Protocol  string `json:"protocol"`
-	Tick      string `json:"tick"`
-	Address   string `json:"address"`
-	From      string `json:"from"`
-	To        string `json:"to"`
-	TxHash    string `json:"tx_hash"`
-	Amount    string `json:"amount"`
-	Event     int8   `json:"event"`
-	Operate   string `json:"operate"`
-	Status    int8   `json:"status"`
-	CreatedAt uint32 `json:"created_at"`
-	UpdatedAt uint32 `json:"updated_at"`
+	Chain     string      `json:"chain"`
+	Protocol  string      `json:"protocol"`
+	Tick      string      `json:"tick"`
+	Address   string      `json:"address"`
+	From      string      `json:"from"`
+	To        string      `json:"to"`
+	TxHash    common.Hash `json:"tx_hash"`
+	Amount    string      `json:"amount"`
+	Event     int8        `json:"event"`
+	Operate   string      `json:"operate"`
+	Status    int8        `json:"status"`
+	CreatedAt uint32      `json:"created_at"`
+	UpdatedAt uint32      `json:"updated_at"`
 }
 
 type FindUserTransactionsResponse struct {
@@ -307,17 +308,7 @@ type TxOperateResponse struct {
 
 type GetTxByHashCmd struct {
 	Chain  string
-	TxHash string
-}
-
-type TransactionInfo struct {
-	Protocol   string `json:"protocol"`
-	Tick       string `json:"tick"`
-	DeployHash string `json:"deploy_hash"`
-	From       string `json:"from"`
-	To         string `json:"to"`
-	Amount     string `json:"amount"`
-	Op         string `json:"op"`
+	TxHash common.Hash
 }
 
 type TransactionResponse struct {
@@ -327,7 +318,7 @@ type TransactionResponse struct {
 	BlockHeight     uint64          `json:"block_height"`      // block height
 	PositionInBlock uint64          `json:"position_in_block"` // Position in Block
 	BlockTime       time.Time       `json:"block_time"`        // block time
-	TxHash          string          `json:"tx_hash"`           // tx hash
+	TxHash          common.Hash     `json:"tx_hash"`           // tx hash
 	From            string          `json:"from"`              // from address
 	To              string          `json:"to"`                // to address
 	Op              string          `json:"op"`                // op code
@@ -341,14 +332,29 @@ type TransactionResponse struct {
 }
 
 type GetTxByHashResponse struct {
-	IsInscription bool             `json:"is_inscription"`
-	Transaction   *TransactionInfo `json:"transaction,omitempty"`
+	IsInscription    bool                 `json:"is_inscription"`
+	Transaction      *TransactionResponse `json:"transaction,omitempty"`
+	Inscriptions     *model.Inscriptions  `json:"inscriptions,omitempty"`
+	Address          *model.AddressTxs    `json:"address,omitempty"`
+	InscriptionsData *InscriptionsData    `json:"data,omitempty"`
 }
 type GetAllChainCmd struct {
 	Chains []string
 }
 type ChainStatCmd struct {
 	Chains []string
+}
+type ChainBlockStatCmd struct {
+	Chain string
+}
+type ChainInfoCmd struct {
+	Chain string
+}
+type InscriptionsData struct {
+	Protocol string          `json:"p"`
+	Operate  string          `json:"op"`
+	Tick     string          `json:"tick"`
+	Amount   decimal.Decimal `json:"amt"`
 }
 
 func init() {
@@ -370,7 +376,7 @@ func init() {
 	MustRegisterCmd("inds_getTicks", (*IndsGetTicksCmd)(nil), flags)
 	MustRegisterCmd("inds_getTick", (*IndsGetTickCmd)(nil), flags)
 	MustRegisterCmd("inds_getTransactionByAddress", (*IndsGetUserTransactionsCmd)(nil), flags)
-	MustRegisterCmd("inds_getBalanceByAddress", (*IndsGetBalanceByAddressCmd)(nil), flags)
+	MustRegisterCmd("inds_getBalancesByAddress", (*IndsGetBalanceByAddressCmd)(nil), flags)
 	MustRegisterCmd("inds_getHoldersByTick", (*IndsGetHoldersByTickCmd)(nil), flags)
 	MustRegisterCmd("inds_getLastBlockNumberIndexed", (*LastBlockNumberCmd)(nil), flags)
 	MustRegisterCmd("inds_getTickByCallData", (*TxOperateCmd)(nil), flags)
@@ -384,5 +390,7 @@ func init() {
 	MustRegisterCmd("inds_getTickBriefs", (*GetTickBriefsCmd)(nil), flags)
 	MustRegisterCmd("index_getInscriptionByTick", (*IndsGetInscriptionTickCmd)(nil), flags)
 	MustRegisterCmd("inds_chainStat", (*ChainStatCmd)(nil), flags)
+	MustRegisterCmd("inds_chainBlockStat", (*ChainBlockStatCmd)(nil), flags)
+	MustRegisterCmd("inds_chainInfo", (*ChainInfoCmd)(nil), flags)
 
 }

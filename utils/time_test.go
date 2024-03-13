@@ -47,3 +47,12 @@ func Test_TimeHour(t *testing.T) {
 	t.Logf("yesterday: %v", TimeHourInt(yesterday))
 	t.Logf("beforeYesterday: %v", TimeHourInt(beforeYesterday))
 }
+
+func Test_TimeLineFormat(t *testing.T) {
+
+	now := time.Now()
+	formattedTime := now.Format("2006-01-02 15:04:05")
+	t.Logf("time %v", TimeLineFormat(time.Now()))
+	t.Logf("time %v", formattedTime)
+
+}

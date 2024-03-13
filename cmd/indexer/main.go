@@ -34,6 +34,7 @@ import (
 	"github.com/uxuycom/indexer/explorer"
 	"github.com/uxuycom/indexer/protocol"
 	"github.com/uxuycom/indexer/storage"
+	"github.com/uxuycom/indexer/task"
 	"github.com/uxuycom/indexer/xylog"
 	"net/http"
 	_ "net/http/pprof"
@@ -89,6 +90,9 @@ func main() {
 
 	// init protocols
 	protocol.InitProtocols(dCache)
+
+	// init task
+	task.InitTask(dbClient, &cfg)
 
 	// Listen for SIGINT and SIGTERM signals
 	quit := make(chan os.Signal, 1)

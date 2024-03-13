@@ -33,8 +33,8 @@ var (
 	dateLineFormat = "2006-01-02"
 	hourFormat     = "2006010215"
 	hourLineFormat = "2006-01-02-15"
-	timeFormat     = "20060102 15:23:26"
-	timeLineFormat = "2006-01-02 15:23:26"
+	timeFormat     = "20060102 15:04:05"
+	timeLineFormat = "2006-01-02 15:04:05"
 )
 
 func BeforeYesterdayHour() time.Time {
@@ -57,4 +57,44 @@ func TimeHourInt(tm time.Time) uint64 {
 		xylog.Logger.Errorf("TimeHourInt err!, err = %v ", err)
 	}
 	return tmInt
+}
+
+// FirstDayOfMonth the first day of the month
+func FirstDayOfMonth() int64 {
+	formattedTime := time.Now().Format("200601")
+	beginDateStr := formattedTime + "01"
+	beginDate, _ := strconv.ParseInt(beginDateStr, 10, 64)
+	return beginDate
+}
+
+// CurrentDayOfMonth current time
+func CurrentDayOfMonth(tm time.Time) int64 {
+	formattedTime := tm.Format("20060102")
+	date, _ := strconv.ParseInt(formattedTime, 10, 64)
+	return date
+}
+
+// AllDaysOfMonth days of the month
+func AllDaysOfMonth(date time.Time) int {
+	year, month, _ := date.Date()
+	days := time.Date(year, month+1, 0, 0, 0, 0, 0, time.UTC).Day()
+	return days
+}
+
+// DayOfMonth day of month
+func DayOfMonth(date time.Time) int {
+	dayOfMonth := date.Day()
+	return dayOfMonth
+}
+
+// LastDayOfMonth the last day of the month
+func LastDayOfMonth(date time.Time) int {
+	year, month, _ := date.Date()
+	lastDay := time.Date(year, month+1, 0, 0, 0, 0, 0, time.UTC)
+	return lastDay.Day()
+}
+
+func TimeLineFormat(tm time.Time) string {
+	return tm.Format(timeLineFormat)
+
 }

@@ -2,7 +2,6 @@ package jsonrpc
 
 import (
 	"errors"
-	"github.com/uxuycom/indexer/storage"
 	"github.com/uxuycom/indexer/xylog"
 )
 
@@ -39,6 +38,8 @@ var rpcHandlersBeforeInitV2 = map[string]commandHandler{
 	"inds_getAddressBalance":         indsGetAddressBalance,
 	"inds_getTickBriefs":             indsGetTickBriefs,
 	"inds_chainStat":                 indsChainStat,
+	"inds_chainBlockStat":            indsChainBlockStat,
+	"inds_chainInfo":                 indsChainInfo,
 }
 
 func indsGetAllChains(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -56,7 +57,7 @@ func indsSearch(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (inter
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-	xylog.Logger.Infof("find all txs cmd params:%v", req)
+	xylog.Logger.Infof("search cmd params:%v", req)
 	svr := NewService(s)
 	return svr.Search(req.Keyword, req.Chain)
 
@@ -68,10 +69,10 @@ func indsGetInscriptions(s *RpcServer, cmd interface{}, closeChan <-chan struct{
 	if !ok {
 		return ErrRPCInvalidParams, errors.New("invalid params")
 	}
-	xylog.Logger.Infof("find all txs cmd params:%v", req)
+	xylog.Logger.Infof("get inscriptions cmd params:%v", req)
 	svr := NewService(s)
 	return svr.GetInscriptions(req.Limit, req.Offset, req.Chain, req.Protocol, req.Tick, req.DeployBy, req.Sort,
-		storage.OrderByModeDesc)
+		req.SortMode)
 }
 
 func indsGetTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -82,7 +83,7 @@ func indsGetTransactions(s *RpcServer, cmd interface{}, closeChan <-chan struct{
 	}
 	xylog.Logger.Infof("find all txs cmd params:%v", req)
 	svr := NewService(s)
-	return svr.GetTransactions(req.Address, req.Tick, req.Limit, req.Offset, req.SortMode)
+	return svr.GetTransactions(req.Chain, req.Address, req.Tick, req.Limit, req.Offset, req.SortMode)
 
 }
 
@@ -207,4 +208,22 @@ func indsChainStat(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 	xylog.Logger.Infof("chain stat cmd params:%v", req)
 	svr := NewService(s)
 	return svr.GetChainStat(req.Chains)
+}
+func indsChainBlockStat(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*ChainBlockStatCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("chain block stat cmd params:%v", req)
+	svr := NewService(s)
+	return svr.GetChainBlockStat(req.Chain)
+}
+func indsChainInfo(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	req, ok := cmd.(*ChainInfoCmd)
+	if !ok {
+		return ErrRPCInvalidParams, errors.New("invalid params")
+	}
+	xylog.Logger.Infof("chain block stat cmd params:%v", req)
+	svr := NewService(s)
+	return svr.GetChainInfo(req.Chain)
 }

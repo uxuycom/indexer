@@ -25,8 +25,10 @@ package storage
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/uxuycom/indexer/config"
 	"github.com/uxuycom/indexer/model"
+	"github.com/uxuycom/indexer/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"math/big"
@@ -333,7 +335,7 @@ func (conn *DBClient) FindUserBalanceByTick(chain, protocol, tick, addr string) 
 	return balance, nil
 }
 
-func (conn *DBClient) FindTransaction(chain string, hash string) (*model.Transaction, error) {
+func (conn *DBClient) FindTransaction(chain string, hash common.Hash) (*model.Transaction, error) {
 	txn := &model.Transaction{}
 	err := conn.SqlDB.First(txn, "chain = ? AND tx_hash = ?", chain, hash).Error
 	if err != nil {
@@ -492,7 +494,8 @@ func (conn *DBClient) GetTransactionsByAddress(limit, offset int, address, chain
 	var data []*model.AddressTransaction
 	var total int64
 
-	query := conn.SqlDB.Select("*").Table("txs as t").
+	tr := model.Transaction{}
+	query := conn.SqlDB.Select("*").Table(tr.TableName()+" as t").
 		Joins("left join `address_txs` as a on (`t`.tx_hash = `a`.tx_hash and `t`.chain = `a`.chain and `t`.protocol = `a`.protocol and `t`.tick = `a`.tick)").
 		Where("`a`.address = ?", address)
 
@@ -551,7 +554,7 @@ func (conn *DBClient) GetAddressTxs(limit, offset int, address, chain, protocol,
 	return data, total, nil
 }
 
-func (conn *DBClient) GetTxsByHashes(chain string, hashes []string) ([]*model.Transaction, error) {
+func (conn *DBClient) GetTxsByHashes(chain string, hashes []common.Hash) ([]*model.Transaction, error) {
 	txs := make([]*model.Transaction, 0)
 	err := conn.SqlDB.Where("chain = ? AND tx_hash in ?", chain, hashes).Find(&txs).Error
 	if err != nil {
@@ -561,18 +564,25 @@ func (conn *DBClient) GetTxsByHashes(chain string, hashes []string) ([]*model.Tr
 }
 
 // GetTransactions find all transaction
-func (conn *DBClient) GetTransactions(address string, tick string, limit int, offset int, sort int) ([]*model.Transaction, int64, error) {
+func (conn *DBClient) GetTransactions(blockTime, chain string, address string, tick string, limit int, offset int, sort int) ([]*model.Transaction, int64, error) {
 
 	txs := make([]*model.Transaction, 0)
 	query := conn.SqlDB.Model(&model.Transaction{})
 
 	var total int64
-	if len(address) > 0 {
-		query = query.Where("from = ? or to = ?", address, address)
+	query.Where("block_time >= ?", blockTime)
+	if len(chain) > 0 {
+		query = query.Where("chain = ?", chain)
 	}
+
 	if len(tick) > 0 {
 		query = query.Where("tick = ?", tick)
 	}
+
+	if len(address) > 0 {
+		query = query.Where("from = ? or to = ?", address, address)
+	}
+
 	orderBy := " id DESC"
 	if sort == OrderByModeAsc {
 		orderBy = " id ASC"
@@ -707,7 +717,7 @@ func (conn *DBClient) GetUtxosByAddress(address, chain, protocol, tick string) (
 	return utxos, nil
 }
 
-func (conn *DBClient) FindAddressTxByHash(chain, hash string) (*model.AddressTxs, error) {
+func (conn *DBClient) FindAddressTxByHash(chain string, hash common.Hash) (*model.AddressTxs, error) {
 	tx := &model.AddressTxs{}
 	err := conn.SqlDB.First(tx, "chain = ? and tx_hash = ? ", chain, hash).Error
 	if err != nil {
@@ -722,7 +732,8 @@ func (conn *DBClient) FindAddressTxByHash(chain, hash string) (*model.AddressTxs
 
 func (conn *DBClient) FindBalanceByTxHash(hash string) ([]*model.BalanceTxn, error) {
 	balances := make([]*model.BalanceTxn, 0)
-	err := conn.SqlDB.Model(&model.BalanceTxn{}).Where("tx_hash = ? ", hash).Find(&balances).Error
+	str := "SELECT * FROM balance_txn WHERE tx_hash = " + hash
+	err := conn.SqlDB.Raw(str).Find(&balances).Error
 	if err != nil {
 		return nil, err
 	}
@@ -846,4 +857,51 @@ func (conn *DBClient) GroupChainStatHourBy24Hour(startHour, endHour uint32, chai
 		return nil, err
 	}
 	return stats, nil
+}
+
+func (conn *DBClient) GroupChainStatHour(limit, offset int, chain []string) ([]model.GroupChainStatHour, error) {
+	stats := make([]model.GroupChainStatHour, 0)
+	tx := conn.SqlDB.Select("chain,SUM(address_count) as address_count,SUM(inscriptions_count) as inscriptions_count,SUM(balance_sum) as balance_sum")
+	if len(chain) > 0 {
+		tx = tx.Where("chain in ?", chain)
+	}
+	err := tx.Table("chain_stats_hour").Limit(limit).Offset(offset).Group("chain").Find(&stats).Error
+	if err != nil {
+		return nil, err
+	}
+	return stats, nil
+}
+
+func (conn *DBClient) GroupChainBlockStat(startTime time.Time, end time.Time, startId uint64, chain string) ([]model.ChainBlockStat, error) {
+	stats := make([]model.ChainBlockStat, 0)
+
+	startTimeStr := utils.TimeLineFormat(startTime)
+	endTimeStr := utils.TimeLineFormat(end)
+	tx := conn.SqlDB.Select("block_height,count(distinct(tick)) as tick_count,count(*) as transaction_count,min(created_at) as created_at")
+	if startId > 0 {
+		tx = tx.Where("id >= ? and chain = ?", startId, chain)
+	} else {
+		tx = tx.Where("block_time >= ? and block_time <= ? and chain = ?", startTimeStr, endTimeStr, chain)
+	}
+	tr := model.Transaction{}
+	err := tx.Table(tr.TableName()).Group("chain,block_height").Limit(10).Order("created_at desc").Find(&stats).Error
+	if err != nil {
+		return nil, err
+	}
+	return stats, nil
+}
+
+func (conn *DBClient) MaxIdFromTransaction() (uint64, error) {
+	var id uint64
+	err := conn.SqlDB.Model(&model.Transaction{}).Select("max(id)").Scan(&id).Error
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+func (conn *DBClient) CountTickByChain(chain string) int64 {
+	var total int64
+	conn.SqlDB.Model(model.Inscriptions{}).Where("chain = ?", chain).Count(&total)
+	return total
 }

@@ -92,6 +92,7 @@ func (s *Service) GetInscriptions(limit, offset int, chain, protocol, tick, depl
 			Tick:         ins.Name,
 			DeployBy:     ins.DeployBy,
 			DeployHash:   ins.DeployHash,
+			DeployTime:   uint32(ins.DeployTime.Unix()),
 			TotalSupply:  ins.TotalSupply.String(),
 			Holders:      ins.Holders,
 			Minted:       ins.Minted.String(),
@@ -224,20 +225,23 @@ func (s *Service) GetTickHolders(limit int, offset int, chain, protocol, tick st
 	return resp, nil
 }
 
-func (s *Service) GetTransactions(address string, tick string, limit int, offset int,
+func (s *Service) GetTransactions(chain string, address string, tick string, limit int, offset int,
 	sortMode int) (interface{},
 	error) {
 
 	address = strings.ToLower(address)
 	tick = strings.ToLower(tick)
+	chain = strings.ToLower(chain)
 
-	cacheKey := fmt.Sprintf("all_transactions_%d_%d_%s_%s_%d", limit, offset, address, tick, sortMode)
+	cacheKey := fmt.Sprintf("all_transactions_%d_%d_%s_%s_%s_%d", limit, offset, chain, address, tick, sortMode)
 	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if transactions, ok := ins.(*CommonResponse); ok {
 			return transactions, nil
 		}
 	}
-	txs, total, err := s.rpcServer.dbc.GetTransactions(address, tick, limit, offset, sortMode)
+	lastMonth := time.Now().AddDate(0, -1, 0).Format("2006-01-02")[:7] + "-01"
+
+	txs, total, err := s.rpcServer.dbc.GetTransactions(lastMonth, chain, address, tick, limit, offset, sortMode)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
@@ -251,9 +255,11 @@ func (s *Service) GetTransactions(address string, tick string, limit int, offset
 			BlockHeight:     v.BlockHeight,
 			PositionInBlock: v.PositionInBlock,
 			BlockTime:       v.BlockTime,
-			TxHash:          common.Bytes2Hex(v.TxHash),
+			TxHash:          common.BytesToHash(v.TxHash),
 			From:            v.From,
 			To:              v.To,
+			Op:              v.Op,
+			Tick:            v.Tick,
 			Gas:             v.Gas,
 			GasPrice:        v.GasPrice,
 			Status:          v.Status,
@@ -294,7 +300,7 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 	result := &SearchResult{}
 	if len(keyword) <= 10 {
 		// Inscription
-		inscriptions, _ := s.GetInscriptions(10, 0, chain, "", keyword, "", 2, 0)
+		inscriptions, _ := s.GetInscriptions(100, 0, chain, "", keyword, "", 2, 0)
 		result.Data = inscriptions
 		result.Type = "Inscription"
 		return result, nil
@@ -302,7 +308,7 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 	if strings.HasPrefix(keyword, "0x") {
 		if len(keyword) == 42 {
 			// address
-			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
+			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(100, 0, keyword, chain, "", "")
 			result.Data = address
 			result.Type = "Address"
 		}
@@ -318,7 +324,7 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 			result.Type = "TxHash"
 		} else {
 			// address
-			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(10, 0, keyword, chain, "", "")
+			address, _, _ := s.rpcServer.dbc.GetBalancesChainByAddress(100, 0, keyword, chain, "", "")
 			result.Data = address
 			result.Type = "Address"
 		}
@@ -327,6 +333,13 @@ func (s *Service) Search(keyword, chain string) (interface{}, error) {
 }
 func (s *Service) GetAllChain() (interface{}, error) {
 
+	cacheKey := fmt.Sprintf("GetAllChain")
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
+		if chains, ok := ins.([]*ChainInfo); ok {
+			xylog.Logger.Debugf("GetAllChain from cache,count=%v", len(chains))
+			return chains, nil
+		}
+	}
 	blocksMap := make(map[string]model.Block, 0)
 	blocks, err := s.rpcServer.dbc.GetAllBlocks()
 	if err != nil {
@@ -359,6 +372,7 @@ func (s *Service) GetAllChain() (interface{}, error) {
 		}
 		chainsInfo = append(chainsInfo, info)
 	}
+	s.rpcServer.cacheStore.Set(cacheKey, chainsInfo)
 	return chainsInfo, nil
 }
 
@@ -421,9 +435,9 @@ func (s *Service) GetAddressTransactions(protocol string, tick string, chain str
 		return ErrRPCInternal, err
 	}
 
-	txsHashes := make(map[string][]string)
+	txsHashes := make(map[string][]common.Hash)
 	for _, v := range transactions {
-		txsHashes[v.Chain] = append(txsHashes[v.Chain], common.Bytes2Hex(v.TxHash))
+		txsHashes[v.Chain] = append(txsHashes[v.Chain], common.BytesToHash(v.TxHash))
 	}
 
 	txMap := make(map[string]*model.Transaction)
@@ -452,7 +466,7 @@ func (s *Service) GetAddressTransactions(protocol string, tick string, chain str
 
 		trans := &AddressTransaction{
 			Event:     t.Event,
-			TxHash:    common.Bytes2Hex(t.TxHash),
+			TxHash:    common.BytesToHash(t.TxHash),
 			Address:   t.Address,
 			From:      from,
 			To:        to,
@@ -478,9 +492,8 @@ func (s *Service) GetAddressTransactions(protocol string, tick string, chain str
 	return resp, nil
 }
 
-func (s *Service) GetTxByHash(txHash string, chain string) (interface{}, error) {
+func (s *Service) GetTxByHash(txHash common.Hash, chain string) (interface{}, error) {
 
-	txHash = strings.ToLower(txHash)
 	cacheKey := fmt.Sprintf("tx_info_%s_%s", chain, txHash)
 	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
 		if allIns, ok := ins.(*GetTxByHashResponse); ok {
@@ -492,46 +505,46 @@ func (s *Service) GetTxByHash(txHash string, chain string) (interface{}, error) 
 		return nil, err
 	}
 	if tx == nil {
-		return nil, errors.New("Record not found")
+		return nil, errors.New("Transaction Record not found")
 	}
-
 	resp := &GetTxByHashResponse{}
-
-	// not inscription transaction
-	if tx == nil {
-		resp.IsInscription = false
-		return resp, nil
-	}
-
-	transInfo := &TransactionInfo{
-		Protocol: "",
-		Tick:     "",
-		From:     tx.From,
-		To:       tx.To,
-		Op:       tx.Op,
-	}
-
-	inscription, err := s.rpcServer.dbc.FindInscriptionByTick(tx.Chain, "", "")
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-	if inscription == nil {
-		return nil, errors.New("Record not found")
-	}
-	transInfo.DeployHash = inscription.DeployHash
-
+	inscription, err := s.rpcServer.dbc.FindInscriptionByTick(tx.Chain, tx.Protocol, tx.Tick)
 	// get amount from address tx tab
 	addressTx, err := s.rpcServer.dbc.FindAddressTxByHash(chain, txHash)
-	if err != nil {
-		return ErrRPCInternal, err
-	}
-	if addressTx == nil {
-		return nil, errors.New("Record not found")
-	}
-	transInfo.Amount = addressTx.Amount.String()
-
 	resp.IsInscription = true
-	resp.Transaction = transInfo
+
+	resp.Inscriptions = inscription
+	resp.Address = addressTx
+
+	if tx != nil {
+		trs := &TransactionResponse{
+			ID:              tx.ID,
+			Chain:           tx.Chain,
+			Protocol:        tx.Protocol,
+			BlockHeight:     tx.BlockHeight,
+			PositionInBlock: tx.PositionInBlock,
+			BlockTime:       tx.BlockTime,
+			TxHash:          common.BytesToHash(tx.TxHash),
+			From:            tx.From,
+			To:              tx.To,
+			Op:              tx.Op,
+			Tick:            tx.Tick,
+			Amount:          tx.Amount,
+			Gas:             tx.Gas,
+			GasPrice:        tx.GasPrice,
+			Status:          tx.Status,
+			CreatedAt:       tx.CreatedAt,
+			UpdatedAt:       tx.UpdatedAt,
+		}
+		resp.Transaction = trs
+	}
+	inscriptionsData := &InscriptionsData{
+		Protocol: tx.Protocol,
+		Operate:  tx.Op,
+		Tick:     tx.Tick,
+		Amount:   tx.Amount,
+	}
+	resp.InscriptionsData = inscriptionsData
 	s.rpcServer.cacheStore.Set(cacheKey, resp)
 	return resp, nil
 }
@@ -729,12 +742,13 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 	nowUint := utils.TimeHourInt(time.Now())
 	yesterdayUint := utils.TimeHourInt(utils.YesterdayHour())
 	dayBeforeYesterdayUint := utils.TimeHourInt(utils.BeforeYesterdayHour())
+	xylog.Logger.Infof("chain stat nowUint:%v yesterdayUint:%v dayBeforeYesterdayUint:%v", nowUint, yesterdayUint, dayBeforeYesterdayUint)
 
-	todayStat, err := s.rpcServer.dbc.GroupChainStatHourBy24Hour(uint32(nowUint), uint32(yesterdayUint), chain)
+	todayStat, err := s.rpcServer.dbc.GroupChainStatHour(24, 0, chain)
 	if err != nil {
 		return ErrRPCInternal, err
 	}
-	yesterdayStat, err := s.rpcServer.dbc.GroupChainStatHourBy24Hour(uint32(yesterdayUint), uint32(dayBeforeYesterdayUint), chain)
+	yesterdayStat, err := s.rpcServer.dbc.GroupChainStatHour(24, 24, chain)
 	result := make([]*model.Chain24HourStat, 0)
 	xylog.Logger.Infof("chain stat today:%v yesterdayStat:%v", todayStat, yesterdayStat)
 	for _, a := range todayStat {
@@ -752,15 +766,79 @@ func (s *Service) GetChainStat(chain []string) (interface{}, error) {
 			}
 			for _, b := range yesterdayStat {
 				if b.Chain == a.Chain {
-					chain24HourStat.Address24hPercent = a.AddressCount / b.AddressCount
+					if a.AddressCount == 0 || b.AddressCount == 0 {
+						chain24HourStat.Address24hPercent = 0
+					} else {
+						chain24HourStat.Address24hPercent = a.AddressCount / b.AddressCount
+					}
 					partA := a.BalanceSum.IntPart()
 					partB := b.BalanceSum.IntPart()
-					chain24HourStat.Balance24hPercent = uint32(partA / partB)
-					chain24HourStat.Tick24hPercent = a.InscriptionsCount / b.InscriptionsCount
+					if partA == 0 || partB == 0 {
+						chain24HourStat.Balance24hPercent = 0
+					} else {
+						chain24HourStat.Balance24hPercent = uint32(partA / partB)
+					}
+					if a.InscriptionsCount == 0 || b.InscriptionsCount == 0 {
+						chain24HourStat.Tick24hPercent = 0
+					} else {
+						chain24HourStat.Tick24hPercent = a.InscriptionsCount / b.InscriptionsCount
+					}
+
 				}
 			}
 			result = append(result, chain24HourStat)
 		}
 	}
 	return result, nil
+}
+
+func (s *Service) GetChainBlockStat(chain string) (interface{}, error) {
+
+	cacheKey := fmt.Sprintf("chain_block_stat_%s", chain)
+	if ins, ok := s.rpcServer.cacheStore.Get(cacheKey); ok {
+		if allIns, ok := ins.([]model.ChainBlockStat); ok {
+			return allIns, nil
+		}
+	}
+
+	block, err := s.rpcServer.dbc.FindLastBlock(chain)
+	endTime := time.Now()
+	if block != nil {
+		endTime = block.BlockTime
+	}
+	startTime := endTime.Add(-120 * time.Hour)
+	stat, err := s.rpcServer.dbc.GroupChainBlockStat(startTime, endTime, 0, chain)
+	if err != nil {
+		return ErrRPCInternal, err
+	}
+	s.rpcServer.cacheStore.Set(cacheKey, stat)
+
+	return stat, nil
+}
+
+func (s *Service) GetChainInfo(chain string) (interface{}, error) {
+	chainInfo, err := s.rpcServer.dbc.GetChainInfoByChain(chain)
+	if err != nil {
+		return ErrRPCInternal, err
+	}
+	info := model.ChainInfo{
+		ID:         chainInfo.ID,
+		ChainId:    chainInfo.ChainId,
+		Chain:      chainInfo.Chain,
+		OuterChain: chainInfo.OuterChain,
+		Name:       chainInfo.Name,
+		Logo:       chainInfo.Logo,
+		NetworkId:  chainInfo.NetworkId,
+		Ext:        chainInfo.Ext,
+		UpdatedAt:  chainInfo.UpdatedAt,
+		CreatedAt:  chainInfo.CreatedAt,
+	}
+
+	chainInfoExt := &model.ChainInfoExt{
+		ChainInfo:    info,
+		TickCount:    s.rpcServer.dbc.CountTickByChain(chain),
+		AddressCount: 0,
+		MintCount:    0,
+	}
+	return chainInfoExt, nil
 }

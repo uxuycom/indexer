@@ -67,3 +67,14 @@ type Chain24HourStat struct {
 	Balance24h        decimal.Decimal `json:"balance_24h"`
 	Balance24hPercent uint32          `json:"balance_24h_percent"`
 }
+
+type ChainBlockStat struct {
+	BlockHeight      uint64    `json:"block_height" gorm:"column:block_height"`
+	TickCount        uint32    `json:"tick_count" gorm:"column:tick_count"`
+	TransactionCount uint32    `json:"transaction_count" gorm:"column:transaction_count"`
+	CreatedAt        time.Time `json:"created_at" gorm:"column:created_at"`
+}
+
+func (ChainBlockStat) TableName() string {
+	return "txs"
+}

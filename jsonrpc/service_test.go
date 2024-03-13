@@ -20,43 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //SOFTWARE
 
-package model
+package jsonrpc
 
-import "time"
-
-type ChainGroup string
-
-const (
-	EvmChainGroup ChainGroup = "evm"
-	BtcChainGroup ChainGroup = "btc"
+import (
+	"github.com/ethereum/go-ethereum/common"
+	"testing"
 )
 
-const (
-	ChainBTC  string = "btc"
-	ChainAVAX string = "avalanche"
-)
-
-type ChainInfo struct {
-	ID         int64     `gorm:"primaryKey" json:"id"`
-	ChainId    int64     `json:"chain_id" gorm:"column:chain_id"`
-	Chain      string    `json:"chain" gorm:"column:chain"`
-	OuterChain string    `json:"outer_chain" gorm:"column:outer_chain"`
-	Name       string    `json:"name" gorm:"column:name"`
-	Logo       string    `json:"logo" gorm:"column:logo"`
-	NetworkId  int64     `json:"network_id" gorm:"column:network_id"`
-	Ext        string    `json:"ext" gorm:"column:ext"`
-	CreatedAt  time.Time `json:"created_at" gorm:"column:created_at"`
-	UpdatedAt  time.Time `json:"updated_at" gorm:"column:updated_at"`
-}
-
-type ChainInfoExt struct {
-	TickCount    int64 `json:"tick_count"`
-	AddressCount int64 `json:"address_count"`
-	DeployCount  int64 `json:"deploy_count"`
-	MintCount    int64 `json:"mint_count"`
-	ChainInfo
-}
-
-func (ChainInfo) TableName() string {
-	return "chain_info"
+func Test_TxHash(t *testing.T) {
+	hash := []byte("0x7ffc56b2bf20f4f3474c1fd503fc3f1fb9066c8b0665d6da11185cac892108a5")
+	t.Logf("tx_hash=%v", common.Bytes2Hex(hash))
 }

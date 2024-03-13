@@ -113,6 +113,7 @@ type InscriptionBrief struct {
 	Tick          string `json:"tick"`
 	DeployBy      string `json:"deploy_by"`
 	DeployHash    string `json:"deploy_hash"`
+	DeployTime    uint32 `json:"deploy_time"`
 	TotalSupply   string `json:"total_supply"`
 	MintedPercent string `json:"minted_percent"`
 	LimitPerMint  string `json:"limit_per_mint"`
